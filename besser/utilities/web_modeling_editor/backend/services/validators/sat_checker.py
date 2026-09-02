@@ -1,10 +1,14 @@
 """
-SAT based semantic consistency checker for UML-BESSER class diagrams.
+Semantic consistency checker (SAT-based) for UML-BESSER class diagrams.
 
-This module contains functions that:
-- implement the translation from UML-BESSER class diagrams and OCL constraints into Alloy,
-- use Alloy to generate bounded instances as witnesses of satisfiability/consistency
-- translate Alloy instances into UML object diagrams.
+This module orchestrates the web editor's semantic consistency workflows:
+- conversion of frontend class diagram JSON into a BUML model,
+- structural and OCL constraint validation of the model,
+- SAT/consistency checking via the Alloy solver (delegated to the
+  ``alloy_solver`` module) across increasingly larger scopes,
+- conversion of satisfying Alloy instances back into frontend ObjectDiagram JSON.
+
+Results are streamed as Server-Sent Events (SSE).
 """
 
 import asyncio
@@ -13,22 +17,17 @@ import logging
 import os
 import tempfile
 from collections.abc import AsyncGenerator
-from contextlib import nullcontext
-from pathlib import Path
 from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy_generator import (
-    AlloySolver,
-    AlloyToBesserConverter,
+    alloy_xml_to_frontend_object_model,
     resolve_first_instance_xml,
+    run_alloy_sat_validation,
 )
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
     process_class_diagram,
-)
-from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json.object_diagram_converter import (
-    object_buml_to_json,
 )
 from besser.utilities.web_modeling_editor.backend.services.validators.ocl_checker import (
     check_ocl_constraint,
@@ -39,21 +38,6 @@ logger = logging.getLogger(__name__)
 SCOPE_STEPS = [5, 8, 9, 10]  # Scopes to be used when checking semantic consistency
 TIMEOUT_SECONDS = 50
 
-
-#----------------------------------------------------------------------
-
-def _alloy_xml_to_frontend_object_model(
-    xml_instance_path: str, reference_class_model: dict[str, Any]
-) -> dict[str, Any]:
-    """
-    Converts an Alloy instance into an object diagram.
-    
-    The Alloy instance is received in XML format. The result is provided
-    in the JSON format for ObjectDiagram, expected by the frontend.
-    """ 
-    converter = AlloyToBesserConverter(xml_instance_path)
-    converter.parse_xml()
-    return converter.to_json(reference_class_model)
 
 #----------------------------------------------------------------------
 def convert_json_to_buml(input_data: DiagramInput) -> DomainModel | dict[str, Any]:
@@ -137,50 +121,6 @@ def validate_ocl_constraints(
     return all_warnings, None
 
 #----------------------------------------------------------------------
-def run_alloy_sat_validation(
-    buml_model: DomainModel,
-    all_warnings: list[str] | None = None,
-    scope: int = 5,
-    output_type: str = "json",
-    temp_dir: str | None = None,
-) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
-    """
-    Translates UMLB class diagram and OCL constraints into Alloy specification,
-    executes Alloy Analyzer to check for consistency, 
-    and parses the Alloy consistency check result. 
-
-    Delegates consistency checkint to AlloySolver.run_sat_validation().
-
-    Result is (parsed_data, error_response, exec_output_dir), where
-    - parsed_data indicates sat/unsat outcome,
-    - error_response contains errors when validation fails,
-    - exec_output_dir is the directory where the obtained SAT instances are placed
-    by the Alloy Analyzer.
-    """
-    warnings = all_warnings or []
-    cm = tempfile.TemporaryDirectory() if temp_dir is None else nullcontext(temp_dir)
-    with cm as td:
-        try:
-            solver = AlloySolver(buml_model, scope=scope, output_dir=td)
-            parsed, error, exec_output_dir = solver.run_sat_validation(
-                structural_warnings=warnings, output_type=output_type, temp_dir=td,
-            )
-            if error:
-                return None, {**error, "warnings": warnings}, exec_output_dir
-            return parsed, None, exec_output_dir
-        except ValueError as exc:
-            # OCL-to-Alloy translation errors (e.g. self.allInstances()) surface
-            # during AlloySolver construction / generation. Surface them as a
-            # regular error response so the SSE streams can report them instead
-            # of letting the exception escape the async generator.
-            msg = str(exc)
-            return None, {
-                "sat": None,
-                "isValid": False,
-                "message": msg,
-                "errors": [msg] if msg else [],
-                "warnings": warnings,
-            }, str(td)
 
 async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGenerator[str, None]:
     """
@@ -402,7 +342,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                     return
 
                 object_model = await loop.run_in_executor(
-                    None, _alloy_xml_to_frontend_object_model, xml_instance_path, input_data.model
+                    None, alloy_xml_to_frontend_object_model, xml_instance_path, input_data.model
                 )
             except Exception as exc:
                 logger.exception("Failed to convert Alloy instance to frontend ObjectDiagram")
