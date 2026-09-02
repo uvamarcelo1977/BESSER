@@ -344,14 +344,14 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
             }
 
         # Look for object links/relationships
-        # Map each association end (class + role) to its relationship id using
-        # exact matches.  Class-based keys avoid substring collisions between
+        # Map each association end (class + role) to its (relationship id, orientation)
+        # using exact matches. Class-based keys avoid substring collisions between
         # roles shared by several associations (e.g. role "subject" in two
-        # different relationships).  A link generated from an Alloy field
+        # different relationships). A link generated from an Alloy field
         # ``<Class>_<role>`` starts at an object of class *Class* using the role
-        # of the *other* end, so the key is (source class, target role) and
-        # (target class, source role).
-        association_end_map: dict[tuple, str] = {}
+        # of the *other* end, so (source class, target role) navigates to the target end,
+        # and (target class, source role) navigates to the source end.
+        association_end_map: dict[tuple, tuple[str | None, str | None]] = {}
         for rel_id, rel in reference_diagram_json["relationships"].items():
             if rel["type"] not in ("ClassBidirectional", "ClassUnidirectional"):
                 continue
@@ -368,14 +368,19 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
             src_role = rel.get("source", {}).get("role", "")
             tgt_role = rel.get("target", {}).get("role", "")
 
-            for key in ((src_class, tgt_role), (tgt_class, src_role)):
-                if key[0] and key[1]:
-                    if key in association_end_map and association_end_map[key] != rel_id:
-                        # Ambiguous role reused by another association: leave
-                        # unmapped so the dedup below never collapses unrelated links.
-                        association_end_map[key] = None
-                    else:
-                        association_end_map[key] = rel_id
+            if src_class and tgt_role:
+                key = (src_class, tgt_role)
+                if key in association_end_map and association_end_map[key][0] != rel_id:
+                    association_end_map[key] = (None, None)
+                else:
+                    association_end_map[key] = (rel_id, "target")
+
+            if tgt_class and src_role:
+                key = (tgt_class, src_role)
+                if key in association_end_map and association_end_map[key][0] != rel_id:
+                    association_end_map[key] = (None, None)
+                else:
+                    association_end_map[key] = (rel_id, "source")
 
         # Map each class to its direct parent via ClassInheritance (source is
         # the subclass, target the superclass).  Links produced from an
@@ -402,9 +407,9 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
         # Deduplicate object links.  A bidirectional association appears in the
         # Alloy XML as two fields (one per role), which the step-3 converter
         # turns into two setattr lines for the same association.  Collapse them
-        # by (association, unordered object pair) so each association yields a
-        # single link, while distinct associations between the same objects keep
-        # one link each.
+        # by (association, ordered link endpoints) so each link is emitted once,
+        # while opposing links of a reflexive association or multiple links keep
+        # their distinct identity.
         link_keys: set[tuple] = set()
 
         for node in ast.walk(tree):
@@ -425,22 +430,31 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
 
                 if source_id and target_id:
                     source_class = object_class_mapping.get(obj_name)
-                    assoc_id = association_end_map.get((source_class, relationship_name))
-                    if assoc_id is None:
+                    assoc_info = association_end_map.get((source_class, relationship_name))
+                    if assoc_info is None or assoc_info[0] is None:
                         # The field is declared on an ancestor class; follow the
                         # inheritance chain to resolve its association id.
                         ancestor = class_parents.get(source_class) if source_class else None
                         while ancestor:
-                            assoc_id = association_end_map.get((ancestor, relationship_name))
-                            if assoc_id is not None:
+                            assoc_info = association_end_map.get((ancestor, relationship_name))
+                            if assoc_info is not None and assoc_info[0] is not None:
                                 break
                             ancestor = class_parents.get(ancestor)
 
-                    # Canonical key: association (when known) + unordered object pair
-                    canonical = (
-                        (assoc_id, relationship_name) if assoc_id is None else (assoc_id,),
-                        frozenset([source_id, target_id]),
-                    )
+                    assoc_id, orientation = assoc_info if assoc_info else (None, None)
+
+                    # Canonical key: association (when known) + ordered object pair
+                    if assoc_id is not None:
+                        if orientation == "target":
+                            ordered_pair = (source_id, target_id)
+                        elif orientation == "source":
+                            ordered_pair = (target_id, source_id)
+                        else:
+                            ordered_pair = (source_id, target_id)
+                        canonical = (assoc_id, ordered_pair)
+                    else:
+                        canonical = (relationship_name, (source_id, target_id))
+
                     if canonical in link_keys:
                         continue
                     link_keys.add(canonical)

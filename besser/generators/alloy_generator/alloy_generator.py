@@ -8,11 +8,7 @@ from besser.BUML.metamodel.structural import (
     Enumeration,
 )
 from besser.generators import GeneratorInterface
-from besser.generators.alloy_generator.translate_ocl_alloy import TranslatorState
-from besser.generators.alloy_generator.utils_alloy import (
-    collect_enumerations,
-    generate_date_block,
-)
+from besser.generators.alloy_generator.utils_alloy import generate_date_block
 
 class AlloyGenerator(GeneratorInterface):
     """
@@ -45,60 +41,7 @@ class AlloyGenerator(GeneratorInterface):
             lstrip_blocks=True,
             extensions=["jinja2.ext.do"],
         )
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
-
-    def _render_spec(
-        self,
-        basic_signatures: set,
-        sigs_nv: list[str],
-        enums: dict,
-        estado: TranslatorState,
-        date_block: str,
-        facts_rules: list[str],
-    ) -> str:
-        """
-        Renders all Jinja2 templates and appends association facts.
-
-        Returns:
-            The complete ``.als`` specification as a single string.
-        """
-        parts: list[str] = []
-
-        template = self.env.get_template("alloy_signatures_basic.j2")
-        initial_signatures = template.render(
-            basic_signatures=basic_signatures,
-            enum_types={x for x in self.model.elements if isinstance(x, Enumeration)},
-            has_date_values=bool(estado.dates) or ("date" in basic_signatures),
-        )
-        parts.append(initial_signatures)
-        if date_block:
-            parts.append(date_block)
-
-        for class_obj in self.model.classes_sorted_by_inheritance():
-            template = self.env.get_template("alloy_model.j2")
-            relevant_associations = [
-                assoc for assoc in self.model.associations
-                if any(end.type.name == class_obj.name for end in assoc.ends)
-            ]
-            generated_code = template.render(class_obj=class_obj, associations=relevant_associations)
-            parts.append(generated_code)
-
-        template = self.env.get_template("alloy_final_als.j2")
-        final = template.render(
-            fun_types=[],
-            constraints=self.model.constraints,
-            sigsnv=sigs_nv,
-            scope=self.scope,
-        )
-        parts.append(final)
-
-        if facts_rules:
-            parts.append("\n" + "\n".join(facts_rules))
-
-        return "".join(parts)
+        self.template = self.env.get_template("alloy_spec.j2")
 
     # ------------------------------------------------------------------
     # Public API
@@ -126,11 +69,32 @@ class AlloyGenerator(GeneratorInterface):
             build_inheritance_and_attribute_maps(self.model)
         )
         facts_rules = process_associations(self.model, data)
-        enums = collect_enumerations(self.model)
+
+        enum_types = {el for el in self.model.elements if isinstance(el, Enumeration)}
+        enums = {e.name: {lit.name for lit in (e.literals or set())} for e in enum_types}
+
         estado = translate_constraints(self.model, inherits_from, data, enums)
         date_block = generate_date_block(estado, basic_signatures, self.scope)
-        spec = self._render_spec(
-            basic_signatures, sigs_nv, enums, estado, date_block, facts_rules
+
+        classes = self.model.classes_sorted_by_inheritance()
+        associations_by_class = {c.name: [] for c in classes}
+        for assoc in self.model.associations:
+            for end in assoc.ends:
+                if end.type.name in associations_by_class:
+                    if assoc not in associations_by_class[end.type.name]:
+                        associations_by_class[end.type.name].append(assoc)
+
+        spec = self.template.render(
+            basic_signatures=basic_signatures,
+            enum_types=enum_types,
+            has_date_values=bool(estado.dates) or ("date" in basic_signatures),
+            date_block=date_block,
+            classes=classes,
+            associations_by_class=associations_by_class,
+            constraints=self.model.constraints,
+            sigsnv=sigs_nv,
+            scope=self.scope,
+            facts_rules=facts_rules,
         )
 
         with open(file_path, mode="w", encoding="utf-8") as f:

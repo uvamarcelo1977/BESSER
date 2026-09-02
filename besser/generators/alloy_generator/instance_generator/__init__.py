@@ -1,5 +1,4 @@
-from .alloy_generator import AlloyGenerator
-from .instance_generator import (
+from .alloy_solver import (
     AlloySolver,
     AlloyToBesserConverter,
     BUMLModelIntegrator,
@@ -7,7 +6,6 @@ from .instance_generator import (
 )
 
 __all__ = [
-    "AlloyGenerator",
     "AlloySolver",
     "AlloyToBesserConverter",
     "BUMLModelIntegrator",

@@ -12,15 +12,16 @@ import json
 import logging
 import os
 import tempfile
-from collections.abc import AsyncGenerator, Iterable
+from collections.abc import AsyncGenerator
 from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
-from besser.generators.alloy_generator.instance_generator.alloy_solver import AlloySolver
-from besser.generators.alloy_generator.step_3_alloy_to_buml import (
+from besser.generators.alloy_generator import (
+    AlloySolver,
     AlloyToBesserConverter,
+    resolve_first_instance_xml,
 )
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
@@ -39,39 +40,6 @@ SCOPE_STEPS = [5, 8, 9, 10]  # Scopes to be used when checking semantic consiste
 TIMEOUT_SECONDS = 50
 
 
-def _resolve_first_instance_xml(exec_output_dir: str, solutions: list[dict[str, Any]]) -> str | None:
-    """
-    Retrieves the first instance, resulting from an Alloy satisfiability check, in XML format, None if
-    no such instance exists.
-    """
-    base_path = Path(exec_output_dir)
-
-    def _iter_solution_xml_paths() -> Iterable[Path]:
-        for solution in solutions or []:
-            for instance in solution.get("instances", []) or []:
-                if isinstance(instance, str):
-                    yield Path(instance)
-                    continue
-
-                if isinstance(instance, dict):
-                    for key in ("xml", "path", "file", "instance", "filename"):
-                        value = instance.get(key)
-                        if isinstance(value, str):
-                            yield Path(value)
-                            break
-
-    for xml_path in _iter_solution_xml_paths():
-        candidate = xml_path if xml_path.is_absolute() else (base_path / xml_path)
-        if candidate.suffix.lower() == ".xml" and candidate.exists() and candidate.is_file():
-            return str(candidate.resolve())
-
-    # Fallback: pick the first XML in filesystem order (deterministic).
-    xml_candidates = sorted(base_path.rglob("*.xml"))
-    if xml_candidates:
-        return str(xml_candidates[0])
-
-    return None
-
 #----------------------------------------------------------------------
 
 def _alloy_xml_to_frontend_object_model(
@@ -85,8 +53,7 @@ def _alloy_xml_to_frontend_object_model(
     """ 
     converter = AlloyToBesserConverter(xml_instance_path)
     converter.parse_xml()
-    object_buml_code = converter.generate_object_diagram_code()
-    return object_buml_to_json(object_buml_code, reference_class_model)
+    return converter.to_json(reference_class_model)
 
 #----------------------------------------------------------------------
 def convert_json_to_buml(input_data: DiagramInput) -> DomainModel | dict[str, Any]:
@@ -416,7 +383,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
             loop = asyncio.get_event_loop()
             try:
                 xml_instance_path = await loop.run_in_executor(
-                    None, _resolve_first_instance_xml, exec_output_dir, solutions
+                    None, resolve_first_instance_xml, exec_output_dir, solutions
                 )
                 if not xml_instance_path:
                     logger.warning("SAT=true but no Alloy XML instance was found in %s", exec_output_dir)

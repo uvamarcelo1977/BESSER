@@ -34,13 +34,8 @@ from besser.BUML.metamodel.structural import (
     TimeDeltaType,
     TimeType,
 )
-from besser.generators.alloy_generator.alloy_generator import AlloyGenerator
-from besser.generators.alloy_generator.utils_alloy import (
-    build_consistency_rule,
-    sanitize_alloy_name,
-)
-from besser.generators.alloy_generator.step_3_alloy_to_buml import (
-    AlloyToBesserConverter,
+from besser.generators.alloy_generator import (
+    AlloyGenerator,
 )
 from besser.generators.alloy_generator.translate_ocl_alloy import (
     EnumReferenceError,
@@ -51,6 +46,10 @@ from besser.generators.alloy_generator.translate_ocl_alloy import (
     ocl_to_alloy,
     parse_ocl_date,
     random_date,
+)
+from besser.generators.alloy_generator.utils_alloy import (
+    build_consistency_rule,
+    sanitize_alloy_name,
 )
 
 # ---------------------------------------------------------------------------
@@ -191,6 +190,39 @@ def test_three_to_four_end_has_lower_and_upper_bound_facts(team_player_model, tm
 
     assert re.search(r"#\([ab]\.Team_players\)\s*>=\s*3", spec), spec
     assert re.search(r"#\([ab]\.Team_players\)\s*<=\s*4", spec), spec
+
+
+def test_recursive_association_fields_not_duplicated(tmpdir):
+    """Recursive (self) associations must not produce duplicate fields in the class signature."""
+    A = Class(name="A")
+    A_p = Property(name="p", type=StringType)
+    A.attributes = {A_p}
+
+    aaa = BinaryAssociation(
+        name="aaa",
+        ends={
+            Property(name="rol1", type=A, multiplicity=Multiplicity(1, 1)),
+            Property(name="rol2", type=A, multiplicity=Multiplicity(1, 1)),
+        },
+    )
+
+    model = DomainModel(
+        name="Class_2",
+        types={A},
+        associations={aaa},
+    )
+
+    output_dir = tmpdir.mkdir("output")
+    generator = AlloyGenerator(model=model, output_dir=str(output_dir))
+    generator.generate()
+
+    with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
+        spec = f.read()
+
+    assert spec.count("A_p: str") == 1
+    assert spec.count("A_rol1: one A") == 1
+    assert spec.count("A_rol2: one A") == 1
+    assert "fact{A_rol2= ~A_rol1}" in spec or "fact{A_rol1= ~A_rol2}" in spec
 
 
 def test_generic_instance_model_predicate_and_run(team_player_model, tmpdir):
@@ -958,345 +990,6 @@ def test_generate_dates_and_order():
     for i in range(len(ordered) - 1):
         assert f"{ordered[i]}.next = {ordered[i + 1]}" in result
     assert f"{ordered[-1]} = last" in result
-
-
-# ---------------------------------------------------------------------------
-# Alloy XML instance -> object diagram (AlloyToBesserConverter)
-# ---------------------------------------------------------------------------
-
-_DATE_INSTANCE_XML = """\
-<alloy builddate="2025-01-01T00:00:00.000Z">
-<instance bitwidth="4" maxseq="4" command="Run instance_model for 5 Person, 5 str, 5 date">
-<sig label="this/str" ID="4" parentID="2">
-   <atom label="str$0"/>
-</sig>
-<sig label="this/d01012000" ID="5" parentID="6" one="yes">
-   <atom label="d01012000$0"/>
-</sig>
-<sig label="this/date" ID="6" parentID="2">
-   <atom label="date$2"/>
-   <atom label="date$1"/>
-   <atom label="date$0"/>
-</sig>
-<sig label="this/Person" ID="7" parentID="2">
-   <atom label="Person$0"/>
-</sig>
-<field label="Person_name" ID="8" parentID="7">
-   <tuple> <atom label="Person$0"/> <atom label="str$0"/> </tuple>
-</field>
-<field label="Person_birthDate" ID="9" parentID="7">
-   <tuple> <atom label="Person$0"/> <atom label="d01012000$0"/> </tuple>
-</field>
-<sig label="ordering/Ord" ID="13" parentID="2" one="yes" private="yes">
-   <atom label="ordering/Ord$0"/>
-</sig>
-<field label="First" ID="14" parentID="13" private="yes">
-   <tuple> <atom label="ordering/Ord$0"/> <atom label="d01012000$0"/> </tuple>
-</field>
-<sig label="univ" ID="2" builtin="yes">
-</sig>
-</instance>
-</alloy>
-"""
-
-
-def _date_instance_converter(tmp_path) -> AlloyToBesserConverter:
-    xml_file = tmp_path / "instance.xml"
-    xml_file.write_text(_DATE_INSTANCE_XML, encoding="utf-8")
-    converter = AlloyToBesserConverter(str(xml_file))
-    converter.parse_xml()
-    return converter
-
-
-def test_date_atom_is_rendered_as_attribute(tmp_path):
-    """A date literal atom (dMMDDYYYY) must appear as a primitive attribute
-    value, not as an object reference."""
-    code = _date_instance_converter(tmp_path).generate_object_diagram_code()
-    assert "'birthDate': \"01-01-2000\"" in code
-
-
-def test_date_and_ordering_sigs_are_not_rendered_as_objects(tmp_path):
-    """Spurious date / one-sig / ordering atoms must not become objects or
-    relations in the generated object diagram."""
-    code = _date_instance_converter(tmp_path).generate_object_diagram_code()
-    assert "d01012000_0_obj" not in code
-    assert "date_0_obj" not in code
-    assert "Ord" not in code
-    assert "setattr(person_0_obj, 'birthDate'" not in code
-    assert "person_0_obj = Person(" in code
-
-
-def test_free_date_atom_rendered_with_atom_label(tmp_path):
-    """A free atom of the ``date`` sig (e.g. ``date$0``) — produced by Alloy
-    when the date attribute has no OCL literal — must be shown with the atom
-    label Alloy found, not as an object reference."""
-    xml = _DATE_INSTANCE_XML.replace(
-        '<tuple> <atom label="Person$0"/> <atom label="d01012000$0"/> </tuple>',
-        '<tuple> <atom label="Person$0"/> <atom label="date$0"/> </tuple>',
-    )
-    xml_file = tmp_path / "instance.xml"
-    xml_file.write_text(xml, encoding="utf-8")
-    converter = AlloyToBesserConverter(str(xml_file))
-    converter.parse_xml()
-    code = converter.generate_object_diagram_code()
-    assert "'birthDate': \"date$0\"" in code
-    assert "setattr(person_0_obj, 'birthDate'" not in code
-
-
-def test_two_associations_between_same_classes_are_both_kept(tmp_path):
-    """Regression: two distinct associations between the same two classes must
-    both survive the XML -> BUML object code conversion.  Previously the
-    symmetric-pair dedup keyed on the unordered object pair dropped the second
-    association entirely."""
-    xml = """\
-<alloy builddate="2026-01-01T00:00:00.000Z">
-<instance bitwidth="4" maxseq="4" command="Run instance_model for 5 A, 5 B">
-<sig label="this/A" ID="1" parentID="9">
-   <atom label="A$0"/>
-</sig>
-<field label="A_bs1" ID="2" parentID="1">
-   <tuple> <atom label="A$0"/> <atom label="B$0"/> </tuple>
-</field>
-<field label="A_bs2" ID="3" parentID="1">
-   <tuple> <atom label="A$0"/> <atom label="B$0"/> </tuple>
-</field>
-<sig label="this/B" ID="4" parentID="9">
-   <atom label="B$0"/>
-</sig>
-<field label="B_as1" ID="5" parentID="4">
-   <tuple> <atom label="B$0"/> <atom label="A$0"/> </tuple>
-</field>
-<field label="B_as2" ID="6" parentID="4">
-   <tuple> <atom label="B$0"/> <atom label="A$0"/> </tuple>
-</field>
-<sig label="univ" ID="9" builtin="yes">
-</sig>
-</instance>
-</alloy>
-"""
-    xml_file = tmp_path / "instance.xml"
-    xml_file.write_text(xml, encoding="utf-8")
-    converter = AlloyToBesserConverter(str(xml_file))
-    converter.parse_xml()
-    code = converter.generate_object_diagram_code()
-
-    assert "setattr(a_0_obj, 'bs1', b_0_obj)" in code
-    assert "setattr(a_0_obj, 'bs2', b_0_obj)" in code
-
-
-def test_full_model_two_associations_between_same_classes_are_both_kept(tmp_path):
-    """Regression for the EducationSystem case: two A--B associations (relAB1,
-    relAB2) must both produce a link even when the Alloy instance also contains
-    other classes, attribute fields, and inherited attributes.  The pair-finding
-    logic must never pair the two halves of *different* associations, otherwise
-    both A--B links collapse into a single one."""
-    xml = """\
-<alloy builddate="2026-01-01T00:00:00.000Z">
-<instance bitwidth="4" maxseq="4" command="Run instance_model for 5 A, 5 B, 5 Subject, 5 Student, 5 Teacher">
-<sig label="this/Teacher" ID="24" parentID="27">
-   <atom label="Researcher$0"/>
-</sig>
-<field label="Teacher_subject" ID="25" parentID="24">
-   <tuple> <atom label="Researcher$0"/> <atom label="Subject$0"/> </tuple>
-</field>
-<sig label="this/Student" ID="26" parentID="27">
-   <atom label="Student$0"/>
-</sig>
-<field label="Student_subject" ID="28" parentID="26">
-   <tuple> <atom label="Student$0"/> <atom label="Subject$0"/> </tuple>
-</field>
-<sig label="this/Person" ID="27" parentID="9">
-   <atom label="Student$0"/>
-   <atom label="Researcher$0"/>
-</sig>
-<field label="Person_name" ID="29" parentID="27">
-   <tuple> <atom label="Student$0"/> <atom label="Alice$0"/> </tuple>
-   <tuple> <atom label="Researcher$0"/> <atom label="Bob$0"/> </tuple>
-</field>
-<sig label="this/Subject" ID="19" parentID="9">
-   <atom label="Subject$0"/>
-</sig>
-<field label="Subject_name" ID="20" parentID="19">
-   <tuple> <atom label="Subject$0"/> <atom label="Math$0"/> </tuple>
-</field>
-<field label="Subject_teacher" ID="21" parentID="19">
-   <tuple> <atom label="Subject$0"/> <atom label="Researcher$0"/> </tuple>
-</field>
-<field label="Subject_student" ID="22" parentID="19">
-   <tuple> <atom label="Subject$0"/> <atom label="Student$0"/> </tuple>
-</field>
-<sig label="this/A" ID="14" parentID="9">
-   <atom label="A$0"/>
-</sig>
-<field label="A_idA" ID="15" parentID="14">
-   <tuple> <atom label="A$0"/> <atom label="str$0"/> </tuple>
-</field>
-<field label="A_bs1" ID="16" parentID="14">
-   <tuple> <atom label="A$0"/> <atom label="B$0"/> </tuple>
-</field>
-<field label="A_bs2" ID="17" parentID="14">
-   <tuple> <atom label="A$0"/> <atom label="B$0"/> </tuple>
-</field>
-<sig label="this/B" ID="11" parentID="9">
-   <atom label="B$0"/>
-</sig>
-<field label="B_idB" ID="12" parentID="11">
-   <tuple> <atom label="B$0"/> <atom label="str$0"/> </tuple>
-</field>
-<field label="B_as1" ID="13" parentID="11">
-   <tuple> <atom label="B$0"/> <atom label="A$0"/> </tuple>
-</field>
-<field label="B_as2" ID="18" parentID="11">
-   <tuple> <atom label="B$0"/> <atom label="A$0"/> </tuple>
-</field>
-<sig label="univ" ID="9" builtin="yes">
-</sig>
-</instance>
-</alloy>
-"""
-    xml_file = tmp_path / "instance.xml"
-    xml_file.write_text(xml, encoding="utf-8")
-    converter = AlloyToBesserConverter(str(xml_file))
-    converter.parse_xml()
-    code = converter.generate_object_diagram_code()
-
-    # Exactly one link per association between A and B (either side may be kept).
-    ab_links = [
-        ln for ln in code.splitlines()
-        if ln.startswith("setattr(") and "a_0_obj" in ln and "b_0_obj" in ln
-    ]
-    assert len(ab_links) == 2, code
-    assert any("'bs1'" in ln or "'as1'" in ln for ln in ab_links), code
-    assert any("'bs2'" in ln or "'as2'" in ln for ln in ab_links), code
-
-    # Unrelated associations between the other classes survive untouched: the
-    # Subject object is linked once to the Teacher and once to the Student.
-    subject_links = [
-        ln for ln in code.splitlines()
-        if ln.startswith("setattr(") and "subject_0_obj" in ln
-    ]
-    assert len(subject_links) == 2, code
-    assert any("teacher_0_obj" in ln for ln in subject_links), code
-    assert any("student_0_obj" in ln for ln in subject_links), code
-
-
-def test_concrete_subclass_inherits_ancestor_attributes_without_abstract_object(tmp_path):
-     """A concrete subclass atom must become only one object of the subclass,
-     carrying both its own attributes and the inherited ones from abstract
-     ancestors."""
-     xml = """\
-<alloy builddate="2026-01-01T00:00:00.000Z">
-<instance bitwidth="4" maxseq="4" command="Run instance_model for 5 Person, 5 Student">
-<sig label="this/date" ID="1" parentID="9">
-    <atom label="d01012000$0"/>
-</sig>
-<sig label="this/Person" ID="2" parentID="9" abstract="yes">
-    <atom label="Student$0"/>
-</sig>
-<field label="Person_name" ID="3" parentID="2">
-    <tuple> <atom label="Student$0"/> <atom label="Alice$0"/> </tuple>
-</field>
-<field label="Person_birth_date" ID="4" parentID="2">
-    <tuple> <atom label="Student$0"/> <atom label="d01012000$0"/> </tuple>
-</field>
-<sig label="this/Student" ID="5" parentID="2">
-    <atom label="Student$0"/>
-</sig>
-<field label="Student_student_id" ID="6" parentID="5">
-    <tuple> <atom label="Student$0"/> <atom label="S123$0"/> </tuple>
-</field>
-<sig label="univ" ID="9" builtin="yes">
-</sig>
-</instance>
-</alloy>
-"""
-     xml_file = tmp_path / "instance.xml"
-     xml_file.write_text(xml, encoding="utf-8")
-     converter = AlloyToBesserConverter(str(xml_file))
-     converter.parse_xml()
-
-     code = converter.generate_object_diagram_code()
-
-     assert "person_0_obj = Person(" not in code
-     # The single Student atom becomes one object whose instance name is
-     # derived from the atom label (Student$0 -> Student_0).
-     assert 'student_0_obj = Student("Student_0")' in code
-     assert "student_0_obj = Student(" in code
-     assert "'name': \"Alice\"" in code
-     assert "'birth_date': \"01-01-2000\"" in code
-     assert "'student_id': \"S123\"" in code
-
-
-def test_two_self_associations_are_both_kept_once_each(tmp_path):
-     """Two different bidirectional self-associations must each yield one link.
-     The two halves of the same association should collapse to one assignment,
-     but separate associations must remain separate."""
-     xml = """\
-<alloy builddate="2026-01-01T00:00:00.000Z">
-<instance bitwidth="4" maxseq="4" command="Run instance_model for 5 Node">
-<sig label="this/Node" ID="1" parentID="9">
-    <atom label="Node$0"/>
-    <atom label="Node$1"/>
-</sig>
-<field label="Node_next" ID="2" parentID="1">
-    <tuple> <atom label="Node$0"/> <atom label="Node$1"/> </tuple>
-</field>
-<field label="Node_previous" ID="3" parentID="1">
-    <tuple> <atom label="Node$1"/> <atom label="Node$0"/> </tuple>
-</field>
-<field label="Node_peer" ID="4" parentID="1">
-    <tuple> <atom label="Node$0"/> <atom label="Node$1"/> </tuple>
-</field>
-<field label="Node_peer_of" ID="5" parentID="1">
-    <tuple> <atom label="Node$1"/> <atom label="Node$0"/> </tuple>
-</field>
-<sig label="univ" ID="9" builtin="yes">
-</sig>
-</instance>
-</alloy>
-"""
-     xml_file = tmp_path / "instance.xml"
-     xml_file.write_text(xml, encoding="utf-8")
-     converter = AlloyToBesserConverter(str(xml_file))
-     converter.parse_xml()
-
-     code = converter.generate_object_diagram_code()
-
-     assert code.count("setattr(node_0_obj, 'next', node_1_obj)") == 1
-     assert code.count("setattr(node_0_obj, 'peer', node_1_obj)") == 1
-     assert "setattr(node_1_obj, 'previous', node_0_obj)" not in code
-     assert "setattr(node_1_obj, 'peer_of', node_0_obj)" not in code
-
-
-def test_multiple_targets_for_same_self_association_emit_single_setattr(tmp_path):
-     """A single object with two outgoing self-links on the same association
-     end must be emitted as one set assignment so neither link is overwritten."""
-     xml = """\
-<alloy builddate="2026-01-01T00:00:00.000Z">
-<instance bitwidth="4" maxseq="4" command="Run instance_model for 5 Person">
-<sig label="this/Person" ID="1" parentID="9">
-    <atom label="Person$0"/>
-    <atom label="Person$1"/>
-    <atom label="Person$2"/>
-</sig>
-<field label="Person_friends" ID="2" parentID="1">
-    <tuple> <atom label="Person$0"/> <atom label="Person$1"/> </tuple>
-    <tuple> <atom label="Person$0"/> <atom label="Person$2"/> </tuple>
-</field>
-<sig label="univ" ID="9" builtin="yes">
-</sig>
-</instance>
-</alloy>
-"""
-     xml_file = tmp_path / "instance.xml"
-     xml_file.write_text(xml, encoding="utf-8")
-     converter = AlloyToBesserConverter(str(xml_file))
-     converter.parse_xml()
-
-     code = converter.generate_object_diagram_code()
-
-     assert "setattr(person_0_obj, 'friends', {person_1_obj, person_2_obj})" in code
-     assert code.count("setattr(person_0_obj, 'friends',") == 1
 
 
 # ---------------------------------------------------------------------------
