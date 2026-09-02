@@ -8,7 +8,7 @@ from besser.BUML.metamodel.structural import (
     Enumeration,
 )
 from besser.generators import GeneratorInterface
-from besser.generators.alloy_generator.utils_alloy import generate_date_block
+
 
 class AlloyGenerator(GeneratorInterface):
     """
@@ -61,6 +61,7 @@ class AlloyGenerator(GeneratorInterface):
 
         from besser.generators.alloy_generator.instance_generator.alloy_solver import (
             build_inheritance_and_attribute_maps,
+            generate_date_block,
             process_associations,
             translate_constraints,
         )

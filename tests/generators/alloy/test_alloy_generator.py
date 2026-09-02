@@ -37,6 +37,10 @@ from besser.BUML.metamodel.structural import (
 from besser.generators.alloy_generator import (
     AlloyGenerator,
 )
+from besser.generators.alloy_generator.instance_generator.alloy_solver import (
+    build_consistency_rule,
+    sanitize_alloy_name,
+)
 from besser.generators.alloy_generator.translate_ocl_alloy import (
     EnumReferenceError,
     TranslatorState,
@@ -46,10 +50,6 @@ from besser.generators.alloy_generator.translate_ocl_alloy import (
     ocl_to_alloy,
     parse_ocl_date,
     random_date,
-)
-from besser.generators.alloy_generator.utils_alloy import (
-    build_consistency_rule,
-    sanitize_alloy_name,
 )
 
 # ---------------------------------------------------------------------------
