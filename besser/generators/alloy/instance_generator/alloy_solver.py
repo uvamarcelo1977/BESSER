@@ -1114,10 +1114,6 @@ def run_alloy_sat_validation(
                 return None, {**error, "warnings": warnings}, exec_output_dir
             return parsed, None, exec_output_dir
         except ValueError as exc:
-            # OCL-to-Alloy translation errors (e.g. self.allInstances()) surface
-            # during AlloySolver construction / generation. Surface them as a
-            # regular error response so the SSE streams can report them instead
-            # of letting the exception escape the async generator.
             msg = str(exc)
             return None, {
                 "sat": None,

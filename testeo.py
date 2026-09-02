@@ -1,63 +1,60 @@
 #!/usr/bin/env python
-"""Script para ejecutar todos los tests del proyecto BESSER.
-
-Si el script no se invoca con el intérprete del venv de este proyecto
-(venv/ en la raiz), se re-ejecuta automaticamente con ese venv para
-garantizar que esten disponibles todas las dependencias.
-
-La deteccion se basa en sys.prefix (no en la resolucion de symlinks), porque
-los venv de Python suelen ser symlinks al python del sistema y uno no debe
-confundirlos con "estar dentro del venv correcto".
-"""
+"""Ejecuta todos los tests del proyecto BESSER por directorio y reporta resultados."""
 
 import os
 import subprocess
 import sys
 
+TESTS_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tests")
 
-def project_root():
-    return os.path.dirname(os.path.abspath(__file__))
-
-
-def venv_python():
-    root = project_root()
-    for name in ("venv", ".venv"):
-        base = os.path.join(root, name)
-        for python_name in ("python", "python3"):
-            path = os.path.join(base, "bin", python_name)
-            if os.path.exists(path):
-                return path
-    return None
+IGNORED = [
+    "--ignore", "tests/generators/nn",
+    "--ignore", "tests/utilities/web_modeling_editor/backend/test_spreadsheet_import.py",
+]
 
 
-def using_project_venv():
-    venv_py = venv_python()
-    if venv_py is None:
-        return False
-    venv_root = os.path.dirname(os.path.dirname(venv_py))
-    return os.path.abspath(sys.prefix) == os.path.abspath(venv_root)
+def discover_test_dirs():
+    dirs = []
+    for entry in sorted(os.listdir(TESTS_ROOT)):
+        full = os.path.join(TESTS_ROOT, entry)
+        if os.path.isdir(full) and entry != "__pycache__":
+            dirs.append(full)
+    return dirs
 
 
 def main():
-    if not using_project_venv():
-        venv_py = venv_python()
-        if venv_py is not None:
-            print(f"Re-ejecutando con el venv del proyecto: {venv_py}")
-            os.execv(venv_py, [venv_py, os.path.abspath(__file__)] + sys.argv[1:])
+    dirs = discover_test_dirs()
+    passed, failed = [], []
 
-    cmd = [
-        sys.executable, "-m", "pytest",
-        "tests/",
-        "--ignore=tests/generators/nn",
-        "--ignore=tests/utilities/web_modeling_editor/backend/test_spreadsheet_import.py",
-        "-v",
-    ]
+    print(f"\n{'='*60}")
+    print(f"  BESSER Test Runner - {len(dirs)} directorios")
+    print(f"{'='*60}\n")
 
-    # Pass extra arguments to pytest (e.g. -k pattern, --tb short, etc.)
-    cmd.extend(sys.argv[1:])
+    for d in dirs:
+        name = os.path.relpath(d, os.path.dirname(TESTS_ROOT))
+        print(f"\n{'─'*60}")
+        print(f"▶ {name}")
+        print(f"{'─'*60}")
 
-    result = subprocess.run(cmd)
-    sys.exit(result.returncode)
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", name, "-v", "--tb=short"] + IGNORED,
+        )
+        if result.returncode == 0:
+            passed.append(name)
+        else:
+            failed.append(name)
+
+    print(f"\n{'='*60}")
+    print(f"  RESUMEN: {len(passed)} OK / {len(failed)} FAIL / {len(dirs)} total")
+    print(f"{'='*60}")
+
+    if failed:
+        print("\nDirectorios con errores:")
+        for name in failed:
+            print(f"  ✗ {name}")
+        sys.exit(1)
+    else:
+        print("\nTodos los tests pasaron ✓")
 
 
 if __name__ == "__main__":
