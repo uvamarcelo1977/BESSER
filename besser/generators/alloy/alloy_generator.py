@@ -59,7 +59,7 @@ class AlloyGenerator(GeneratorInterface):
         """
         file_path = self.build_generation_path(file_name="model.als")
 
-        from besser.generators.alloy_generator.instance_generator.alloy_solver import (
+        from besser.generators.alloy.instance_generator.alloy_solver import (
             build_inheritance_and_attribute_maps,
             generate_date_block,
             process_associations,

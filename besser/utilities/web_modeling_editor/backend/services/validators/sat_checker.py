@@ -20,7 +20,7 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
-from besser.generators.alloy_generator import (
+from besser.generators.alloy import (
     alloy_xml_to_frontend_object_model,
     resolve_first_instance_xml,
     run_alloy_sat_validation,

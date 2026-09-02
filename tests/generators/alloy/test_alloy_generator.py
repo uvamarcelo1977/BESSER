@@ -34,14 +34,14 @@ from besser.BUML.metamodel.structural import (
     TimeDeltaType,
     TimeType,
 )
-from besser.generators.alloy_generator import (
+from besser.generators.alloy import (
     AlloyGenerator,
 )
-from besser.generators.alloy_generator.instance_generator.alloy_solver import (
+from besser.generators.alloy.instance_generator.alloy_solver import (
     build_consistency_rule,
     sanitize_alloy_name,
 )
-from besser.generators.alloy_generator.translate_ocl_alloy import (
+from besser.generators.alloy.translate_ocl_alloy import (
     EnumReferenceError,
     TranslatorState,
     encode_date,

@@ -22,8 +22,8 @@ from pathlib import Path
 from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel, Enumeration
-from besser.generators.alloy_generator.alloy_generator import AlloyGenerator
-from besser.generators.alloy_generator.translate_ocl_alloy import (
+from besser.generators.alloy.alloy_generator import AlloyGenerator
+from besser.generators.alloy.translate_ocl_alloy import (
     EnumReferenceError,
     TranslatorState,
     generate_dates_and_order,

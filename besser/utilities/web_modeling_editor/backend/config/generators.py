@@ -20,7 +20,7 @@ from besser.generators.rest_api import RESTAPIGenerator
 from besser.generators.react import ReactGenerator
 from besser.generators.flutter import FlutterGenerator
 from besser.generators.terraform import TerraformGenerator
-from besser.generators.alloy_generator import AlloyGenerator
+from besser.generators.alloy import AlloyGenerator
 
 
 

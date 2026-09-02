@@ -53,7 +53,7 @@ from besser.BUML.metamodel.structural import (
     Enumeration, EnumerationLiteral, Constraint,
     DomainModel, StringType, IntegerType,
 )
-from besser.generators.alloy_generator.alloy_generator import AlloyGenerator
+from besser.generators.alloy.alloy_generator import AlloyGenerator
 
 
 # ---------------------------------------------------------------------------

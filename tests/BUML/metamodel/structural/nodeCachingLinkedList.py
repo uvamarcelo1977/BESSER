@@ -266,7 +266,7 @@ project = Project(
 )
 
 import os
-from besser.generators.alloy_generator import AlloyGenerator
+from besser.generators.alloy import AlloyGenerator
 
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")

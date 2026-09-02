@@ -1,4 +1,4 @@
-"""Tests for `besser.generators.alloy_generator.instance_generator.alloy_solver`.
+"""Tests for `besser.generators.alloy.instance_generator.alloy_solver`.
 
 These tests invoke every module-level function and every class of
 `alloy_solver.py` directly in Python, without going through the FastAPI
@@ -31,7 +31,7 @@ from besser.BUML.metamodel.structural import (
     Property,
     StringType,
 )
-from besser.generators.alloy_generator.instance_generator.alloy_solver import (
+from besser.generators.alloy.instance_generator.alloy_solver import (
     AlloySolver,
     build_inheritance_and_attribute_maps,
     process_associations,
@@ -78,7 +78,7 @@ def _alloy_real():
     actual ``java -jar alloy.jar`` call; if the jar or a JRE is missing they are
     skipped rather than failing.
     """
-    from besser.generators.alloy_generator.instance_generator.alloy_solver import (
+    from besser.generators.alloy.instance_generator.alloy_solver import (
         AlloySolver,
     )
 

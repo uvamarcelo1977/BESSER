@@ -11,7 +11,7 @@ and use the ``generate`` method as follows:
 
 .. code-block:: python
     
-    from besser.generators.alloy_generator import AlloyGenerator    
+    from besser.generators.alloy import AlloyGenerator    
 
     generator = AlloyGenerator(model=library_model)
     generator.generate()
