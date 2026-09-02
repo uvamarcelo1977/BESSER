@@ -532,6 +532,29 @@ class AlloyToBesserConverter:
 
         return paired
 
+    def _signature_depth(self, sig_id: str | None) -> int:
+        """Returns the depth of *sig_id* in the inheritance tree."""
+        depth = 0
+        current_id = sig_id
+        while current_id and current_id in self.signatures:
+            parent_id = self.signatures[current_id].get('parent_id')
+            if not parent_id or parent_id not in self.signatures:
+                break
+            depth += 1
+            current_id = parent_id
+        return depth
+
+    def _leaf_class_for(self, atom_label: str) -> str | None:
+        """Returns the most specific concrete class that contains *atom_label*."""
+        containing = [sig for sig in self._domain_signatures if atom_label in sig['atoms']]
+        if not containing:
+            return None
+        leaf_sig = max(
+            containing,
+            key=lambda sig: (sig['depth'], -len(sig['atoms']), sig['class_name'])
+        )
+        return leaf_sig['class_name']
+
     def generate_object_diagram_code(self) -> str:
         """
         Generates BUML code for the object diagram derived from the XML.
@@ -555,38 +578,16 @@ class AlloyToBesserConverter:
                 continue
             domain_classes.add(class_name)
 
-        def signature_depth(sig_id: str | None) -> int:
-            depth = 0
-            current_id = sig_id
-            while current_id and current_id in self.signatures:
-                parent_id = self.signatures[current_id].get('parent_id')
-                if not parent_id or parent_id not in self.signatures:
-                    break
-                depth += 1
-                current_id = parent_id
-            return depth
-
-        domain_signatures = []
+        self._domain_signatures = []
         for sig_id, sig_data in self.signatures.items():
             class_name = self.get_class_name(sig_data['label'])
             if class_name not in domain_classes:
                 continue
-            domain_signatures.append({
+            self._domain_signatures.append({
                 'class_name': class_name,
                 'atoms': set(sig_data['atoms']),
-                'depth': signature_depth(sig_id),
+                'depth': self._signature_depth(sig_id),
             })
-
-        def leaf_class_for(atom_label: str) -> str | None:
-            """Returns the most specific concrete class that contains the atom."""
-            containing = [sig for sig in domain_signatures if atom_label in sig['atoms']]
-            if not containing:
-                return None
-            leaf_sig = max(
-                containing,
-                key=lambda sig: (sig['depth'], -len(sig['atoms']), sig['class_name'])
-            )
-            return leaf_sig['class_name']
 
         created_objects = {}  # atom_label -> variable_name
         relations = []  # [(from_var, relation_name, to_atom, field_name), ...]
@@ -598,7 +599,7 @@ class AlloyToBesserConverter:
                 continue
 
             for i, atom_label in enumerate(atoms):
-                if leaf_class_for(atom_label) != class_name:
+                if self._leaf_class_for(atom_label) != class_name:
                     continue
 
                 obj_var = f"{class_name.lower()}_{i}_obj"
@@ -1090,7 +1091,7 @@ def run_alloy_sat_validation(
     temp_dir: str | None = None,
 ) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
     """
-    Translates UMLB class diagram and OCL constraints into Alloy specification,
+    Translates BUML class diagram and OCL constraints into Alloy specification,
     executes Alloy Analyzer to check for consistency,
     and parses the Alloy consistency check result.
 
