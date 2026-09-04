@@ -63,7 +63,7 @@ iteratorVarDecl
     ;
 
 iteratorOp
-    : FORALL | EXISTS | SELECT | REJECT | COLLECT | CLOSURE
+    : FORALL | EXISTS | SELECT | REJECT | COLLECT
     ;
 
 compOp
@@ -81,7 +81,6 @@ argList
 expression
     // --- Postfix: dot navigation and method calls (highest precedence) ---
     : expression DOT SIZE LPAREN RPAREN                                             #dotSize
-    | expression DOT ALLINSTANCES LPAREN RPAREN                                     #dotAllInstances
     | expression DOT OCLISTYPEOF LPAREN typeRef RPAREN                              #dotOclIsTypeOf
     | expression DOT OCLASTYPE LPAREN typeRef RPAREN                                #dotOclAsType
     | expression DOT OCLISKINDOF LPAREN typeRef RPAREN                              #dotOclIsKindOf
@@ -99,12 +98,9 @@ expression
     | expression ARROW SIZE LPAREN RPAREN                                           #arrowSize
     | expression ARROW ISEMPTY LPAREN RPAREN                                        #arrowIsEmpty
     | expression ARROW SUM LPAREN RPAREN                                            #arrowSum
-    | expression ARROW INCLUDING LPAREN expression RPAREN                           #arrowIncluding
     | expression ARROW INCLUDES LPAREN expression RPAREN                            #arrowIncludes
     | expression ARROW EXCLUDES LPAREN expression RPAREN                            #arrowExcludes
-    | expression ARROW EXCLUDING LPAREN expression RPAREN                           #arrowExcluding
     | expression ARROW UNION LPAREN expression RPAREN                               #arrowUnion
-    | expression ARROW INTERSECTION LPAREN expression RPAREN                         #arrowIntersection
     | expression ARROW FIRST LPAREN RPAREN                                          #arrowFirst
     | expression ARROW LAST LPAREN RPAREN                                           #arrowLast
     | expression ARROW PREPEND LPAREN expression RPAREN                             #arrowPrepend
@@ -112,7 +108,6 @@ expression
     | expression ARROW SYMMETRICDIFFERENCE LPAREN expression RPAREN                 #arrowSymDiff
     | expression ARROW SUBSEQUENCE LPAREN expression COMMA expression RPAREN        #arrowSubSequence
     | expression ARROW SUBORDEREDSET LPAREN expression COMMA expression RPAREN      #arrowSubOrderedSet
-    | expression ARROW ASSET LPAREN RPAREN                                          #arrowAsSet
 
     // --- Unary ---
     | (NOT | MINUS) expression                                                      #unaryExpr
@@ -146,8 +141,8 @@ primaryExpression
     | NUMBER                                                    #numberLiteral
     | BOOLEAN_LITERAL                                           #booleanLiteral
     | NULL                                                      #nullLiteral
+    | ID DOUBLECOLON ALLINSTANCES LPAREN RPAREN                 #allInstancesExpr
     | DATE DOUBLECOLON ID LPAREN RPAREN                         #dateFuncExpr
-    | ID DOUBLECOLON ID                                         #enumLiteralExpr
     | ID LPAREN argList? RPAREN                                 #functionCallExpr
     | LPAREN expression RPAREN                                  #parenExpr
     | ID                                                        #idExpr
@@ -185,18 +180,14 @@ EXISTS     : 'exists' ;
 SELECT     : 'select' ;
 REJECT     : 'reject' ;
 COLLECT    : 'collect' ;
-CLOSURE    : 'closure' ;
 
 // Collection/type operations
 SIZE               : 'size' ;
 ISEMPTY            : 'isEmpty' ;
 SUM                : 'sum' ;
-INCLUDING          : 'including' ;
 INCLUDES           : 'includes' ;
 EXCLUDES           : 'excludes' ;
-EXCLUDING          : 'excluding' ;
 UNION              : 'union' ;
-INTERSECTION       : 'intersection' ;
 FIRST              : 'first' ;
 LAST               : 'last' ;
 PREPEND            : 'prepend' ;
@@ -208,7 +199,6 @@ SYMMETRICDIFFERENCE: 'symmetricDifference' ;
 OCLISTYPEOF        : 'oclIsTypeOf' ;
 OCLASTYPE          : 'oclAsType' ;
 OCLISKINDOF        : 'oclIsKindOf' ;
-ASSET              : 'asSet' ;
 
 // Types
 BOOLEAN_TYPE : 'Boolean' ;
