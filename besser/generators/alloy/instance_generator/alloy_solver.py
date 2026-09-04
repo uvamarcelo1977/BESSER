@@ -11,6 +11,7 @@ This module contains:
 import logging
 import os
 import re
+import tempfile
 import xml.etree.ElementTree as ET
 from typing import Any
 
@@ -502,7 +503,10 @@ class AlloySolver:
 
     def __init__(self, model: DomainModel, output_dir: str | None = None, scope: int = 5):
         if output_dir is None:
-            output_dir = "output"
+            self._temp_dir = tempfile.TemporaryDirectory(prefix="alloy_")
+            output_dir = self._temp_dir.name
+        else:
+            self._temp_dir = None
         self.scope = scope
         self.model = model
         self.output_dir = output_dir
