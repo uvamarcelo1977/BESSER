@@ -7,6 +7,11 @@ from besser.generators.rest_api.rest_api_generator import RESTAPIGenerator
 from besser.generators.rdf.rdf_generator import RDFGenerator
 from besser.generators.backend.backend_generator import BackendGenerator
 from besser.generators.alloy.alloy_generator import AlloyGenerator
+from besser.generators.alloy.instance_generator import AlloySolver
+from besser.generators.alloy.instance_generator import alloy_xml_to_frontend_object_model
+from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json import class_buml_to_json
+
+
 
 # Library attributes definition
 library_name: Property = Property(name="name", type=StringType)
@@ -46,18 +51,18 @@ outputdir = "output"
 generator = AlloyGenerator(model=library_model, output_dir=outputdir)
 generator.generate()
 
-from besser.generators.alloy.instance_generator import AlloySolver
+
 # Semantic consistency check
 solver = AlloySolver(library_model)
 result = solver.check_consistency()
 assert result == True, "The model is not consistent."
 
+#Genera el código del diagrama de objetos (solo) a partir de la instancia generada
 buml_object_instance = solver.generate_object_diagram_code()
 assert buml_object_instance is not None, "The object diagram code generation failed."
 
-from besser.generators.alloy.instance_generator import alloy_xml_to_frontend_object_model
-from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json import class_buml_to_json
-
+# Genera el código completo del modelo BUML integrado a partir de la instancia generada.
+# Diagrama BUML completo (clases + objetos).
 buml_diagram_code = solver.generate_integrated_buml_model()
 assert buml_diagram_code is not None, "The integrated BUML model code generation failed."
 
