@@ -1,4 +1,5 @@
 
+import copy
 import os
 
 from jinja2 import Environment, FileSystemLoader
@@ -8,6 +9,13 @@ from besser.BUML.metamodel.structural import (
     Enumeration,
 )
 from besser.generators import GeneratorInterface
+from besser.generators.alloy.alloy_utils_generator import (
+    build_inheritance_and_attribute_maps,
+    generate_date_block,
+    process_associations,
+    sanitize_model_names,
+    translate_constraints,
+)
 
 
 class AlloyGenerator(GeneratorInterface):
@@ -59,27 +67,24 @@ class AlloyGenerator(GeneratorInterface):
         """
         file_path = self.build_generation_path(file_name="model.als")
 
-        from besser.generators.alloy.instance_generator.alloy_solver import (
-            build_inheritance_and_attribute_maps,
-            generate_date_block,
-            process_associations,
-            translate_constraints,
-        )
+        model = copy.deepcopy(self.model)
+
+        sanitize_model_names(model)
 
         inherits_from, data, basic_signatures, sigs_nv = (
-            build_inheritance_and_attribute_maps(self.model)
+            build_inheritance_and_attribute_maps(model)
         )
-        facts_rules = process_associations(self.model, data)
+        facts_rules = process_associations(model, data)
 
-        enum_types = {el for el in self.model.elements if isinstance(el, Enumeration)}
+        enum_types = {el for el in model.elements if isinstance(el, Enumeration)}
         enums = {e.name: {lit.name for lit in (e.literals or set())} for e in enum_types}
 
-        estado = translate_constraints(self.model, inherits_from, data, enums)
-        date_block = generate_date_block(estado, basic_signatures, self.scope)
+        status = translate_constraints(model, inherits_from, data, enums)
+        date_block = generate_date_block(status, basic_signatures, self.scope)
 
-        classes = self.model.classes_sorted_by_inheritance()
+        classes = model.classes_sorted_by_inheritance()
         associations_by_class = {c.name: [] for c in classes}
-        for assoc in self.model.associations:
+        for assoc in model.associations:
             for end in assoc.ends:
                 if end.type.name in associations_by_class:
                     if assoc not in associations_by_class[end.type.name]:
@@ -88,11 +93,11 @@ class AlloyGenerator(GeneratorInterface):
         spec = self.template.render(
             basic_signatures=basic_signatures,
             enum_types=enum_types,
-            has_date_values=bool(estado.dates) or ("date" in basic_signatures),
+            has_date_values=bool(status.dates) or ("date" in basic_signatures),
             date_block=date_block,
             classes=classes,
             associations_by_class=associations_by_class,
-            constraints=self.model.constraints,
+            constraints=model.constraints,
             sigsnv=sigs_nv,
             scope=self.scope,
             facts_rules=facts_rules,

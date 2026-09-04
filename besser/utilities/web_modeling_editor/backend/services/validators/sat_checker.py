@@ -279,7 +279,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                         None,
                         lambda s=scope: run_alloy_sat_validation(
                             buml_model, all_warnings, scope=s, output_type="xml",
-                            temp_dir=os.path.join(temp_dir, f"scope_{s}"),
+                            output_dir=os.path.join(temp_dir, f"scope_{s}"),
                         )
                     ),
                     timeout=TIMEOUT_SECONDS,

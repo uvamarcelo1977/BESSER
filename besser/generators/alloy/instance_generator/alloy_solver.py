@@ -8,274 +8,35 @@ This module contains:
 - the translation of Alloy instances back into UML object diagrams.
 """
 
-import copy
-import json
 import logging
 import os
 import re
-import subprocess
-import tempfile
 import xml.etree.ElementTree as ET
-from collections import defaultdict
-from contextlib import nullcontext
-from pathlib import Path
 from typing import Any
 
-from besser.BUML.metamodel.structural import DomainModel, Enumeration
+from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy.alloy_generator import AlloyGenerator
+from besser.generators.alloy.instance_generator.alloy_solver_utils import (
+    DATE_SIG_PATTERN,
+    execute_alloy_analyzer,
+    get_class_name,
+    get_date_value,
+    get_enum_value,
+    get_primitive_value,
+    is_domain_class_name,
+    is_enum_value,
+    parse_receipt,
+    remove_class_prefix,
+    resolve_first_instance_xml,
+)
 from besser.generators.alloy.translate_ocl_alloy import (
     EnumReferenceError,
-    TranslatorState,
-    generate_dates_and_order,
-    ocl_to_alloy,
 )
 from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json.object_diagram_converter import (
     object_buml_to_json,
 )
 
 logger = logging.getLogger(__name__)
-
-TIMEOUT_CALL_ALLOY = 40
-
-
-#----------------------------------------------------------------------
-# BUML -> Alloy translation helpers
-#----------------------------------------------------------------------
-
-ALLOY_IDENTIFIER_REGEX = re.compile(r"[^A-Za-z0-9_]")
-
-ALLOY_KEYWORDS = {
-    "abstract", "all", "and", "as", "assert", "but", "check", "disj",
-    "else", "enum", "exactly", "expt", "fact", "for", "fun", "iden",
-    "iff", "implies", "in", "int", "Int", "let", "lone", "module",
-    "no", "none", "not", "one", "open", "or", "pred", "run", "seq",
-    "set", "sig", "some", "sum", "univ"
-}
-
-MULTIPLICITY_LIMIT = 9999
-
-
-def sanitize_alloy_name(name: str) -> str:
-    """Returns a valid Alloy identifier derived from *name*.
-
-    Args:
-        name: Raw identifier to sanitize.
-
-    Returns:
-        A non-empty string that is a legal Alloy identifier.
-    """
-    sanitized = ALLOY_IDENTIFIER_REGEX.sub("", name)
-    if not sanitized:
-        return "_unnamed"
-    if sanitized[0].isdigit() or sanitized in ALLOY_KEYWORDS:
-        sanitized = "_" + sanitized
-    return sanitized
-
-
-def build_consistency_rule(
-    class_a: str,
-    rel_a_b: str,
-    mult_b: list,
-    class_b: str,
-    rel_b_a: str,
-    mult_a: list,
-    arrow_a_b: bool,
-    arrow_b_a: bool,
-) -> str:
-    """Builds the Alloy cardinality-consistency facts for one association end.
-
-    Emits ``fact`` blocks when the multiplicity differs from the implicit
-    ``1..1`` default.  When the navigation direction of an end is enabled, its
-    facts navigate the field directly (``a.<A>_<rel>``); when the direction is
-    not navigable but the opposite end is, the facts navigate the opposite
-    field in reverse (``<B>_<rel>.a``) so the multiplicity still holds.  If
-    neither end is navigable there is no field to express the relation and no
-    fact is emitted.
-
-    Args:
-        class_a:   Name of class A (source side).
-        rel_a_b:   Role name navigating from A to B.
-        mult_b:    ``[min, max]`` multiplicity for the B side.
-        class_b:   Name of class B (target side).
-        rel_b_a:   Role name navigating from B to A.
-        mult_a:    ``[min, max]`` multiplicity for the A side.
-        arrow_a_b: ``True`` when A→B is navigable.
-        arrow_b_a: ``True`` when B→A is navigable.
-
-    Returns:
-        A string containing zero or more Alloy ``fact`` declarations.
-    """
-    res = "\n"
-    # B-side multiplicity: how many B instances each A is related to.
-    if not (mult_b[0] == 1 and mult_b[1] == 1):
-        if arrow_a_b:
-            nav = f"a.{class_a}_{rel_a_b}"
-        elif arrow_b_a:
-            nav = f"{class_b}_{rel_b_a}.a"
-        else:
-            nav = None
-        if nav:
-            if mult_b[0] >= 1 and mult_b[0] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all a: {class_a} | #({nav})>={mult_b[0]} }}"
-            if mult_b[1] >= 1 and mult_b[1] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all a: {class_a} | #({nav})<={mult_b[1]} }}"
-
-    # A-side multiplicity: how many A instances each B is related to.
-    if not (mult_a[0] == 1 and mult_a[1] == 1):
-        if arrow_b_a:
-            nav = f"b.{class_b}_{rel_b_a}"
-        elif arrow_a_b:
-            nav = f"{class_a}_{rel_a_b}.b"
-        else:
-            nav = None
-        if nav:
-            if mult_a[0] >= 1 and mult_a[0] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all b: {class_b} | #({nav})>={mult_a[0]} }}"
-            if mult_a[1] >= 1 and mult_a[1] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all b: {class_b} | #({nav})<={mult_a[1]} }}"
-
-    return res
-
-
-def generate_date_block(
-    state: TranslatorState, basic_signatures: set, scope: int
-) -> str:
-    """Generate the date universe and ordering block when needed.
-
-    Args:
-        state:          Translator state carrying discovered date literals.
-        basic_signatures: Set of basic type names used in the model.
-        scope:           Alloy scope (max atoms per signature).
-
-    Returns:
-        A string with the date ``one sig`` declarations and ordering fact,
-        or an empty string when no date support is required.
-    """
-    if state.dates or "date" in basic_signatures:
-        return generate_dates_and_order(state.dates, scope)
-    return ""
-
-
-def build_inheritance_and_attribute_maps(
-    model: DomainModel,
-) -> tuple[dict, dict, set, list[str]]:
-    """Builds inheritance, attribute, and signature maps from *model*.
-
-    Returns:
-        A tuple ``(inherits_from, data, basic_signatures, sigs_nv)``.
-    """
-    inherits_from: dict = defaultdict(list)
-    data: dict = defaultdict(list)
-    basic_signatures: set = set()
-    sigs_nv: list[str] = []
-
-    for class_obj in model.classes_sorted_by_inheritance():
-        sigs_nv.append(class_obj.name)
-
-        if len(class_obj.parents()) == 0:
-            inherits_from[class_obj.name].append("_")
-        else:
-            for parent in class_obj.parents():
-                inherits_from[class_obj.name].append(parent.name)
-
-        for attr in class_obj.attributes:
-            attr_type = "date" if attr.type.name in ("date", "datetime", "time", "timedelta") else attr.type.name
-            data[class_obj.name].append(f"{attr.name}:{attr_type}")
-            if not isinstance(attr.type, Enumeration):
-                basic_signatures.add(attr_type)
-                sigs_nv.append(attr_type)
-
-    return inherits_from, data, basic_signatures, sigs_nv
-
-
-def process_associations(model: DomainModel, data: dict) -> list[str]:
-    """Processes associations, building consistency facts and updating *data*.
-
-    Returns:
-        A list of Alloy fact strings for associations.
-    """
-    facts_rules: list[str] = []
-
-    for assoc in model.associations:
-        d, h = assoc.ends
-        mult_b = [h.multiplicity.min, h.multiplicity.max]
-        mult_a = [d.multiplicity.min, d.multiplicity.max]
-        arrow_a_b = bool(h.is_navigable)
-        arrow_b_a = bool(d.is_navigable)
-
-        facts_rules.append(
-            build_consistency_rule(
-                d.type.name, h.name, mult_b,
-                h.type.name, d.name, mult_a,
-                arrow_a_b, arrow_b_a,
-            )
-        )
-        data[h.type.name].append(f"{d.name}:{d.type.name}")
-        data[d.type.name].append(f"{h.name}:{h.type.name}")
-
-        if arrow_a_b and arrow_b_a:
-            facts_rules.append(
-                f"fact{{{d.type.name}_{h.name}= ~{h.type.name}_{d.name}}}"
-            )
-
-    return facts_rules
-
-
-def translate_constraints(
-    model: DomainModel, inherits_from: dict, data: dict, enums: dict
-) -> TranslatorState:
-    """Translates OCL constraints to Alloy facts in-place.
-
-    Returns:
-        A :class:`TranslatorState` object, carrying accumulated state (e.g. date
-        literals discovered during translation).
-    """
-    state = TranslatorState()
-    for constraint in model.constraints:
-        context = constraint.context.name
-        ocl_str = constraint.expression.split(":", 1)[1]
-        constraint.expression = ocl_to_alloy(
-            inherits_from, data, ocl_str, context, state, enums
-        )
-    return state
-
-
-def resolve_first_instance_xml(
-    exec_output_dir: str | Path, solutions: list[dict] | None = None
-) -> str | None:
-    """
-    Determines the absolute path to the XML file holding the first instance/solution
-    produced by the Alloy Analyzer.
-
-    Tries to resolve the file referenced by *solutions* (as read from ``receipt.json``)
-    first, falling back to scanning *exec_output_dir* for any ``.xml`` file.
-    """
-    output_dir = Path(exec_output_dir)
-
-    if solutions:
-        for solution in solutions:
-            for instance in solution.get("instances", []) or []:
-                if isinstance(instance, dict):
-                    name = instance.get("xml") or instance.get("filename") or instance.get("path")
-                else:
-                    name = instance
-                if not name:
-                    continue
-                candidate = output_dir / name
-                if candidate.is_file():
-                    return str(candidate.resolve())
-
-    if output_dir.is_dir():
-        for entry in sorted(output_dir.iterdir()):
-            if entry.is_file() and entry.suffix == ".xml":
-                return str(entry.resolve())
-
-    return None
-
-
-#----------------------------------------------------------------------
-# Alloy XML -> BUML object diagram conversion
-#----------------------------------------------------------------------
 
 class AlloyToBesserConverter:
     """Converts Alloy XML instances to BESSER objects."""
@@ -342,88 +103,10 @@ class AlloyToBesserConverter:
                 'tuples': tuples
             }
 
-    def get_class_name(self, sig_label: str) -> str:
-        """
-        Extracts the class name from a signature label.
-        Args:
-            sig_label: label of the signature (e.g., 'this/Player')
-
-        Returns:
-            Class name (e.g., 'Player')
-        """
-        if '/' in sig_label:
-            return sig_label.split('/')[-1]
-        return sig_label
-
-    def remove_class_prefix(self, field_name: str, class_name: str) -> str:
-        """
-        Removes the class prefix from a field name.
-        Args:
-            field_name: field name (e.g., 'Player_name')
-            class_name: class name (e.g., 'Player')
-
-        Returns:
-            Field name without prefix (e.g., 'name')
-        """
-        prefix = f"{class_name}_"
-        if field_name.startswith(prefix):
-            return field_name[len(prefix):]
-        elif field_name.__contains__("_"):
-            return field_name[field_name.index("_")+1:]
-        return field_name
-
-    def is_enum_value(self, atom_label: str) -> bool:
-        """Determines if an atom is an enumeration value."""
-        return atom_label.startswith('ENUM_')
-
-    def get_enum_value(self, atom_label: str) -> str:
-        """
-        Extracts the enumeration value from an atom label.
-        Args:
-            atom_label: atom label (e.g., 'ENUM_Position_CENTER$0')
-
-        Returns:
-            Enumeration value (e.g., 'CENTER')
-        """
-        # Format: ENUM_EnumName_VALUE$n
-        parts = atom_label.split('_')
-        if len(parts) >= 3:
-            value = '_'.join(parts[2:])  # take everything after ENUM_EnumName_
-            # Remove suffix $n
-            if '$' in value:
-                value = value.split('$')[0]
-            return value
-        return atom_label
-
-    def get_primitive_value(self, atom_label: str, atom_type: str | None = None) -> Any:
-        """
-        Extracts the primitive value of an atom.
-        Args:
-            atom_label: atom label
-            atom_type: expected type (Int, String, etc.)
-
-        Returns:
-            Converted primitive value
-        """
-        # Integers
-        try:
-            return int(atom_label)
-        except ValueError:
-            pass
-
-        # Strings - return identifier without suffix
-        if '$' in atom_label:
-            base_name = atom_label.split('$')[0]
-            return f'"{base_name}"'  # Return as quoted string
-
-        return f'"{atom_label}"'
-
-    DATE_SIG_PATTERN = re.compile(r"^d\d{8}$")
-
     def _date_sig_label(self) -> str | None:
         """Returns the label of the 'date' signature (e.g., 'this/date') if it exists."""
         for sig_label in self.atoms_by_sig:
-            if self.get_class_name(sig_label) == "date":
+            if get_class_name(sig_label) == "date":
                 return sig_label
         return None
 
@@ -436,37 +119,10 @@ class AlloyToBesserConverter:
         or other strings).
         """
         base = atom_label.split("$")[0]
-        if self.DATE_SIG_PATTERN.match(base):
+        if DATE_SIG_PATTERN.match(base):
             return True
         date_sig_label = self._date_sig_label()
         return bool(date_sig_label and atom_label in self.atoms_by_sig[date_sig_label])
-
-    def get_date_value(self, atom_label: str) -> str:
-        """
-        Extracts the date value from an atom.
-
-        Literals of the form ``dMMDDYYYY`` are decoded to 'DD-MM-YYYY'; other atoms of the ``date``
-        signature are returned as found by Alloy, enclosed in quotes (e.g., '"date$0"').
-        Args:
-            atom_label: atom label (e.g., 'd01012000$0' or 'date$01')
-
-        Returns:
-            Date value as a string with quotes (e.g., '"01-01-2000"')
-        """
-        base = atom_label.split("$")[0]
-        if self.DATE_SIG_PATTERN.match(base):
-            return f'"{base[3:5]}-{base[1:3]}-{base[5:9]}"'
-        return f'"{atom_label}"'
-
-    def is_domain_class_name(self, class_name: str) -> bool:
-        """Determines if *class_name* is a user domain class."""
-        if not class_name:
-            return False
-        if self.is_enum_value(class_name) or class_name.startswith("ENUM_"):
-            return False
-        if class_name in ("str", "Bool", "True", "False", "date", "Ord"):
-            return False
-        return not self.DATE_SIG_PATTERN.match(class_name)
 
     def is_object_reference(self, atom_label: str) -> bool:
         """
@@ -487,7 +143,7 @@ class AlloyToBesserConverter:
 
             # Check if it exists in atoms_by_sig with the prefix this/
             for sig_label in self.atoms_by_sig:
-                class_name = self.get_class_name(sig_label)
+                class_name = get_class_name(sig_label)
                 if (class_name == base
                         and atom_label in self.atoms_by_sig[sig_label]
                         and class_name not in ['str', 'Bool', 'True', 'False']):
@@ -571,16 +227,16 @@ class AlloyToBesserConverter:
         for sig_label, atoms in self.atoms_by_sig.items():
             if not sig_label.startswith("this/"):
                 continue
-            class_name = self.get_class_name(sig_label)
-            if not self.is_domain_class_name(class_name):
+            class_name = get_class_name(sig_label)
+            if not is_domain_class_name(class_name):
                 continue
-            if atoms and all(self.is_enum_value(atom) for atom in atoms):
+            if atoms and all(is_enum_value(atom) for atom in atoms):
                 continue
             domain_classes.add(class_name)
 
         self._domain_signatures = []
         for sig_id, sig_data in self.signatures.items():
-            class_name = self.get_class_name(sig_data['label'])
+            class_name = get_class_name(sig_data['label'])
             if class_name not in domain_classes:
                 continue
             self._domain_signatures.append({
@@ -593,7 +249,7 @@ class AlloyToBesserConverter:
         relations = []  # [(from_var, relation_name, to_atom, field_name), ...]
 
         for sig_label, atoms in self.atoms_by_sig.items():
-            class_name = self.get_class_name(sig_label)
+            class_name = get_class_name(sig_label)
 
             if class_name not in domain_classes:
                 continue
@@ -613,21 +269,21 @@ class AlloyToBesserConverter:
                 for field_data in self.fields.values():
                     field_name = field_data['label']
                     tuples = field_data['tuples']
-                    attr_name = self.remove_class_prefix(field_name, class_name)
+                    attr_name = remove_class_prefix(field_name, class_name)
 
                     for tuple_from, tuple_to in tuples:
                         if tuple_from != atom_label:
                             continue
 
                         if self.is_date_value(tuple_to):
-                            attributes[attr_name] = self.get_date_value(tuple_to)
+                            attributes[attr_name] = get_date_value(tuple_to)
                         elif self.is_object_reference(tuple_to):
                             relations.append((obj_var, attr_name, tuple_to, field_name))
-                        elif self.is_enum_value(tuple_to):
-                            enum_value = self.get_enum_value(tuple_to)
+                        elif is_enum_value(tuple_to):
+                            enum_value = get_enum_value(tuple_to)
                             attributes[attr_name] = f'"{enum_value}"'
                         else:
-                            attributes[attr_name] = self.get_primitive_value(tuple_to)
+                            attributes[attr_name] = get_primitive_value(tuple_to)
 
                 attribute_mapping_parts = []
                 for attr_name, attr_value in attributes.items():
@@ -847,192 +503,56 @@ class AlloySolver:
         if output_dir is None:
             output_dir = "output"
         self.scope = scope
-        self.model = copy.deepcopy(model)
+        self.model = model
         self.output_dir = output_dir
-        self._sanitize_model_names()
         generator = AlloyGenerator(model=self.model, output_dir=output_dir, scope=scope)
         generator.generate()
         self.file = os.path.join(output_dir, "model.als")
 
-    def _sanitize_model_names(self) -> None:
-        """Sanitizes class and attribute names in-place for Alloy compatibility."""
-        for class_obj in self.model.classes_sorted_by_inheritance():
-            class_obj.name = sanitize_alloy_name(class_obj.name)
-            for attr in class_obj.attributes:
-                attr.name = sanitize_alloy_name(attr.name)
-
-    @staticmethod
-    def _resolve_alloy_jar_path() -> str | None:
-        env_path = os.getenv("BESSER_ALLOY_JAR")
-        if env_path:
-            candidate = Path(env_path).expanduser().resolve()
-            if candidate.exists() and candidate.is_file():
-                return str(candidate)
-            logger.warning("BESSER_ALLOY_JAR points to a missing file: %s", env_path)
-
-        besser_dir = Path(__file__).resolve().parent.parent.parent.parent  # besser/
-        candidate = besser_dir / "BUML" / "notations" / "ocl" / "consistency" / "alloy.jar"
-        if candidate.exists() and candidate.is_file():
-            return str(candidate)
-
-        logger.warning("Alloy jar not found. Set BESSER_ALLOY_JAR or place alloy.jar in a known location.")
-        return None
-
-    @staticmethod
-    def _execute_alloy_analyzer(
-        als_path: str, exec_output_dir: str, output_type: str = "json", num_instances: int = 5
-    ) -> tuple[subprocess.CompletedProcess | None, dict[str, Any] | None]:
-        jar_path = AlloySolver._resolve_alloy_jar_path()
-        if not jar_path:
-            return None, {
-                "sat": None,
-                "isValid": False,
-                "message": "Could not determine satisfiability (Alloy jar not found).",
-                "errors": ["Alloy JAR not found. Set BESSER_ALLOY_JAR or place alloy.jar in a known location."],
-                "warnings": [],
-            }
-        try:
-            result = subprocess.run(
-                [
-                    "java", "-jar", jar_path, "exec", "-n", "-f",
-                    "-o", exec_output_dir, "-t", output_type, "-r", str(num_instances), als_path,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=TIMEOUT_CALL_ALLOY,
-            )
-        except subprocess.TimeoutExpired:
-            return None, {
-                "sat": None,
-                "isValid": False,
-                "message": (
-                    f"Alloy execution timed out after {TIMEOUT_CALL_ALLOY} seconds "
-                    "— model may be unsatisfiable or too complex."
-                ),
-                "errors": [f"Alloy execution timed out after {TIMEOUT_CALL_ALLOY} seconds."],
-                "warnings": [],
-            }
-        return result, None
-
-    @staticmethod
-    def _parse_receipt(
-        exec_output_dir: str,
-        result: subprocess.CompletedProcess,
-        structural_warnings: list[str] | None = None,
-    ) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None]:
-        warnings = structural_warnings or []
-        receipt_path = os.path.join(exec_output_dir, "receipt.json")
-
-        if not os.path.exists(receipt_path):
-            output = result.stdout + result.stderr
-            logger.warning("Alloy exec produced no receipt.json. Output: %s", output[:500])
-            return None, {
-                "sat": None,
-                "isValid": False,
-                "message": "Could not determine satisfiability (no receipt.json produced).",
-                "errors": [output[:500]],
-                "warnings": warnings,
-            }
-
-        with open(receipt_path, "r", encoding="utf-8") as f:
-            receipt = json.load(f)
-
-        commands = receipt.get("commands", {})
-        if not commands:
-            return None, {
-                "sat": None,
-                "isValid": False,
-                "message": "No commands were executed in the Alloy model.",
-                "errors": ["The generated .als file contains no run/check commands."],
-                "warnings": warnings,
-            }
-
-        first_command_name = next(iter(commands))
-        first_command = commands[first_command_name]
-        solutions = first_command.get("solution", [])
-        sat = any(sol.get("instances") for sol in solutions)
-        return (sat, first_command_name, solutions), None
-
     def check_consistency(
         self,
-        structural_warnings: list[str] | None = None,
         output_type: str = "json",
-        temp_dir: str | None = None,
-    ) -> tuple[bool, tuple[Any, ...] | None, dict[str, Any] | None, str]:
-        cm = tempfile.TemporaryDirectory() if temp_dir is None else nullcontext(temp_dir)
-        with cm as td:
-            exec_output_dir = os.path.join(td, "alloy_exec_output")
-            try:
-                result, error = self._execute_alloy_analyzer(
-                    self.file, exec_output_dir, output_type=output_type
-                )
-            except EnumReferenceError as exc:
-                return False, None, {
-                    "sat": None,
-                    "isValid": False,
-                    "message": str(exc),
-                    "errors": [str(exc)],
-                    "warnings": structural_warnings or [],
-                }, exec_output_dir
-            except ValueError as exc:
-                return False, None, {
-                    "sat": None,
-                    "isValid": False,
-                    "message": str(exc),
-                    "errors": [str(exc)],
-                    "warnings": structural_warnings or [],
-                }, exec_output_dir
-            if error:
-                return False, None, error, exec_output_dir
-            parsed, parse_error = self._parse_receipt(
-                exec_output_dir, result, structural_warnings
-            )
-            if parse_error:
-                return False, None, parse_error, exec_output_dir
-            sat = parsed[0] if parsed else False
-            return sat, parsed, None, exec_output_dir
-
-    def run_sat_validation(
-        self,
-        structural_warnings: list[str] | None = None,
-        output_type: str = "json",
-        temp_dir: str | None = None,
     ) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
-        """Run Alloy satisfiability validation returning a simplified result.
+        """Execute the Alloy Analyzer and parse the result.
 
-        Wraps :meth:`check_consistency` to collapse the 4-tuple into a 3-tuple
-        ``(parsed, error, exec_output_dir)`` for callers that only need the
-        parsed result or the error dict.
-
-        Returns:
-            On success: ``(parsed, None, exec_output_dir)``.
-            On failure: ``(None, error_dict, exec_output_dir)``.
+        Returns ``(parsed, error_dict, exec_output_dir)``.  On success
+        *error_dict* is ``None``; on failure *parsed* is ``None``.
         """
-        is_sat, parsed, error, exec_output_dir = self.check_consistency(
-            structural_warnings, output_type, temp_dir
-        )
+        exec_output_dir = os.path.join(self.output_dir, "alloy_exec_output")
+        try:
+            result, error = execute_alloy_analyzer(
+                self.file, exec_output_dir, output_type=output_type
+            )
+        except EnumReferenceError as exc:
+            return None, {
+                "sat": None,
+                "isValid": False,
+                "message": str(exc),
+                "errors": [str(exc)],
+                "warnings": [],
+            }, exec_output_dir
+        except ValueError as exc:
+            return None, {
+                "sat": None,
+                "isValid": False,
+                "message": str(exc),
+                "errors": [str(exc)],
+                "warnings": [],
+            }, exec_output_dir
         if error:
             return None, error, exec_output_dir
+        parsed, parse_error = parse_receipt(exec_output_dir, result)
+        if parse_error:
+            return None, parse_error, exec_output_dir
         return parsed, None, exec_output_dir
 
-    def generate_instance_xml(
-        self,
-        structural_warnings: list[str] | None = None,
-        output_type: str = "xml",
-        output_dir: str | None = None,
-    ) -> str | None:
-        """
-        Runs the satisfiability check and resolves the path to the first
-        generated instance XML file.
+    def generate_instance_xml(self) -> str | None:
+        """Run the satisfiability check and resolve the first instance XML.
 
-        If *output_dir* is ``None``, the Alloy execution artifacts are written
-        to a temporary directory that is cleaned up before this method
-        returns, so the result will be ``None`` in that case.
+        Returns the path to the XML file, or ``None`` if unsatisfiable.
         """
-        is_sat, parsed, error, exec_output_dir = self.check_consistency(
-            structural_warnings, output_type, output_dir
-        )
-        if error or not is_sat or not parsed:
+        parsed, error, exec_output_dir = self.check_consistency(output_type="xml")
+        if error or not parsed:
             return None
         _, _, solutions = parsed
         return resolve_first_instance_xml(exec_output_dir, solutions)
@@ -1040,11 +560,10 @@ class AlloySolver:
     def generate_object_diagram_code(
         self,
         xml_instance_path: str | None = None,
-        output_dir: str | None = None,
     ) -> str | None:
         """Generates BUML object-diagram code from a satisfying Alloy instance."""
         if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml(output_dir=output_dir)
+            xml_instance_path = self.generate_instance_xml()
             if not xml_instance_path:
                 return None
         converter = AlloyToBesserConverter(xml_instance_path)
@@ -1055,11 +574,10 @@ class AlloySolver:
         self,
         reference_class_model: dict[str, Any],
         xml_instance_path: str | None = None,
-        output_dir: str | None = None,
     ) -> dict[str, Any] | None:
         """Generates the frontend ObjectDiagram JSON from a satisfying Alloy instance."""
         if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml(output_dir=output_dir)
+            xml_instance_path = self.generate_instance_xml()
             if not xml_instance_path:
                 return None
         converter = AlloyToBesserConverter(xml_instance_path)
@@ -1070,46 +588,38 @@ class AlloySolver:
         self,
         original_buml_content: str,
         xml_instance_path: str | None = None,
-        output_dir: str | None = None,
     ) -> str | None:
         """Generates a BUML script combining the original class diagram with the
         object diagram derived from a satisfying Alloy instance."""
         if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml(output_dir=output_dir)
+            xml_instance_path = self.generate_instance_xml()
             if not xml_instance_path:
                 return None
         integrator = BUMLModelIntegrator(original_buml_content, xml_instance_path)
         return integrator.generate_integrated_model()
 
-#----------------------------------------------------------------------
+    @classmethod
+    def run_alloy_sat_validation(
+        cls,
+        buml_model: DomainModel,
+        all_warnings: list[str] | None = None,
+        scope: int = 5,
+        output_type: str = "json",
+        output_dir: str | None = None,
+    ) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
+        """Translate a BUML class diagram + OCL constraints into Alloy, execute
+        the Alloy Analyzer, and return the consistency-check result.
 
-def run_alloy_sat_validation(
-    buml_model: DomainModel,
-    all_warnings: list[str] | None = None,
-    scope: int = 5,
-    output_type: str = "json",
-    temp_dir: str | None = None,
-) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
-    """
-    Translates BUML class diagram and OCL constraints into Alloy specification,
-    executes Alloy Analyzer to check for consistency,
-    and parses the Alloy consistency check result.
-
-    Delegates consistency checkint to AlloySolver.run_sat_validation().
-
-    Result is (parsed_data, error_response, exec_output_dir), where
-    - parsed_data indicates sat/unsat outcome,
-    - error_response contains errors when validation fails,
-    - exec_output_dir is the directory where the obtained SAT instances are placed
-    by the Alloy Analyzer.
-    """
-    warnings = all_warnings or []
-    cm = tempfile.TemporaryDirectory() if temp_dir is None else nullcontext(temp_dir)
-    with cm as td:
+        Result is ``(parsed_data, error_response, exec_output_dir)``, where
+        *parsed_data* indicates sat/unsat outcome, *error_response* contains
+        errors when validation fails, and *exec_output_dir* is the directory
+        where the obtained SAT instances are placed by the Alloy Analyzer.
+        """
+        warnings = all_warnings or []
         try:
-            solver = AlloySolver(buml_model, scope=scope, output_dir=td)
-            parsed, error, exec_output_dir = solver.run_sat_validation(
-                structural_warnings=warnings, output_type=output_type, temp_dir=td,
+            solver = cls(buml_model, scope=scope, output_dir=output_dir)
+            parsed, error, exec_output_dir = solver.check_consistency(
+                output_type=output_type,
             )
             if error:
                 return None, {**error, "warnings": warnings}, exec_output_dir
@@ -1122,4 +632,4 @@ def run_alloy_sat_validation(
                 "message": msg,
                 "errors": [msg] if msg else [],
                 "warnings": warnings,
-            }, str(td)
+            }, output_dir or "output"

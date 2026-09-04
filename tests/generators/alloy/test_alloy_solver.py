@@ -31,11 +31,17 @@ from besser.BUML.metamodel.structural import (
     Property,
     StringType,
 )
-from besser.generators.alloy.instance_generator.alloy_solver import (
-    AlloySolver,
+from besser.generators.alloy.alloy_utils_generator import (
     build_inheritance_and_attribute_maps,
     process_associations,
     translate_constraints,
+)
+from besser.generators.alloy.instance_generator.alloy_solver import (
+    AlloySolver,
+)
+from besser.generators.alloy.instance_generator.alloy_solver_utils import (
+    parse_receipt,
+    resolve_alloy_jar_path,
 )
 
 # ---------------------------------------------------------------------------
@@ -78,11 +84,7 @@ def _alloy_real():
     actual ``java -jar alloy.jar`` call; if the jar or a JRE is missing they are
     skipped rather than failing.
     """
-    from besser.generators.alloy.instance_generator.alloy_solver import (
-        AlloySolver,
-    )
-
-    return AlloySolver._resolve_alloy_jar_path() is not None and shutil.which("java") is not None
+    return resolve_alloy_jar_path() is not None and shutil.which("java") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -176,9 +178,15 @@ class TestAlloySolverConstruction:
         solver = AlloySolver(model=model, output_dir=str(tmpdir.mkdir("out")))
 
         assert os.path.isfile(solver.file)
-        sanitized_class = solver.model.classes_sorted_by_inheritance()[0]
-        assert re.fullmatch(r"[A-Za-z0-9_]+", sanitized_class.name)
-        assert all(re.fullmatch(r"[A-Za-z0-9_]+", attr.name) for attr in sanitized_class.attributes)
+        with open(solver.file, encoding="utf-8") as f:
+            als_content = f.read()
+        # The generated .als must use sanitized, Alloy-valid identifiers.
+        assert re.search(r"sig\s+Clase_Nmero", als_content)
+        assert re.search(r"Clase_Nmero__1attr", als_content)
+        # The original model must NOT be mutated.
+        original = model.classes_sorted_by_inheritance()[0]
+        assert original.name == "Clase_Número"
+        assert {a.name for a in original.attributes} == {"1attr"}
 
 
 class TestAlloySolverJarResolution:
@@ -188,14 +196,14 @@ class TestAlloySolverJarResolution:
         fake_jar.write_text("", encoding="utf-8")
         monkeypatch.setenv("BESSER_ALLOY_JAR", str(fake_jar))
 
-        assert AlloySolver._resolve_alloy_jar_path() == str(fake_jar)
+        assert resolve_alloy_jar_path() == str(fake_jar)
 
     def test_falls_back_to_default_location_when_env_var_invalid(self, monkeypatch):
         # An invalid BESSER_ALLOY_JAR must not crash; it falls back to the
         # bundled jar shipped under besser/BUML/notations/ocl/consistency/.
         monkeypatch.setenv("BESSER_ALLOY_JAR", "/nonexistent/alloy.jar")
 
-        jar_path = AlloySolver._resolve_alloy_jar_path()
+        jar_path = resolve_alloy_jar_path()
 
         assert jar_path is None or jar_path.endswith("alloy.jar")
 
@@ -207,7 +215,7 @@ class TestAlloySolverExecuteAndParse:
         exec_output_dir.mkdir()
         fake_result = subprocess.CompletedProcess(args=["java"], returncode=0, stdout="boom", stderr="")
 
-        parsed, error = AlloySolver._parse_receipt(str(exec_output_dir), fake_result)
+        parsed, error = parse_receipt(str(exec_output_dir), fake_result)
 
         assert parsed is None
         assert error["isValid"] is False
@@ -225,23 +233,17 @@ class TestAlloySolverPipelineWithoutEndpoint:
         if not _alloy_real():
             pytest.skip("Real Alloy Analyzer (alloy.jar + java) not available")
 
-    def test_check_consistency_and_run_sat_validation(self, person_model, tmpdir):
+    def test_check_consistency(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        is_sat, _parsed, error, _exec_output_dir = solver.check_consistency()
-        assert is_sat is True
+        parsed, error, _exec_output_dir = solver.check_consistency()
         assert error is None
-
-        parsed2, error2, _ = solver.run_sat_validation()
-        assert error2 is None
-        assert parsed2[0] is True
+        assert parsed[0] is True
 
     def test_generate_instance_xml(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        # `output_dir` must be an explicit, caller-owned directory: passing
-        # None makes AlloySolver clean up its temp dir before returning.
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         assert xml_path is not None
         assert os.path.isfile(xml_path)
@@ -249,7 +251,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
     def test_generate_object_diagram_code(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
 
@@ -259,7 +261,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
     def test_generate_object_diagram_json(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         reference_model = {
             "elements": {
@@ -278,7 +280,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
     def test_generate_integrated_buml_model(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         original_buml = (
             "from besser.BUML.metamodel.structural import DomainModel, Class\n"
@@ -320,7 +322,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
         solver = AlloySolver(model=unsat_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        assert solver.generate_object_diagram_code(output_dir=str(tmpdir.join("exec"))) is None
+        assert solver.generate_object_diagram_code() is None
 
 
 # ---------------------------------------------------------------------------
@@ -342,7 +344,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagram_code_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
 
@@ -352,7 +354,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagram_code_includes_attributes(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
 
@@ -361,7 +363,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagram_code_includes_association(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
 
@@ -372,7 +374,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagram_code_object_model_contains_all(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
 
@@ -383,7 +385,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_integrated_buml_model_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         original_buml = (
             "from besser.BUML.metamodel.structural import DomainModel, Class\n"
@@ -403,7 +405,7 @@ class TestAlloySolverInstanceGenerationRichModel:
         # reconstruct the class diagram + object model from the real Alloy
         # instance.
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         original_buml = (
             "from besser.BUML.metamodel.structural import DomainModel, Class\n"
@@ -433,7 +435,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagram_json_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml(output_dir=str(tmpdir.join("exec")))
+        xml_path = solver.generate_instance_xml()
 
         reference_model = {
             "elements": {
@@ -458,11 +460,10 @@ class TestAlloySolverInstanceGenerationRichModel:
         assert obj_json is not None
         assert "elements" in obj_json
 
-    def test_check_consistency_propagates_structural_warnings(self, team_player_model, tmpdir):
+    def test_check_consistency(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        warnings = ["Some structural warning"]
 
-        is_sat, _, error, _ = solver.check_consistency(structural_warnings=warnings)
+        parsed, error, _ = solver.check_consistency()
 
-        assert is_sat is True
         assert error is None
+        assert parsed[0] is True

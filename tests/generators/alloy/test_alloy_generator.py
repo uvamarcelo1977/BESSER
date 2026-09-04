@@ -37,7 +37,7 @@ from besser.BUML.metamodel.structural import (
 from besser.generators.alloy import (
     AlloyGenerator,
 )
-from besser.generators.alloy.instance_generator.alloy_solver import (
+from besser.generators.alloy.alloy_utils_generator import (
     build_consistency_rule,
     sanitize_alloy_name,
 )
