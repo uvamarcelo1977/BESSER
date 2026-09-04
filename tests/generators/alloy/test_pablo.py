@@ -55,6 +55,14 @@ assert result == True, "The model is not consistent."
 buml_object_instance = solver.generate_object_diagram_code()
 assert buml_object_instance is not None, "The object diagram code generation failed."
 
+from besser.generators.alloy.instance_generator import alloy_xml_to_frontend_object_model
+from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json import class_buml_to_json
+
+xml_path = solver.generate_instance_xml()
+reference_model = class_buml_to_json(library_model)
+json_object_instance = alloy_xml_to_frontend_object_model(xml_path, reference_model)
+assert json_object_instance is not None, "The object diagram JSON generation failed."
+
 buml_diagram_code = solver.generate_integrated_buml_model()
 assert buml_diagram_code is not None, "The integrated BUML model code generation failed."
 

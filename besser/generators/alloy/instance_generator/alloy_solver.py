@@ -597,9 +597,7 @@ class AlloySolver:
             xml_instance_path = self.generate_instance_xml()
             if not xml_instance_path:
                 return None
-        converter = AlloyToBesserConverter(xml_instance_path)
-        converter.parse_xml()
-        return converter.to_json(reference_class_model)
+        return alloy_xml_to_frontend_object_model(xml_instance_path, reference_class_model)
 
     def generate_integrated_buml_model(
         self,
