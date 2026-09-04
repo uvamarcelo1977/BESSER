@@ -236,9 +236,8 @@ class TestAlloySolverPipelineWithoutEndpoint:
     def test_check_consistency(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        parsed, error, _exec_output_dir = solver.check_consistency()
-        assert error is None
-        assert parsed[0] is True
+        satisfiable = solver.check_consistency()
+        assert satisfiable is True
 
     def test_generate_instance_xml(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
@@ -282,13 +281,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        original_buml = (
-            "from besser.BUML.metamodel.structural import DomainModel, Class\n"
-            'Person = Class(name="Person")\n'
-            'domain_model = DomainModel(name="test_domain", types={Person})\n'
-        )
-
-        integrated_code = solver.generate_integrated_buml_model(original_buml, xml_instance_path=xml_path)
+        integrated_code = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
         assert integrated_code is not None
         assert "# OBJECT MODEL #" in integrated_code
@@ -387,13 +380,7 @@ class TestAlloySolverInstanceGenerationRichModel:
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        original_buml = (
-            "from besser.BUML.metamodel.structural import DomainModel, Class\n"
-            'Team = Class(name="Team")\n'
-            'Player = Class(name="Player")\n'
-            'domain_model = DomainModel(name="test_domain", types={Team, Player})\n'
-        )
-        integrated = solver.generate_integrated_buml_model(original_buml, xml_instance_path=xml_path)
+        integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
         assert integrated is not None
         assert "# OBJECT MODEL #" in integrated
@@ -407,20 +394,7 @@ class TestAlloySolverInstanceGenerationRichModel:
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        original_buml = (
-            "from besser.BUML.metamodel.structural import DomainModel, Class\n"
-            "from besser.BUML.metamodel.structural import BinaryAssociation, Multiplicity, Property, StringType, IntegerType\n"
-            "Team = Class(name='Team')\n"
-            "Player = Class(name='Player')\n"
-            "Team.attributes = {Property(name='name', type=StringType)}\n"
-            "Player.attributes = {Property(name='name', type=StringType), Property(name='age', type=IntegerType)}\n"
-            "PlaysFor = BinaryAssociation(name='PlaysFor', ends={\n"
-            "    Property(name='players', type=Player, multiplicity=Multiplicity(3, 4)),\n"
-            "    Property(name='team', type=Team, multiplicity=Multiplicity(1, 1)),\n"
-            "})\n"
-            "domain_model = DomainModel(name='test_domain', types={Team, Player}, associations={PlaysFor})\n"
-        )
-        integrated = solver.generate_integrated_buml_model(original_buml, xml_instance_path=xml_path)
+        integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
         namespace = {}
         exec(compile(integrated, "<integrated>", "exec"), namespace)  # noqa: S102
@@ -463,7 +437,6 @@ class TestAlloySolverInstanceGenerationRichModel:
     def test_check_consistency(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        parsed, error, _ = solver.check_consistency()
+        satisfiable = solver.check_consistency()
 
-        assert error is None
-        assert parsed[0] is True
+        assert satisfiable is True
