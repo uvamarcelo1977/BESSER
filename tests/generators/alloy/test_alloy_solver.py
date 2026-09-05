@@ -258,6 +258,32 @@ class TestAlloySolverPipelineWithoutEndpoint:
         assert 'Person("Person_' in code
         assert "ObjectModel(" in code
 
+    def test_generate_object_diagram_code_writes_output_dir(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+        instances_dir = str(tmpdir.mkdir("instances"))
+
+        code = solver.generate_object_diagram_code(output_dir=instances_dir)
+
+        assert isinstance(code, str)
+        assert "ObjectModel(" in code
+        instance_file = Path(instances_dir) / "buml_object_instance1.py"
+        assert instance_file.is_file()
+        assert "ObjectModel(" in instance_file.read_text(encoding="utf-8")
+
+    def test_generate_object_diagram_code_multiple_instances(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+        instances_dir = str(tmpdir.mkdir("instances"))
+
+        codes = solver.generate_object_diagram_code(num_instances=3, output_dir=instances_dir)
+
+        assert isinstance(codes, list)
+        assert len(codes) >= 1
+        assert all("ObjectModel(" in code for code in codes)
+        written = sorted(Path(instances_dir).glob("buml_object_instance*.py"))
+        assert len(written) == len(codes)
+        expected_names = [f"buml_object_instance{i}.py" for i in range(1, len(codes) + 1)]
+        assert [p.name for p in written] == expected_names
+
     def test_generate_object_diagram_json(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()

@@ -12,6 +12,13 @@ logger = logging.getLogger(__name__)
 TIMEOUT_CALL_ALLOY = 40
 
 
+def _instance_xml_name(instance: Any) -> str | None:
+    """Extracts the XML file name (relative) from a receipt instance entry."""
+    if isinstance(instance, dict):
+        return instance.get("xml") or instance.get("filename") or instance.get("path")
+    return instance
+
+
 def resolve_first_instance_xml(
     exec_output_dir: str | Path, solutions: list[dict] | None = None
 ) -> str | None:
@@ -22,27 +29,46 @@ def resolve_first_instance_xml(
     Tries to resolve the file referenced by *solutions* (as read from ``receipt.json``)
     first, falling back to scanning *exec_output_dir* for any ``.xml`` file.
     """
+    resolved = resolve_all_instance_xmls(exec_output_dir, solutions)
+    return resolved[0] if resolved else None
+
+
+def resolve_all_instance_xmls(
+    exec_output_dir: str | Path, solutions: list[dict] | None = None
+) -> list[str]:
+    """
+    Determines the absolute paths to every XML instance produced by the Alloy Analyzer.
+
+    Tries to resolve the files referenced by *solutions* (as read from
+    ``receipt.json``) first, falling back to scanning *exec_output_dir* for any
+    ``.xml`` file. Paths are returned sorted and deduplicated.
+    """
     output_dir = Path(exec_output_dir)
+    found: list[str] = []
+    seen: set[str] = set()
 
     if solutions:
         for solution in solutions:
             for instance in solution.get("instances", []) or []:
-                if isinstance(instance, dict):
-                    name = instance.get("xml") or instance.get("filename") or instance.get("path")
-                else:
-                    name = instance
+                name = _instance_xml_name(instance)
                 if not name:
                     continue
                 candidate = output_dir / name
                 if candidate.is_file():
-                    return str(candidate.resolve())
+                    resolved = str(candidate.resolve())
+                    if resolved not in seen:
+                        seen.add(resolved)
+                        found.append(resolved)
 
-    if output_dir.is_dir():
+    if not found and output_dir.is_dir():
         for entry in sorted(output_dir.iterdir()):
             if entry.is_file() and entry.suffix == ".xml":
-                return str(entry.resolve())
+                resolved = str(entry.resolve())
+                if resolved not in seen:
+                    seen.add(resolved)
+                    found.append(resolved)
 
-    return None
+    return found
 
 
 def resolve_alloy_jar_path() -> str | None:

@@ -1,3 +1,4 @@
+import os
 from besser.BUML.metamodel.structural import DomainModel, Class, Property, \
     Multiplicity, BinaryAssociation, StringType, IntegerType, DateType
 from besser.generators.python_classes.python_classes_generator import PythonGenerator
@@ -65,5 +66,27 @@ assert buml_object_instance is not None, "The object diagram code generation fai
 # Diagrama BUML completo (clases + objetos).
 buml_diagram_code = solver.generate_integrated_buml_model()
 assert buml_diagram_code is not None, "The integrated BUML model code generation failed."
+
+
+
+
+# Test: generación múltiple con directorio persistente (3 instancias).
+instances_dir = "output_instances"
+buml_object_instances = solver.generate_object_diagram_code(num_instances=3, output_dir=instances_dir)
+assert buml_object_instances is not None, "The multi-instance object diagram generation failed."
+
+
+buml_object_instances_mem = solver.generate_object_diagram_code(num_instances=2)
+assert buml_object_instances_mem is not None, "The in-memory multi-instance generation failed."
+
+# Limpieza: elimina los archivos y directorios creados por la ejecución del test.
+# comentar las lineas siguientes para mantener los archivos generados.
+for artifact_dir in (outputdir, instances_dir):
+    if os.path.isdir(artifact_dir):
+        for file_name in os.listdir(artifact_dir):
+            file_path = os.path.join(artifact_dir, file_name)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        os.rmdir(artifact_dir)
 
 

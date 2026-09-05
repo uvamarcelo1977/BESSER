@@ -27,6 +27,7 @@ from besser.generators.alloy.instance_generator.alloy_converter import (
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
     execute_alloy_analyzer,
     parse_receipt,
+    resolve_all_instance_xmls,
     resolve_first_instance_xml,
 )
 from besser.generators.alloy.translate_ocl_alloy import (
@@ -57,8 +58,15 @@ class AlloySolver:
     def check_consistency(
         self,
         output_type: str = "json",
+        num_instances: int = 1,
     ) -> bool | None:
         """Execute the Alloy Analyzer and check model satisfiability.
+
+        Args:
+            output_type: Output format requested from the Analyzer
+                (``"json"`` or ``"xml"``).
+            num_instances: Number of instances to request from the Alloy
+                Analyzer when the model is satisfiable.
 
         Returns ``True`` if satisfiable (SAT), ``False`` if unsatisfiable (UNSAT),
         or ``None`` when the satisfiability could not be determined (error).
@@ -80,7 +88,8 @@ class AlloySolver:
         self.last_error = None
         try:
             result, error = execute_alloy_analyzer(
-                self.file, self.exec_output_dir, output_type=output_type
+                self.file, self.exec_output_dir, output_type=output_type,
+                num_instances=num_instances,
             )
         except (EnumReferenceError, ValueError) as exc:
             self.last_error = {
@@ -117,15 +126,55 @@ class AlloySolver:
     def generate_object_diagram_code(
         self,
         xml_instance_path: str | None = None,
-    ) -> str | None:
-        """Generates BUML object-diagram code from a satisfying Alloy instance."""
+        output_dir: str | None = None,
+        num_instances: int = 1,
+    ) -> str | list[str] | None:
+        """Generates BUML object-diagram code from satisfying Alloy instances.
+
+        Args:
+            xml_instance_path: Optional path to an Alloy instance XML file. When
+                ``None``, the analyzer is run and every produced instance is used.
+            output_dir: Optional directory where the generated object-diagram
+                code is persisted as ``buml_object_instance1.py``,
+                ``buml_object_instance2.py``, etc. When ``None``, nothing is
+                written to disk.
+            num_instances: Number of instances to request from the Alloy
+                Analyzer (ignored when *xml_instance_path* is provided).
+
+        Returns:
+            The generated BUML code as a single ``str`` when exactly one
+            instance is produced, a ``list[str]`` when several instances are
+            produced, or ``None`` when the model is unsatisfiable or the
+            satisfiability could not be determined.
+        """
         if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml()
-            if not xml_instance_path:
+            satisfiable = self.check_consistency(
+                output_type="xml", num_instances=num_instances
+            )
+            if satisfiable is not True:
                 return None
-        converter = AlloyToBesserConverter(xml_instance_path)
-        converter.parse_xml()
-        return converter.generate_object_diagram_code()
+            xml_paths = resolve_all_instance_xmls(self.exec_output_dir, self.solutions)
+            if not xml_paths:
+                return None
+        else:
+            xml_paths = [xml_instance_path]
+
+        codes = []
+        for xml_path in xml_paths:
+            converter = AlloyToBesserConverter(xml_path)
+            converter.parse_xml()
+            codes.append(converter.generate_object_diagram_code())
+
+        if output_dir is not None:
+            os.makedirs(output_dir, exist_ok=True)
+            for i, code in enumerate(codes, start=1):
+                instance_path = os.path.join(output_dir, f"buml_object_instance{i}.py")
+                with open(instance_path, "w", encoding="utf-8") as f:
+                    f.write(code)
+
+        if len(codes) == 1:
+            return codes[0]
+        return codes
 
     def generate_object_diagram_json(
         self,
