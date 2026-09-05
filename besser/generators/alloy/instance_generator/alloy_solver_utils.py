@@ -94,15 +94,47 @@ def resolve_alloy_jar_path() -> str | None:
     return None
 
 
+def resolve_java_path() -> str | None:
+    """Locates the ``java`` executable strictly via JAVA_HOME.
+
+    Returns ``<JAVA_HOME>/bin/java`` (or ``java.exe`` on Windows) only when
+    ``JAVA_HOME`` is set and that executable exists; otherwise returns ``None``
+    so the caller can surface a clear error. Intentionally NO fallback to the
+    system PATH.
+    """
+    java_home = os.getenv("JAVA_HOME")
+    if not java_home:
+        logger.error("JAVA_HOME is not set. Refusing to run the Alloy Analyzer.")
+        return None
+    java_file = "java.exe" if os.name == "nt" else "java"
+    candidate = Path(java_home).expanduser() / "bin" / java_file
+    if candidate.is_file() and os.access(candidate, os.X_OK):
+        return str(candidate.resolve())
+    logger.error("JAVA_HOME points to a directory without a java executable: %s", java_home)
+    return None
+
+
 def execute_alloy_analyzer(
     als_path: str, exec_output_dir: str, output_type: str = "json", num_instances: int = 1
 ) -> tuple[subprocess.CompletedProcess | None, dict[str, Any] | None]:
     """Run the Alloy Analyzer as a subprocess.
 
     Returns ``(result, error_dict)``.  On success *error_dict* is ``None``;
-    on failure (jar missing or timeout) *result* is ``None`` and *error_dict*
-    contains a standard error response.
+    on failure (java/JAR missing or timeout) *result* is ``None`` and
+    *error_dict* contains a standard error response.
     """
+    java_path = resolve_java_path()
+    if not java_path:
+        return None, {
+            "sat": None,
+            "isValid": False,
+            "message": "Could not determine satisfiability (Java executable not found).",
+            "errors": [
+                "JAVA_HOME is not set (or does not point to a valid Java installation). "
+                "Set JAVA_HOME and retry."
+            ],
+            "warnings": [],
+        }
     jar_path = resolve_alloy_jar_path()
     if not jar_path:
         return None, {
@@ -115,7 +147,7 @@ def execute_alloy_analyzer(
     try:
         result = subprocess.run(
             [
-                "java", "-jar", jar_path, "exec", "-n", "-f",
+                java_path, "-jar", jar_path, "exec", "-n", "-f",
                 "-o", exec_output_dir, "-t", output_type, "-r", str(num_instances), als_path,
             ],
             capture_output=True,

@@ -9,7 +9,6 @@ are unit-tested directly.
 """
 import os
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -42,6 +41,7 @@ from besser.generators.alloy.instance_generator.alloy_solver import (
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
     parse_receipt,
     resolve_alloy_jar_path,
+    resolve_java_path,
 )
 
 # ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ def _alloy_real():
     actual ``java -jar alloy.jar`` call; if the jar or a JRE is missing they are
     skipped rather than failing.
     """
-    return resolve_alloy_jar_path() is not None and shutil.which("java") is not None
+    return resolve_alloy_jar_path() is not None and resolve_java_path() is not None
 
 
 # ---------------------------------------------------------------------------
