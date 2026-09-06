@@ -127,13 +127,13 @@ def test_signatures_and_attributes_present(team_player_model, tmpdir):
     assert "sig Player" in spec
 
     # Scalar attributes show up under their owning class.
-    assert "Team_name: str" in spec
-    assert "Player_name: str" in spec
+    assert "Team_name: Str" in spec
+    assert "Player_name: Str" in spec
     assert "Player_age: Int" in spec
 
     # "int" itself never gets its own basic sig (it's mapped to Alloy's
     assert "open util/integer" in spec
-    assert "sig str {}" in spec
+    assert "sig Str {}" in spec
 
 
 def test_one_to_one_end_renders_as_alloy_one_keyword(team_player_model, tmpdir):
@@ -219,7 +219,7 @@ def test_recursive_association_fields_not_duplicated(tmpdir):
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
-    assert spec.count("A_p: str") == 1
+    assert spec.count("A_p: Str") == 1
     assert spec.count("A_rol1: one A") == 1
     assert spec.count("A_rol2: one A") == 1
     assert "fact{A_rol2= ~A_rol1}" in spec or "fact{A_rol1= ~A_rol2}" in spec
@@ -235,7 +235,7 @@ def test_generic_instance_model_predicate_and_run(team_player_model, tmpdir):
     # Normalize the template's uneven whitespace so substrings match reliably.
     spec = re.sub(r"\s+", " ", spec)
 
-    assert "pred instance_model[]{" in spec
+    assert "pred instance_model {" in spec
     assert "some Team" in spec
     assert "some Player" in spec
     assert "run instance_model for" in spec
@@ -564,7 +564,7 @@ def test_valid_enum_literal_reference_generates_ok(tmpdir):
 
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
-    assert "one sig ENUM_TCategory_JUNIOR extends TCategory{}" in spec
+    assert "one sig ENUM_TCategory_JUNIOR extends TCategory {}" in spec
     assert "ENUM_TCategory_JUNIOR" in spec
 
 
@@ -675,7 +675,7 @@ def _date_person_model(expressions, with_birth_attr=True) -> DomainModel:
 
     Args:
         expressions:       OCL bodies placed after ``context Person inv <name>:``.
-        with_birth_attr:   Whether ``Person`` gets a ``birthDate: date`` attribute.
+        with_birth_attr:   Whether ``Person`` gets a ``birthDate: Date`` attribute.
     """
     attrs = {Property(name="name", type=StringType)}
     if with_birth_attr:
@@ -708,16 +708,16 @@ def _generate_date_spec(model, tmpdir) -> str:
 
 
 def test_date_attribute_renders_with_ordering_sig(tmpdir):
-    """A date attribute plus a date literal must yield ``sig date {}``,
-    ``open util/ordering[date]`` and a ``date``-typed attribute."""
+    """A date attribute plus a date literal must yield ``sig Date {}``,
+    ``open util/ordering[Date]`` and a ``date``-typed attribute."""
     spec = _generate_date_spec(
         _date_person_model(["self.birthDate >= '01-01-2000'"]),
         tmpdir,
     )
-    assert "open util/ordering[date]" in spec
-    assert "sig date {}" in spec
-    assert "Person_birthDate: date" in spec
-    assert "one sig d01012000 extends date{}" in spec
+    assert "open util/ordering[Date]" in spec
+    assert "sig Date {}" in spec
+    assert "Person_birthDate: Date" in spec
+    assert "one sig d01012000 extends Date{}" in spec
     assert "I16" not in spec
 
 
@@ -728,7 +728,7 @@ def test_date_ocl_equality_translates_to_one_sig(tmpdir):
         _date_person_model(["self.birthDate = '01-01-2000'"]),
         tmpdir,
     )
-    assert "one sig d01012000 extends date{}" in spec
+    assert "one sig d01012000 extends Date{}" in spec
     assert "(self.Person_birthDate = d01012000)" in spec
 
 
@@ -750,7 +750,7 @@ def test_date_comparison_operators(operator, expected, tmpdir):
         _date_person_model([f"self.birthDate {operator} '01-01-2000'"]),
         tmpdir,
     )
-    assert "one sig d01012000 extends date{}" in spec
+    assert "one sig d01012000 extends Date{}" in spec
     assert expected in spec
 
 
@@ -766,8 +766,8 @@ def test_date_order_fact_is_emitted(tmpdir):
     generator.generate()
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
-    assert "one sig d01012000 extends date{}" in spec
-    assert "one sig d03152021 extends date{}" in spec
+    assert "one sig d01012000 extends Date{}" in spec
+    assert "one sig d03152021 extends Date{}" in spec
     assert "fact Order {" in spec
     assert "d01012000 = first" in spec
     assert "d03152021 = last" in spec
@@ -782,17 +782,17 @@ def test_date_value_deduped_across_constraints(tmpdir):
         ]),
         tmpdir,
     )
-    assert spec.count("one sig d01012000 extends date{}") == 1
+    assert spec.count("one sig d01012000 extends Date{}") == 1
 
 
 def test_date_attribute_without_date_literals_opens_ordering(tmpdir):
-    """A date attribute with no OCL date literal must declare ``sig date {}`` and
-    open ``util/ordering[date]``: the generator opens the ordering module whenever
+    """A date attribute with no OCL date literal must declare ``sig Date {}`` and
+    open ``util/ordering[Date]``: the generator opens the ordering module whenever
     the model has any date-typed attribute or date literal."""
     spec = _generate_date_spec(_date_person_model([]), tmpdir)
-    assert "sig date {}" in spec
-    assert "open util/ordering[date]" in spec
-    assert "Person_birthDate: date" in spec
+    assert "sig Date {}" in spec
+    assert "open util/ordering[Date]" in spec
+    assert "Person_birthDate: Date" in spec
 
 
 def test_date_literal_without_date_attribute_emits_ordering_sig(tmpdir):
@@ -805,10 +805,10 @@ def test_date_literal_without_date_attribute_emits_ordering_sig(tmpdir):
         ),
         tmpdir,
     )
-    assert "open util/ordering[date]" in spec
-    assert "sig date {}" in spec
-    assert "one sig d01012000 extends date{}" in spec
-    assert "one sig d03152021 extends date{}" in spec
+    assert "open util/ordering[Date]" in spec
+    assert "sig Date {}" in spec
+    assert "one sig d01012000 extends Date{}" in spec
+    assert "one sig d03152021 extends Date{}" in spec
     assert "(lt[d01012000,d03152021])" in spec
 
 
@@ -832,9 +832,9 @@ def test_datetime_time_timedelta_attributes_map_to_date(tmpdir):
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
-    assert "Event_happensAt: date" in spec
-    assert "Event_startsAt: date" in spec
-    assert "Event_duration: date" in spec
+    assert "Event_happensAt: Date" in spec
+    assert "Event_startsAt: Date" in spec
+    assert "Event_duration: Date" in spec
     assert "sig datetime {}" not in spec
     assert "sig time {}" not in spec
     assert "sig timedelta {}" not in spec
@@ -864,15 +864,15 @@ def test_datetime_attribute_vs_date_literal_uses_ordering(tmpdir):
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
-    assert "Event_happensAt: date" in spec
-    assert "one sig d01012024 extends date{}" in spec
+    assert "Event_happensAt: Date" in spec
+    assert "one sig d01012024 extends Date{}" in spec
     assert "(gte[self.Event_happensAt,d01012024])" in spec
-    assert "open util/ordering[date]" in spec
+    assert "open util/ordering[Date]" in spec
 
 
 def test_date_attribute_vs_date_attribute_uses_ordering(tmpdir):
     """Comparing two date-typed attributes must use the util/ordering predicate
-    (``gt``) and open ``util/ordering[date]`` even when no date literal appears
+    (``gt``) and open ``util/ordering[Date]`` even when no date literal appears
     anywhere (previously it fell back to Alloy set superset comparison)."""
     Patient = Class(name="Patient")
     Record = Class(name="Record")
@@ -905,7 +905,7 @@ def test_date_attribute_vs_date_attribute_uses_ordering(tmpdir):
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
-    assert "open util/ordering[date]" in spec
+    assert "open util/ordering[Date]" in spec
     assert "(gt[self.Patient_records.Record_createdDate,self.Patient_birthDate])" in spec
     assert "one sig d" in spec
     assert "fact Order {" in spec
@@ -932,8 +932,8 @@ def test_string_literal_with_date_substring_is_not_treated_as_date(tmpdir):
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
-    assert "one sig d01012024 extends date{}" not in spec
-    assert "open util/ordering[date]" not in spec
+    assert "one sig d01012024 extends Date{}" not in spec
+    assert "open util/ordering[Date]" not in spec
 
 
 def test_isdate_only_accepts_whole_date_literals():
@@ -977,7 +977,7 @@ def test_generate_dates_and_order():
         end=date(2001, 1, 5),
     )
 
-    sigs = re.findall(r"one sig (d\d{8}) extends date \{\}", result)
+    sigs = re.findall(r"one sig (d\d{8}) extends Date \{\}", result)
     assert len(sigs) == 2  # only NEW dates emit a one sig
     assert "d01012000" not in sigs
     for sig in sigs:

@@ -378,7 +378,7 @@ def test_generic_instance_model_predicate_and_run(football_model, tmpdir):
     )
     spec = re.sub(r"\s+", " ", spec)
 
-    assert "pred instance_model[]{" in spec
+    assert "pred instance_model {" in spec
     assert "run instance_model for" in spec
     for sig_name in ["Country", "Team", "Player", "GoalKeeper", "Championship", "Match", "Fan"]:
         assert f"some {sig_name}" in spec
