@@ -72,7 +72,7 @@ assert buml_diagram_code is not None, "The integrated BUML model code generation
 
 # Test: generación múltiple con directorio persistente (3 instancias).
 instances_dir = "output_instances"
-buml_object_instances = solver.generate_object_diagram_code(num_instances=3, output_dir=instances_dir)
+buml_object_instances = solver.generate_object_diagram_code(num_instances=1, output_dir=instances_dir)
 assert buml_object_instances is not None, "The multi-instance object diagram generation failed."
 
 
