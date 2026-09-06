@@ -1,111 +1,130 @@
+{% macro strname(n) -%}
+{{ "Str" if n == "str" else ("Date" if n == "date" else n) }}
+{%- endmacro -%}
 open util/boolean
-{% if "int" in basic_signatures %}
+{% if "int" in basic_signatures or "float" in basic_signatures %}
 open util/integer
 {% endif %}
 {% if has_date_values %}
-open util/ordering[date]
+open util/ordering[Date]
 {% endif %}
+
+-- Basic signatures
 {% for tipo in basic_signatures %}
-{% if tipo != 'bool' and tipo != 'int' and tipo != 'date' %}
-sig {{ tipo }} {}
+{% if tipo not in ['bool', 'int', 'float', 'date'] %}
+sig {{ strname(tipo) }} {}
 {% endif %}
 {% endfor %}
 {% if has_date_values %}
-sig date {}
+sig Date {}
 {% endif %}
+
+{% if enum_types %}
+-- Enumerations
 {% for e in enum_types %}
-abstract sig {{ e.name }} {}
-  {% for v in e.literals %}
-one sig {{ "ENUM_" ~ e.name ~"_"~ v.name }} extends {{e.name}}{}
-  {% endfor %}
+{% set literals = [] %}
+{% for v in e.literals %}
+{% do literals.append("ENUM_" ~ e.name ~ "_" ~ v.name) %}
 {% endfor %}
+abstract sig {{ e.name }} {}
+one sig {{ literals | join(', ') }} extends {{ e.name }} {}
+{% endfor %}
+{% endif %}
+
+-- Helper functions
 {% raw %}
-fun image [s: univ -> univ]: set univ {{ f: univ | some i: univ | i -> f in s }}
+fun image [s: univ -> univ]: set univ { { f: univ | some i: univ | i -> f in s } }
+
+fun toSeq [a: set univ, rel: univ -> univ]: univ -> univ { a <: rel }
+fun collect [s: univ -> univ, r: univ -> univ]: univ -> univ { s.r }
 {% endraw %}
-{% raw %}
 
-fun toSeq[a: set univ, rel: univ -> univ]: univ -> univ {a <: rel}
-fun collect[s: univ->univ, r: univ->univ] : univ->univ {s.r}
+{% if date_block %}
+{{ date_block }}
+{% endif %}
 
-{% endraw %}
-{% if date_block %}{{ date_block }}{% endif -%}
-{% macro alloy_model(class_obj, associations) -%}
-{%- if class_obj.name not in ['Integer', 'String'] -%}
-{%- set lines = [] -%}
-{# --- 1. MAPEO DE ATRIBUTOS --- #}
-{%- for attr in class_obj.attributes -%}
-  {%- set typename = "Int" if (attr.type.name == "int" or attr.type.name == "float") else ("Bool" if attr.type.name == "bool" else ("date" if attr.type.name in ("date", "datetime", "time", "timedelta") else attr.type.name)) -%}
-  {%- set line = class_obj.name ~ "_" ~ attr.name ~ ": " ~ typename -%}
-  {%- do lines.append(line) -%}
-{%- endfor -%}
-{# --- 2. MAPEO DE ASOCIACIONES --- #}
-{%- for association in associations if association.ends|length == 2 -%}
-    {%- set ends_list = association.ends|list -%}
-    {%- set e1 = ends_list[0] -%}
-    {%- set e2 = ends_list[1] -%}
-    {# Relaciones Reflexivas #}
-    {%- if e1.type.name == class_obj.name and e2.type.name == class_obj.name -%}
-        {%- for end_ref in ends_list if end_ref.is_navigable -%}
-            {%- set typename = "Int" if end_ref.type.name|lower in ['integer', 'int'] else end_ref.type.name -%}
-            {%- if end_ref.multiplicity.min == 0 and end_ref.multiplicity.max == 1 -%}
-                {%- set mult = "lone " -%}
-            {%- elif end_ref.multiplicity.max > 1 -%}
-                {%- set mult = "set " -%}
-            {%- else -%}
-                {%- set mult = "one " -%}
-            {%- endif -%}
-            {%- set line = class_obj.name ~ "_" ~ end_ref.name ~ ": " ~ mult ~ typename -%}
-            {%- do lines.append(line) -%}
-        {%- endfor -%}
-    {# Relaciones Normales #}
-    {%- else -%}
-        {%- set target_end = e2 if e1.type.name == class_obj.name else (e1 if e2.type.name == class_obj.name else None) -%}
-        {%- if target_end and target_end.is_navigable -%}
-            {%- set typename = "Int" if target_end.type.name|lower in ['integer', 'int'] else target_end.type.name -%}
-            {%- if target_end.multiplicity.min == 0 and target_end.multiplicity.max == 1 -%}
-                {%- set mult = "lone " -%}
-            {%- elif target_end.multiplicity.max > 1 -%}
-                {%- set mult = "set " -%}
-            {%- else -%}
-                {%- set mult = "one " -%}
-            {%- endif -%}
-            {%- set line = class_obj.name ~ "_" ~ target_end.name ~ ": " ~ mult ~ typename -%}
-            {%- do lines.append(line) -%}
-        {%- endif -%}
-    {%- endif -%}
-{%- endfor -%}
-{# --- 3. IMPRESIÓN DEL BLOQUE ALLOY --- #}
-{%- if class_obj.parents() -%}
-    {%- if class_obj.parents()|length > 1 -%}
-sig {{ class_obj.name }} in {{ class_obj.parents() | map(attribute='name') | join('+') }} {
-    {%- else -%}
-sig {{ class_obj.name }} extends {{ (class_obj.parents() | list | first).name }} {
-    {%- endif -%}
-{%- else -%}
-    {%- if class_obj.is_abstract -%}
-abstract sig {{ class_obj.name }} {
-    {%- else -%}
-sig {{ class_obj.name }} {
-    {%- endif -%}
-{%- endif -%}
-
+{% macro alloy_model(class_obj, associations) %}
+{% if class_obj.name not in ['Integer', 'String'] %}
+{% set lines = [] %}
+{# --- 1. Mapeo de atributos --- #}
+{% for attr in class_obj.attributes %}
+  {% set typename = "Int" if (attr.type.name in ["int", "float", "integer"]) else ("Bool" if attr.type.name == "bool" else ("Date" if attr.type.name in ("date", "datetime", "time", "timedelta") else strname(attr.type.name))) %}
+  {% do lines.append(class_obj.name ~ "_" ~ attr.name ~ ": " ~ typename) %}
+{% endfor %}
+{# --- 2. Mapeo de asociaciones --- #}
+{% for association in associations if association.ends | length == 2 %}
+  {% set ends_list = association.ends | list %}
+  {% set e1 = ends_list[0] %}
+  {% set e2 = ends_list[1] %}
+  {# Relaciones reflexivas #}
+  {% if e1.type.name == class_obj.name and e2.type.name == class_obj.name %}
+    {% for end_ref in ends_list if end_ref.is_navigable %}
+      {% set typename = "Int" if end_ref.type.name | lower in ['integer', 'int', 'float'] else strname(end_ref.type.name) %}
+      {% set mult = "lone " if (end_ref.multiplicity.min == 0 and end_ref.multiplicity.max == 1) else ("set " if end_ref.multiplicity.max > 1 else "one ") %}
+      {% do lines.append(class_obj.name ~ "_" ~ end_ref.name ~ ": " ~ mult ~ typename) %}
+    {% endfor %}
+  {# Relaciones normales #}
+  {% else %}
+    {% set target_end = e2 if e1.type.name == class_obj.name else (e1 if e2.type.name == class_obj.name else None) %}
+    {% if target_end and target_end.is_navigable %}
+      {% set typename = "Int" if target_end.type.name | lower in ['integer', 'int', 'float'] else strname(target_end.type.name) %}
+      {% set mult = "lone " if (target_end.multiplicity.min == 0 and target_end.multiplicity.max == 1) else ("set " if target_end.multiplicity.max > 1 else "one ") %}
+      {% do lines.append(class_obj.name ~ "_" ~ target_end.name ~ ": " ~ mult ~ typename) %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+{# --- 3. Encabezado de la signature --- #}
+{% if class_obj.parents() %}
+  {% if class_obj.parents() | length > 1 %}
+    {% set header = "sig " ~ class_obj.name ~ " in " ~ (class_obj.parents() | map(attribute='name') | join(' + ')) %}
+  {% else %}
+    {% set header = "sig " ~ class_obj.name ~ " extends " ~ (class_obj.parents() | list | first).name %}
+  {% endif %}
+{% else %}
+  {% set header = ("abstract sig " ~ class_obj.name) if class_obj.is_abstract else ("sig " ~ class_obj.name) %}
+{% endif %}
+{% if lines | length == 0 %}
+{{ header }} {}
+{% else %}
+{{ header }} {
 {% for line in lines %}
-    {{ line }}{{ "," if not loop.last else "" }}
+  {{ line }}{{ "," if not loop.last else "" }}
 {% endfor %}
 }
-{% endif -%}{%- endmacro %}
-{% for class_obj in classes -%}
+{% endif %}
+{% endif %}
+{% endmacro %}
+
+-- Classes
+{% for class_obj in classes %}
 {{ alloy_model(class_obj, associations_by_class.get(class_obj.name, [])) }}
-{%- endfor %}
+{% endfor %}
+
+{% if constraints %}
+-- Constraints
 {% for c in constraints %}
 {{ c.expression }}
 {% endfor %}
+{% endif %}
 
-pred instance_model[]{
-{%- for sig in sigsnv|unique  if sig not in ['bool', 'int','Integer'] %}
-{{ '\n' }} some {{ sig }}
-{%- endfor %}
+{% set valid_sigsnv = [] %}
+{% for sig in sigsnv | unique %}
+  {% if sig not in ['bool', 'int', 'float', 'Integer'] %}
+    {% do valid_sigsnv.append(sig) %}
+  {% endif %}
+{% endfor %}
+
+{% if facts_rules %}
+{% for f in facts_rules %}
+{{ f }}
+{% endfor %}
+{% endif %}
+
+pred instance_model {
+{% for sig in valid_sigsnv %}
+  some {{ strname(sig) }}
+{% endfor %}
 }
 
-run instance_model for  {{ scope }} {% for sig in sigsnv|unique if sig not in ['bool', 'Integer'] %} {% if sig == 'date' %}date{% else %}{{ sig }}{% endif %}{% if not loop.last %},  {{ scope }} {% endif %}{% endfor %}
-{% if facts_rules %}{{ '\n' }}{% for f in facts_rules %}{{ f }}{% if not loop.last %}{{ '\n' }}{% endif %}{% endfor %}{% endif %}
+run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{{ ", " if not loop.last else "" }}{% endfor %}
+

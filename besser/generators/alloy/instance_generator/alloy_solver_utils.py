@@ -324,6 +324,6 @@ def is_domain_class_name(class_name: str) -> bool:
         return False
     if is_enum_value(class_name) or class_name.startswith("ENUM_"):
         return False
-    if class_name in ("str", "Bool", "True", "False", "date", "Ord"):
+    if class_name in ("Str", "Bool", "True", "False", "Date", "Ord"):
         return False
     return not DATE_SIG_PATTERN.match(class_name)

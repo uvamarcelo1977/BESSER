@@ -932,7 +932,7 @@ def generate_dates_and_order(
 ) -> str:
     """
     Fills *ocl_dates* up to *scope* with new unique dates, emits a
-    ``one sig ... extends date {}`` line for each new date, then appends
+    ``one sig ... extends Date {}`` line for each new date, then appends
     a fact fixing the total order of all dates from smallest to largest.
     """
     dates_set = set(ocl_dates)
@@ -953,7 +953,7 @@ def generate_dates_and_order(
             attempts += 1
             continue
 
-        res += f'one sig {encoded} extends date {{}}\n'
+        res += f'one sig {encoded} extends Date {{}}\n'
         dates_set.add(encoded)
         attempts = 0  # reset counter after a successful generation
 
@@ -995,7 +995,7 @@ def parse_date(s: str, state: TranslatorState) -> str:
     """
     Parses *s* as a date and emits its Alloy ``one sig`` (like strings).
 
-    Emits ``one sig <id> extends date{}`` per unique date value and records
+    Emits ``one sig <id> extends Date{}`` per unique date value and records
     the ``dMMDDYYYY`` sig id on *state* so identical literals are only
     declared once across the whole model.  Returns the generated Alloy code.
 
@@ -1010,7 +1010,7 @@ def parse_date(s: str, state: TranslatorState) -> str:
     sig_id = encode_date(curr_date)
     res = ""
     if sig_id not in state.dates:
-        res += f"one sig {sig_id} extends date{{}}\n"
+        res += f"one sig {sig_id} extends Date{{}}\n"
         state.dates.append(sig_id)
     return res
 
@@ -1038,7 +1038,7 @@ def process_string_types(input_string: str) -> str:
     Removes surrounding single-quotes from the generated code.
     """
     values = list(dict.fromkeys(re.findall(r"'([^']*)'", input_string)))
-    sigs = "".join(f"one sig {v} extends str{{}}\n" for v in values)
+    sigs = "".join(f"one sig {v} extends Str{{}}\n" for v in values)
     return sigs + input_string.replace("'", "")
 
 

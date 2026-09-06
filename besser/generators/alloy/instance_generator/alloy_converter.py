@@ -103,9 +103,9 @@ class AlloyToBesserConverter:
             }
 
     def _date_sig_label(self) -> str | None:
-        """Returns the label of the 'date' signature (e.g., 'this/date') if it exists."""
+        """Returns the label of the 'Date' signature (e.g., 'this/Date') if it exists."""
         for sig_label in self.atoms_by_sig:
-            if get_class_name(sig_label) == "date":
+            if get_class_name(sig_label) == "Date":
                 return sig_label
         return None
 
@@ -137,15 +137,15 @@ class AlloyToBesserConverter:
             base = atom_label.split('$')[0]
 
             # Exclude special types and types that are not domain objects
-            if base in ['str', 'pepe', 'Position'] or base.startswith('ENUM_'):
-                return False
+            if  base.startswith('ENUM_'): 
+                return False  
 
             # Check if it exists in atoms_by_sig with the prefix this/
             for sig_label in self.atoms_by_sig:
                 class_name = get_class_name(sig_label)
                 if (class_name == base
                         and atom_label in self.atoms_by_sig[sig_label]
-                        and class_name not in ['str', 'Bool', 'True', 'False']):
+                        and class_name not in ['Str', 'Bool', 'True', 'False']):
                     return True
         return False
 
