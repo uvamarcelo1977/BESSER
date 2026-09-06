@@ -42,6 +42,7 @@ from besser.generators.alloy.alloy_utils_generator import (
     sanitize_alloy_name,
 )
 from besser.generators.alloy.translate_ocl_alloy import (
+    DATES_DICT,
     EnumReferenceError,
     TranslatorState,
     encode_date,
@@ -698,10 +699,10 @@ def _date_person_model(expressions, with_birth_attr=True) -> DomainModel:
     )
 
 
-def _generate_date_spec(model, tmpdir) -> str:
+def _generate_date_spec(model, tmpdir, scope=5) -> str:
     """Run AlloyGenerator on a date model and return the .als text."""
     output_dir = tmpdir.mkdir("output")
-    generator = AlloyGenerator(model=model, output_dir=str(output_dir))
+    generator = AlloyGenerator(model=model, output_dir=str(output_dir), scope=scope)
     generator.generate()
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         return f.read()
@@ -713,11 +714,12 @@ def test_date_attribute_renders_with_ordering_sig(tmpdir):
     spec = _generate_date_spec(
         _date_person_model(["self.birthDate >= '01-01-2000'"]),
         tmpdir,
+        scope=1,
     )
     assert "open util/ordering[Date]" in spec
     assert "sig Date {}" in spec
     assert "Person_birthDate: Date" in spec
-    assert "one sig d01012000 extends Date{}" in spec
+    assert "one sig date0 extends Date {}" in spec
     assert "I16" not in spec
 
 
@@ -727,19 +729,20 @@ def test_date_ocl_equality_translates_to_one_sig(tmpdir):
     spec = _generate_date_spec(
         _date_person_model(["self.birthDate = '01-01-2000'"]),
         tmpdir,
+        scope=1,
     )
-    assert "one sig d01012000 extends Date{}" in spec
-    assert "(self.Person_birthDate = d01012000)" in spec
+    assert "one sig date0 extends Date {}" in spec
+    assert "(self.Person_birthDate = date0)" in spec
 
 
 @pytest.mark.parametrize(
     "operator,expected",
     [
-        (">", "(gt[self.Person_birthDate,d01012000])"),
-        (">=", "(gte[self.Person_birthDate,d01012000])"),
-        ("<", "(lt[self.Person_birthDate,d01012000])"),
-        ("<=", "(lte[self.Person_birthDate,d01012000])"),
-        ("<>", "(self.Person_birthDate != d01012000)"),
+        (">", "(gt[self.Person_birthDate,date0])"),
+        (">=", "(gte[self.Person_birthDate,date0])"),
+        ("<", "(lt[self.Person_birthDate,date0])"),
+        ("<=", "(lte[self.Person_birthDate,date0])"),
+        ("<>", "(self.Person_birthDate != date0)"),
     ],
 )
 def test_date_comparison_operators(operator, expected, tmpdir):
@@ -749,14 +752,17 @@ def test_date_comparison_operators(operator, expected, tmpdir):
     spec = _generate_date_spec(
         _date_person_model([f"self.birthDate {operator} '01-01-2000'"]),
         tmpdir,
+        scope=1,
     )
-    assert "one sig d01012000 extends Date{}" in spec
+    assert "one sig date0 extends Date {}" in spec
     assert expected in spec
 
 
 def test_date_order_fact_is_emitted(tmpdir):
     """With two date literals, ``fact Order`` pins the util/ordering chain:
-    ``d01012000 = first`` and ``d03152021 = last`` (sorted ascending)."""
+    ``date0 = first`` and ``date1 = last`` over the sigs sorted ascending
+    (date0 -> d01012000 and date1 -> d03152021 per DATES_DICT). The OCL
+    constraints reference the same dateN atoms."""
     output_dir = tmpdir.mkdir("output")
     model = _date_person_model([
         "self.birthDate > '15-03-2021'",
@@ -766,11 +772,16 @@ def test_date_order_fact_is_emitted(tmpdir):
     generator.generate()
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
-    assert "one sig d01012000 extends Date{}" in spec
-    assert "one sig d03152021 extends Date{}" in spec
+    assert "one sig date0 extends Date {}" in spec
+    assert "one sig date1 extends Date {}" in spec
+    assert "(gt[self.Person_birthDate,date1])" in spec
+    assert "(lte[self.Person_birthDate,date0])" in spec
     assert "fact Order {" in spec
-    assert "d01012000 = first" in spec
-    assert "d03152021 = last" in spec
+    assert "date0 = first" in spec
+    assert "date0.next = date1" in spec
+    assert "date1 = last" in spec
+    assert DATES_DICT["date0"] == "d01012000"
+    assert DATES_DICT["date1"] == "d03152021"
 
 
 def test_date_value_deduped_across_constraints(tmpdir):
@@ -781,8 +792,9 @@ def test_date_value_deduped_across_constraints(tmpdir):
             "self.birthDate <> '01-01-2000'",
         ]),
         tmpdir,
+        scope=1,
     )
-    assert spec.count("one sig d01012000 extends Date{}") == 1
+    assert spec.count("one sig date0 extends Date {}") == 1
 
 
 def test_date_attribute_without_date_literals_opens_ordering(tmpdir):
@@ -804,12 +816,13 @@ def test_date_literal_without_date_attribute_emits_ordering_sig(tmpdir):
             with_birth_attr=False,
         ),
         tmpdir,
+        scope=2,
     )
     assert "open util/ordering[Date]" in spec
     assert "sig Date {}" in spec
-    assert "one sig d01012000 extends Date{}" in spec
-    assert "one sig d03152021 extends Date{}" in spec
-    assert "(lt[d01012000,d03152021])" in spec
+    assert "one sig date0 extends Date {}" in spec
+    assert "one sig date1 extends Date {}" in spec
+    assert "(lt[date0,date1])" in spec
 
 
 def test_datetime_time_timedelta_attributes_map_to_date(tmpdir):
@@ -842,8 +855,8 @@ def test_datetime_time_timedelta_attributes_map_to_date(tmpdir):
 
 def test_datetime_attribute_vs_date_literal_uses_ordering(tmpdir):
     """A DateTimeType attribute compared with a date literal must produce a
-    valid util/ordering predicate against the literal's one sig (previously it
-    produced ``gte[datetime,date]`` — an Alloy type error)."""
+    valid util/ordering predicate against the literal's sequential sig
+    (previously it produced ``gte[datetime,date]`` — an Alloy type error)."""
     Event = Class(name="Event")
     Event.attributes = {
         Property(name="name", type=StringType),
@@ -858,15 +871,15 @@ def test_datetime_attribute_vs_date_literal_uses_ordering(tmpdir):
     model = DomainModel(name="EventModel", types={Event}, constraints={inv})
 
     output_dir = tmpdir.mkdir("output")
-    generator = AlloyGenerator(model=model, output_dir=str(output_dir))
+    generator = AlloyGenerator(model=model, output_dir=str(output_dir), scope=1)
     generator.generate()
 
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
     assert "Event_happensAt: Date" in spec
-    assert "one sig d01012024 extends Date{}" in spec
-    assert "(gte[self.Event_happensAt,d01012024])" in spec
+    assert "one sig date0 extends Date {}" in spec
+    assert "(gte[self.Event_happensAt,date0])" in spec
     assert "open util/ordering[Date]" in spec
 
 
@@ -967,8 +980,9 @@ def test_random_date_within_bounds():
 
 
 def test_generate_dates_and_order():
-    """generate_dates_and_order fills up to scope, emits one sigs only for new
-    dates and a fact Order with the dates sorted ascending."""
+    """generate_dates_and_order fills up to scope, emits one sigs (date0,
+    date1, ...) for all dates, rebuilds DATES_DICT, and appends a fact Order
+    with the dates sorted ascending."""
     existing = ["d01012000"]  # 2000-01-01
     result = generate_dates_and_order(
         ocl_dates=existing,
@@ -977,15 +991,22 @@ def test_generate_dates_and_order():
         end=date(2001, 1, 5),
     )
 
-    sigs = re.findall(r"one sig (d\d{8}) extends Date \{\}", result)
-    assert len(sigs) == 2  # only NEW dates emit a one sig
-    assert "d01012000" not in sigs
-    for sig in sigs:
-        assert date(2001, 1, 1) <= parse_ocl_date(sig) <= date(2001, 1, 5)
+    sigs = re.findall(r"one sig (date\d+) extends Date \{\}", result)
+    assert len(sigs) == 3  # every date (existing + generated) emits a one sig
+
+    # DATES_DICT maps each sequential sig name (in ascending date order) to its
+    # dMMDDYYYY encoding; 2000-01-01 (d01012000) is the earliest date -> date0.
+    assert len(DATES_DICT) == len(sigs)
+    assert set(sigs) == set(DATES_DICT)
+    assert DATES_DICT["date0"] == "d01012000"
+    generated = [v for k, v in DATES_DICT.items() if k != "date0"]
+    assert len(generated) == 2
+    for g in generated:
+        assert date(2001, 1, 1) <= parse_ocl_date(g) <= date(2001, 1, 5)
 
     assert "fact Order {" in result
-    ordered = sorted(existing + sigs, key=parse_ocl_date)
-    assert ordered[0] == "d01012000"
+    ordered = sorted(sigs, key=lambda s: parse_ocl_date(DATES_DICT[s]))
+    assert ordered[0] == "date0"  # earliest date is first in the chain
     assert f"{ordered[0]} = first" in result
     for i in range(len(ordered) - 1):
         assert f"{ordered[i]}.next = {ordered[i + 1]}" in result

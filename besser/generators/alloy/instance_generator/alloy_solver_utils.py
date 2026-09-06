@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from besser.generators.alloy.translate_ocl_alloy import DATES_DICT
+
 logger = logging.getLogger(__name__)
 
 TIMEOUT_CALL_ALLOY = 40
@@ -304,15 +306,16 @@ def get_date_value(atom_label: str) -> str:
     """
     Extracts the date value from an atom.
 
-    Literals of the form ``dMMDDYYYY`` are decoded to 'DD-MM-YYYY'; other atoms of the ``date``
-    signature are returned as found by Alloy, enclosed in quotes (e.g., '"date$0"').
     Args:
-        atom_label: atom label (e.g., 'd01012000$0' or 'date$01')
+        atom_label: atom label (e.g., 'date0$0', 'd01012000$0' or 'date$01')
 
     Returns:
         Date value as a string with quotes (e.g., '"01-01-2000"')
     """
     base = atom_label.split("$")[0]
+    if base in DATES_DICT:
+        sig_id = DATES_DICT[base]
+        return f'"{sig_id[3:5]}-{sig_id[1:3]}-{sig_id[5:9]}"'
     if DATE_SIG_PATTERN.match(base):
         return f'"{base[3:5]}-{base[1:3]}-{base[5:9]}"'
     return f'"{atom_label}"'

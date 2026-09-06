@@ -21,6 +21,7 @@ from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy import (
+    DATES_DICT,
     alloy_xml_to_frontend_object_model,
     resolve_first_instance_xml,
     run_alloy_sat_validation,
@@ -369,6 +370,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 "warnings": all_warnings,
                 "scope": scope,
                 "object_model": object_model,
+                "dates_dict": dict(DATES_DICT),
             })
             return
 

@@ -903,6 +903,8 @@ _YEAR_START = 1970
 
 _YEAR_END = 2038
 
+DATES_DICT: dict[str, str] = {}
+
 def parse_ocl_date(s: str) -> date:
     """Converts ``'dMMDDYYYY'`` -> ``date``. E.g. ``'d10131977'`` -> ``date(1977, 10, 13)``."""
     mm = int(s[1:3])
@@ -932,8 +934,10 @@ def generate_dates_and_order(
 ) -> str:
     """
     Fills *ocl_dates* up to *scope* with new unique dates, emits a
-    ``one sig ... extends Date {}`` line for each new date, then appends
-    a fact fixing the total order of all dates from smallest to largest.
+    ``one sig dateN extends Date {}`` line for every date (sorted ascending),
+    then appends a fact fixing the total order of all dates from smallest to
+    largest.
+
     """
     dates_set = set(ocl_dates)
     res = ''
@@ -953,18 +957,24 @@ def generate_dates_and_order(
             attempts += 1
             continue
 
-        res += f'one sig {encoded} extends Date {{}}\n'
         dates_set.add(encoded)
         attempts = 0  # reset counter after a successful generation
 
     # sort all dates (original + generated) ascending
     sorted_dates = sorted(dates_set, key=parse_ocl_date)
 
+    # Rebuild DATES_DICT with sequential sig names and emit one sig per date.
+    DATES_DICT.clear()
+    for i, d in enumerate(sorted_dates):
+        DATES_DICT[f"date{i}"] = d
+        res += f"one sig date{i} extends Date {{}}\n"
+
     # build ordering fact using util/ordering's first/last/next
-    fact_lines = [f'{sorted_dates[0]} = first']
-    for i in range(len(sorted_dates) - 1):
-        fact_lines.append(f'{sorted_dates[i]}.next = {sorted_dates[i + 1]}')
-    fact_lines.append(f'{sorted_dates[-1]} = last')
+    date_names = [f"date{i}" for i in range(len(sorted_dates))]
+    fact_lines = [f'{date_names[0]} = first']
+    for i in range(len(date_names) - 1):
+        fact_lines.append(f'{date_names[i]}.next = {date_names[i + 1]}')
+    fact_lines.append(f'{date_names[-1]} = last')
 
     res += 'fact Order {\n'
     res += '\n'.join(f'    {line}' for line in fact_lines)
@@ -993,11 +1003,15 @@ def is_date(s: str) -> str | None:
 
 def parse_date(s: str, state: TranslatorState) -> str:
     """
-    Parses *s* as a date and emits its Alloy ``one sig`` (like strings).
+    Parses *s* as a date and records its ``dMMDDYYYY`` id on *state*.
 
-    Emits ``one sig <id> extends Date{}`` per unique date value and records
-    the ``dMMDDYYYY`` sig id on *state* so identical literals are only
-    declared once across the whole model.  Returns the generated Alloy code.
+    The ``one sig`` declarations and the ordering fact are emitted later by
+    :func:`generate_dates_and_order`, which assigns the sequential ``dateN``
+    sig names (``date0``, ``date1``, ...) to every date of the model — OCL
+    literals are treated exactly like randomly generated dates. Duplicated
+    literals are only recorded once across the whole model.
+
+    Returns an empty string.
 
     Raises:
         ValueError: If *s* cannot be interpreted as a date.
@@ -1008,11 +1022,31 @@ def parse_date(s: str, state: TranslatorState) -> str:
     except (ValueError, OverflowError):
         raise ValueError(f"Invalid date in OCL constraint: {s!r}") from None
     sig_id = encode_date(curr_date)
-    res = ""
     if sig_id not in state.dates:
-        res += f"one sig {sig_id} extends Date{{}}\n"
         state.dates.append(sig_id)
-    return res
+    return ""
+
+
+_DATE_LITERAL_PATTERN = re.compile(r"\bd\d{8}\b")
+
+
+def resolve_ocl_date_literals(constraints) -> None:
+    """Rewrites translated OCL facts in place.
+
+    Replaces every ``dMMDDYYYY`` literal id produced by :func:`is_date` /
+    :func:`parse_date` with the sequential ``dateN`` sig name assigned by
+    :func:`generate_dates_and_order` (via :data:`DATES_DICT`), so OCL date
+    constants use exactly the same atoms as randomly generated dates.\n
+    Unknown ids (not present in :data:`DATES_DICT`) are left untouched.
+    """
+    if not DATES_DICT:
+        return
+    name_by_id = {v: k for k, v in DATES_DICT.items()}
+    for constraint in constraints:
+        constraint.expression = _DATE_LITERAL_PATTERN.sub(
+            lambda m: name_by_id.get(m.group(0), m.group(0)),
+            constraint.expression,
+        )
 
 
 def _is_date_field(subject_field: str, data: dict) -> bool:
