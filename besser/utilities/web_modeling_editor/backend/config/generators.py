@@ -219,9 +219,9 @@ SUPPORTED_GENERATORS: Dict[str, GeneratorInfo] = {
     # Formal methods / Verification (Based on class diagrams)
     "alloy": GeneratorInfo(
         generator_class=AlloyGenerator,
-        output_type="als",                
-        file_extension=".als",             
-        category="formal_methods",         
+        output_type="als",
+        file_extension=".als",
+        category="formal_methods",
         requires_class_diagram=True
     )
 }
