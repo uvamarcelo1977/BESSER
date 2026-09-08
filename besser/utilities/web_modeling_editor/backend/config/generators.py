@@ -216,7 +216,7 @@ SUPPORTED_GENERATORS: Dict[str, GeneratorInfo] = {
         requires_class_diagram=False,
         required_diagram_type=BPMN_DIAGRAM_TYPE,
     ),
-    # Métodos formales / Verificación (Basado en diagramas de clases)
+    # Formal methods / Verification (Based on class diagrams)
     "alloy": GeneratorInfo(
         generator_class=AlloyGenerator,
         output_type="als",                
