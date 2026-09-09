@@ -310,14 +310,14 @@ def get_date_value(atom_label: str) -> str:
         atom_label: atom label (e.g., 'date0$0', 'd01012000$0' or 'date$01')
 
     Returns:
-        Date value as a string with quotes (e.g., '"01-01-2000"')
+        Date value as an ISO-8601 string with quotes (e.g., '"2000-01-01"')
     """
     base = atom_label.split("$")[0]
     if base in DATES_DICT:
         sig_id = DATES_DICT[base]
-        return f'"{sig_id[3:5]}-{sig_id[1:3]}-{sig_id[5:9]}"'
+        return f'"{sig_id[5:9]}-{sig_id[1:3]}-{sig_id[3:5]}"'
     if DATE_SIG_PATTERN.match(base):
-        return f'"{base[3:5]}-{base[1:3]}-{base[5:9]}"'
+        return f'"{base[5:9]}-{base[1:3]}-{base[3:5]}"'
     return f'"{atom_label}"'
 
 

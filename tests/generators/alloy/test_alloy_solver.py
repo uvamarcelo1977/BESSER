@@ -248,38 +248,39 @@ class TestAlloySolverPipelineWithoutEndpoint:
         assert os.path.isfile(xml_path)
         assert Path(xml_path).suffix == ".xml"
 
-    def test_generate_object_diagram_code(self, person_model, tmpdir):
+    def test_generate_object_diagrams(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
+        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
-        assert code is not None
-        assert 'Person("Person_' in code
-        assert "ObjectModel(" in code
+        assert codes is not None
+        assert isinstance(codes, list)
+        assert 'Person("Person_' in codes[0]
+        assert "ObjectModel(" in codes[0]
 
-    def test_generate_object_diagram_code_writes_output_dir(self, person_model, tmpdir):
+    def test_generate_object_diagrams_writes_file(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        instances_dir = str(tmpdir.mkdir("instances"))
 
-        code = solver.generate_object_diagram_code(output_dir=instances_dir)
+        codes = solver.generate_object_diagrams()
 
-        assert isinstance(code, str)
-        assert "ObjectModel(" in code
-        instance_file = Path(instances_dir) / "buml_object_instance1.py"
+        assert codes is not None
+        assert isinstance(codes, list)
+        assert len(codes) == 1
+        assert "ObjectModel(" in codes[0]
+        instance_file = Path(solver.output_dir) / "buml_object_instance1.py"
         assert instance_file.is_file()
         assert "ObjectModel(" in instance_file.read_text(encoding="utf-8")
 
-    def test_generate_object_diagram_code_multiple_instances(self, person_model, tmpdir):
+    def test_generate_object_diagrams_multiple_instances(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        instances_dir = str(tmpdir.mkdir("instances"))
 
-        codes = solver.generate_object_diagram_code(num_instances=3, output_dir=instances_dir)
+        codes = solver.generate_object_diagrams(num_instances=3)
 
         assert isinstance(codes, list)
         assert len(codes) >= 1
         assert all("ObjectModel(" in code for code in codes)
-        written = sorted(Path(instances_dir).glob("buml_object_instance*.py"))
+        written = sorted(Path(solver.output_dir).glob("buml_object_instance*.py"))
         assert len(written) == len(codes)
         expected_names = [f"buml_object_instance{i}.py" for i in range(1, len(codes) + 1)]
         assert [p.name for p in written] == expected_names
@@ -313,7 +314,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
         assert "# OBJECT MODEL #" in integrated_code
         assert 'Person("Person_' in integrated_code
 
-    def test_generate_object_diagram_code_returns_none_when_unsat(self, person_model, tmpdir):
+    def test_generate_object_diagrams_returns_none_when_unsat(self, person_model, tmpdir):
         # A model is guaranteed to be unsatisfiable by adding two contradictory
         # OCL invariants, which are translated to mutually exclusive Alloy facts.
         from besser.BUML.metamodel.structural import Constraint
@@ -341,7 +342,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
         solver = AlloySolver(model=unsat_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        assert solver.generate_object_diagram_code() is None
+        assert solver.generate_object_diagrams() is None
 
 
 # ---------------------------------------------------------------------------
@@ -361,46 +362,47 @@ class TestAlloySolverInstanceGenerationRichModel:
         if not _alloy_real():
             pytest.skip("Real Alloy Analyzer (alloy.jar + java) not available")
 
-    def test_generate_object_diagram_code_team_player(self, team_player_model, tmpdir):
+    def test_generate_object_diagrams_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
+        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
-        assert code is not None
-        assert re.search(r'^\w+_obj = Team\("Team_', code, re.MULTILINE)
-        assert re.search(r'^\w+_obj = Player\("Player_', code, re.MULTILINE)
+        assert codes is not None
+        assert isinstance(codes, list)
+        assert re.search(r'^\w+_obj = Team\("Team_', codes[0], re.MULTILINE)
+        assert re.search(r'^\w+_obj = Player\("Player_', codes[0], re.MULTILINE)
 
-    def test_generate_object_diagram_code_includes_attributes(self, team_player_model, tmpdir):
+    def test_generate_object_diagrams_includes_attributes(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
+        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
-        assert "'name':" in code
-        assert "'age':" in code
+        assert "'name':" in codes[0]
+        assert "'age':" in codes[0]
 
-    def test_generate_object_diagram_code_includes_association(self, team_player_model, tmpdir):
+    def test_generate_object_diagrams_includes_association(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
+        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
-        assert "setattr(" in code
+        assert "setattr(" in codes[0]
         # The association should connect team to players or vice versa
-        assert "team" in code
-        assert "player" in code
+        assert "team" in codes[0]
+        assert "player" in codes[0]
 
-    def test_generate_object_diagram_code_object_model_contains_all(self, team_player_model, tmpdir):
+    def test_generate_object_diagrams_object_model_contains_all(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
 
-        code = solver.generate_object_diagram_code(xml_instance_path=xml_path)
+        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
-        assert "ObjectModel(" in code
+        assert "ObjectModel(" in codes[0]
         # Team and Player objects must appear in the ObjectModel constructor
-        assert "Team(" in code
-        assert "Player(" in code
+        assert "Team(" in codes[0]
+        assert "Player(" in codes[0]
 
     def test_generate_integrated_buml_model_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)

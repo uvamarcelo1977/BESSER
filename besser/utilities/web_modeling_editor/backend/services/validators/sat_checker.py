@@ -22,9 +22,9 @@ from typing import Any
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy import (
     DATES_DICT,
+    AlloySolver,
     alloy_xml_to_frontend_object_model,
     resolve_first_instance_xml,
-    run_alloy_sat_validation,
 )
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
@@ -383,6 +383,44 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
             "errors": [],
             "warnings": all_warnings,
         })
+
+
+def run_alloy_sat_validation(
+    buml_model: DomainModel,
+    all_warnings: list[str] | None = None,
+    scope: int = 5,
+    output_type: str = "json",
+    output_dir: str | None = None,
+) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
+    """Translate a BUML class diagram + OCL constraints into Alloy, execute
+    the Alloy Analyzer, and return the consistency-check result.
+
+    This is a thin wrapper around :meth:`AlloySolver.check_consistency` (the
+    single source of truth for the Alloy execution). It builds the solver, folds
+    in the web-layer ``warnings``, and exposes the result in the legacy
+    ``(parsed_data, error_response, exec_output_dir)`` shape where
+    *parsed_data* is ``(sat, command_name, solutions)``.
+    """
+    warnings = all_warnings or []
+    try:
+        solver = AlloySolver(buml_model, scope=scope, output_dir=output_dir)
+    except ValueError as exc:
+        msg = str(exc)
+        return None, {
+            "sat": None,
+            "isValid": False,
+            "message": msg,
+            "errors": [msg] if msg else [],
+            "warnings": warnings,
+        }, output_dir or "output"
+    solver.check_consistency(output_type=output_type)
+    if solver.satisfiable is None:
+        return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir
+    return (
+        (solver.satisfiable, solver.command_name, solver.solutions),
+        None,
+        solver.exec_output_dir,
+    )
 
 
 def _sse(data: dict[str, Any]) -> str:

@@ -14,6 +14,7 @@ The translation of Alloy instances back into UML object diagrams lives in
 import logging
 import os
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
@@ -123,29 +124,28 @@ class AlloySolver:
             return None
         return resolve_first_instance_xml(self.exec_output_dir, self.solutions)
 
-    def generate_object_diagram_code(
+    def generate_object_diagrams(
         self,
         xml_instance_path: str | None = None,
-        output_dir: str | None = None,
         num_instances: int = 1,
-    ) -> str | list[str] | None:
+    ) -> list[str] | None:
         """Generates BUML object-diagram code from satisfying Alloy instances.
 
         Args:
             xml_instance_path: Optional path to an Alloy instance XML file. When
                 ``None``, the analyzer is run and every produced instance is used.
-            output_dir: Optional directory where the generated object-diagram
-                code is persisted as ``buml_object_instance1.py``,
-                ``buml_object_instance2.py``, etc. When ``None``, nothing is
-                written to disk.
             num_instances: Number of instances to request from the Alloy
                 Analyzer (ignored when *xml_instance_path* is provided).
 
         Returns:
-            The generated BUML code as a single ``str`` when exactly one
-            instance is produced, a ``list[str]`` when several instances are
-            produced, or ``None`` when the model is unsatisfiable or the
-            satisfiability could not be determined.
+            A list with the generated BUML code for each produced instance, or
+            ``None`` when the model is unsatisfiable or the satisfiability could
+            not be determined.
+
+        The generated code is persisted in ``self.output_dir`` as
+        ``buml_object_instance1.py``, ``buml_object_instance2.py``, etc. When
+        the solver was created without an explicit ``output_dir`` this is a
+        temporary directory that is cleaned up when the solver is destroyed.
         """
         if xml_instance_path is None:
             satisfiable = self.check_consistency(
@@ -162,18 +162,18 @@ class AlloySolver:
         codes = []
         for xml_path in xml_paths:
             converter = AlloyToBesserConverter(xml_path)
-            converter.parse_xml()
             codes.append(converter.generate_object_diagram_code())
 
-        if output_dir is not None:
-            os.makedirs(output_dir, exist_ok=True)
-            for i, code in enumerate(codes, start=1):
-                instance_path = os.path.join(output_dir, f"buml_object_instance{i}.py")
-                with open(instance_path, "w", encoding="utf-8") as f:
-                    f.write(code)
+        os.makedirs(self.output_dir, exist_ok=True)
+        #Clean up any previous instance files before writing new ones
+        for file in Path(self.output_dir).glob("buml_object_instance*.py"):
+            file.unlink()
+        # Write the generated codes to files    
+        for i, code in enumerate(codes, start=1):
+            instance_path = os.path.join(self.output_dir, f"buml_object_instance{i}.py")
+            with open(instance_path, "w", encoding="utf-8") as f:
+                f.write(code)
 
-        if len(codes) == 1:
-            return codes[0]
         return codes
 
     def generate_object_diagram_json(
@@ -207,42 +207,10 @@ class AlloySolver:
             if os.path.exists(tmp_buml):
                 os.unlink(tmp_buml)
         integrator = BUMLModelIntegrator(original_buml_content, xml_instance_path)
-        return integrator.generate_integrated_model()
-
-
-def run_alloy_sat_validation(
-    buml_model: DomainModel,
-    all_warnings: list[str] | None = None,
-    scope: int = 5,
-    output_type: str = "json",
-    output_dir: str | None = None,
-) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
-    """Translate a BUML class diagram + OCL constraints into Alloy, execute
-    the Alloy Analyzer, and return the consistency-check result.
-
-    This is a thin wrapper around :meth:`AlloySolver.check_consistency` (the
-    single source of truth for the Alloy execution). It builds the solver, folds
-    in the web-layer ``warnings``, and exposes the result in the legacy
-    ``(parsed_data, error_response, exec_output_dir)`` shape where
-    *parsed_data* is ``(sat, command_name, solutions)``.
-    """
-    warnings = all_warnings or []
-    try:
-        solver = AlloySolver(buml_model, scope=scope, output_dir=output_dir)
-    except ValueError as exc:
-        msg = str(exc)
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": msg,
-            "errors": [msg] if msg else [],
-            "warnings": warnings,
-        }, output_dir or "output"
-    solver.check_consistency(output_type=output_type)
-    if solver.satisfiable is None:
-        return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir
-    return (
-        (solver.satisfiable, solver.command_name, solver.solutions),
-        None,
-        solver.exec_output_dir,
-    )
+        integrated_code = integrator.generate_integrated_model()
+        if integrated_code is None:
+            return None
+        integrated_path = os.path.join(self.output_dir, "buml_integrated_model.py")
+        with open(integrated_path, "w", encoding="utf-8") as f:
+            f.write(integrated_code)
+        return integrated_code

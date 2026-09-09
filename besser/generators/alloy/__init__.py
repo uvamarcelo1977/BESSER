@@ -5,7 +5,6 @@ from .instance_generator import (
     BUMLModelIntegrator,
     alloy_xml_to_frontend_object_model,
     resolve_first_instance_xml,
-    run_alloy_sat_validation,
 )
 from .translate_ocl_alloy import DATES_DICT
 
@@ -17,5 +16,4 @@ __all__ = [
     "BUMLModelIntegrator",
     "alloy_xml_to_frontend_object_model",
     "resolve_first_instance_xml",
-    "run_alloy_sat_validation",
 ]

@@ -6,6 +6,7 @@ Handles object diagram processing and attribute mapping.
 import ast
 import logging
 import uuid
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from besser.utilities.web_modeling_editor.backend.services.utils import (
@@ -16,6 +17,49 @@ from besser.utilities.web_modeling_editor.backend.services.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _eval_datetime_literal(node: ast.AST) -> str | None:
+    """Evaluate a date/datetime/time/timedelta constructor call to an ISO-8601 string.
+
+    Handles the literal forms emitted for ``DateType``/``DateTimeType``/``TimeType``/
+    ``TimeDeltaType`` attribute values, e.g. ``datetime.date(2024, 1, 1)`` or
+    ``datetime.datetime.fromisoformat("2024-01-01T00:00:00")``. Returns ``None``
+    when *node* isn't a recognized constructor call (``ast.literal_eval`` cannot
+    evaluate these, so they would otherwise be silently dropped).
+    """
+    if not isinstance(node, ast.Call):
+        return None
+
+    dotted_parts = []
+    func = node.func
+    while isinstance(func, ast.Attribute):
+        dotted_parts.append(func.attr)
+        func = func.value
+    if not isinstance(func, ast.Name):
+        return None
+    dotted_parts.append(func.id)
+    dotted = ".".join(reversed(dotted_parts))
+
+    try:
+        args = [ast.literal_eval(arg) for arg in node.args]
+    except (ValueError, SyntaxError):
+        return None
+
+    try:
+        if dotted in ("datetime.date", "date"):
+            return date(*args).isoformat()
+        if dotted in ("datetime.datetime", "datetime"):
+            return datetime(*args).isoformat()
+        if dotted in ("datetime.datetime.fromisoformat", "datetime.fromisoformat"):
+            return str(args[0])
+        if dotted in ("datetime.time", "time"):
+            return time(*args).isoformat()
+        if dotted in ("datetime.timedelta", "timedelta"):
+            return str(timedelta(*args))
+    except (TypeError, ValueError, IndexError):
+        return None
+    return None
 
 
 def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, Any]:
@@ -50,8 +94,13 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
         attributes: dict[str, Any] = {}
 
         for kw in attr_call.keywords:
-            if kw.arg is not None and isinstance(kw.value, ast.Constant):
-                attributes[kw.arg] = kw.value.value
+            if kw.arg is not None:
+                if isinstance(kw.value, ast.Constant):
+                    attributes[kw.arg] = kw.value.value
+                    continue
+                datetime_value = _eval_datetime_literal(kw.value)
+                if datetime_value is not None:
+                    attributes[kw.arg] = datetime_value
                 continue
 
             if kw.arg is None and isinstance(kw.value, ast.Dict):
@@ -60,11 +109,20 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
                         continue
                     try:
                         key = ast.literal_eval(key_node)
-                        value = ast.literal_eval(value_node)
                     except (ValueError, SyntaxError):
                         continue
-                    if isinstance(key, str):
-                        attributes[key] = value
+                    if not isinstance(key, str):
+                        continue
+
+                    datetime_value = _eval_datetime_literal(value_node)
+                    if datetime_value is not None:
+                        attributes[key] = datetime_value
+                        continue
+
+                    try:
+                        attributes[key] = ast.literal_eval(value_node)
+                    except (ValueError, SyntaxError):
+                        continue
 
         return attributes
 
