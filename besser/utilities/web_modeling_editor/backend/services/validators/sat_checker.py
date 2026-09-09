@@ -24,6 +24,7 @@ from besser.generators.alloy import (
     DATES_DICT,
     AlloySolver,
     alloy_xml_to_frontend_object_model,
+    build_error_response,
     resolve_first_instance_xml,
 )
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
@@ -50,13 +51,9 @@ def convert_json_to_buml(input_data: DiagramInput) -> DomainModel | dict[str, An
     """
     diagram_type = input_data.model.get("type") if input_data.model else None
     if diagram_type != "ClassDiagram":
-        return {
-            "sat": None,
-            "isValid": False,
-            "message": "Semantic  Check is only available for Class Diagrams.",
-            "errors": [],
-            "warnings": [],
-        }
+        return build_error_response(
+            "Semantic  Check is only available for Class Diagrams.", errors=[]
+        )
     json_data = {"title": input_data.title, "model": input_data.model}
     return process_class_diagram(json_data)
 
@@ -112,13 +109,11 @@ def validate_ocl_constraints(
         ocl_errors.append(ocl_result.get("message", "OCL validation failed."))
     all_warnings = structural_warnings or []
     if ocl_errors:
-        return all_warnings, {
-            "sat": None,
-            "isValid": False,
-            "message": " OCL constraints are invalid — SAT check skipped.",
-            "errors": ocl_errors,
-            "warnings": all_warnings,
-        }
+        return all_warnings, build_error_response(
+            " OCL constraints are invalid — SAT check skipped.",
+            errors=ocl_errors,
+            warnings=all_warnings,
+        )
     return all_warnings, None
 
 #----------------------------------------------------------------------
@@ -145,11 +140,11 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
     structural_errors, structural_warnings = validate_buml_structure(buml_model)
     if structural_errors:
         yield _sse({
-            "sat": None,
-            "isValid": False,
-            "message": " Structural validation failed — SAT check skipped.",
-            "errors": structural_errors,
-            "warnings": structural_warnings,
+            **build_error_response(
+                " Structural validation failed — SAT check skipped.",
+                errors=structural_errors,
+                warnings=structural_warnings,
+            ),
             "done": True,
         })
         return
@@ -161,12 +156,7 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
 
     # Steps 4-6: iterate scopes
     for scope in SCOPE_STEPS:
-        yield _sse({
-            "sat": None,
-            "done": False,
-            "message": f"🔍 Trying scope {scope}...",
-            "scope": scope,
-        })
+        yield _sse(_sat_progress(None, False, f"🔍 Trying scope {scope}...", scope=scope))
 
         try:
             parsed, error, _ = await asyncio.wait_for(
@@ -177,14 +167,11 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
                 timeout=TIMEOUT_SECONDS,
             )
         except asyncio.TimeoutError:
-            yield _sse({
-                "sat": False,
-                "isValid": False,
-                "done": True,
-                "message": f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
-                "errors": [],
-                "warnings": all_warnings,
-            })
+            yield _sse(_sat_progress(
+                False, True,
+                f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
+                isValid=False, errors=[], warnings=all_warnings,
+            ))
             return
 
         if error:
@@ -193,33 +180,21 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
 
         sat, first_command_name, _ = parsed
         if sat:
-            yield _sse({
-                "sat": True,
-                "isValid": True,
-                "done": True,
-                "message": f" SAT found with scope {scope} (command: {first_command_name}).",
-                "errors": [],
-                "warnings": all_warnings,
-                "scope": scope,
-            })
+            yield _sse(_sat_progress(
+                True, True, f" SAT found with scope {scope} (command: {first_command_name}).",
+                isValid=True, errors=[], warnings=all_warnings, scope=scope,
+            ))
             return
 
-        yield _sse({
-            "sat": False,
-            "done": False,
-            "message": f" UNSAT with scope {scope}. Trying larger scope...",
-            "scope": scope,
-        })
+        yield _sse(_sat_progress(
+            False, False, f" UNSAT with scope {scope}. Trying larger scope...", scope=scope,
+        ))
 
     # All scopes exhausted without finding SAT
-    yield _sse({
-        "sat": False,
-        "isValid": False,
-        "done": True,
-        "message": f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
-        "errors": [],
-        "warnings": all_warnings,
-    })
+    yield _sse(_sat_progress(
+        False, True, f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
+        isValid=False, errors=[], warnings=all_warnings,
+    ))
 
 
 async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[str, None]:
@@ -250,11 +225,11 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
     structural_errors, structural_warnings = validate_buml_structure(buml_model)
     if structural_errors:
         yield _sse({
-            "sat": None,
-            "isValid": False,
-            "message": " Structural validation failed — SAT check skipped.",
-            "errors": structural_errors,
-            "warnings": structural_warnings,
+            **build_error_response(
+                " Structural validation failed — SAT check skipped.",
+                errors=structural_errors,
+                warnings=structural_warnings,
+            ),
             "done": True,
         })
         return
@@ -267,12 +242,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
     # Steps 4-6: iterate scopes until SAT is found
     with tempfile.TemporaryDirectory() as temp_dir:
         for scope in SCOPE_STEPS:
-            yield _sse({
-                "sat": None,
-                "done": False,
-                "message": f"🔍 Trying scope {scope}...",
-                "scope": scope,
-            })
+            yield _sse(_sat_progress(None, False, f"🔍 Trying scope {scope}...", scope=scope))
 
             try:
                 parsed, error, exec_output_dir = await asyncio.wait_for(
@@ -286,14 +256,11 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                     timeout=TIMEOUT_SECONDS,
                 )
             except asyncio.TimeoutError:
-                yield _sse({
-                    "sat": False,
-                    "isValid": False,
-                    "done": True,
-                    "message": f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
-                    "errors": [],
-                    "warnings": all_warnings,
-                })
+                yield _sse(_sat_progress(
+                    False, True,
+                    f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
+                    isValid=False, errors=[], warnings=all_warnings,
+                ))
                 return
 
             if error:
@@ -302,24 +269,18 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
 
             sat, first_command_name, solutions = parsed
             if not sat:
-                yield _sse({
-                    "sat": False,
-                    "done": False,
-                    "message": f" UNSAT with scope {scope}. Trying larger scope...",
-                    "scope": scope,
-                })
+                yield _sse(_sat_progress(
+                    False, False, f" UNSAT with scope {scope}. Trying larger scope...", scope=scope,
+                ))
                 continue
 
             # SAT → locate XML instance → convert to frontend Object Diagram JSON
-            yield _sse({
-                "sat": True,
-                "done": False,
-                "message": (
-                    f"✅ SAT found with scope {scope} "
-                    f"(command: {first_command_name}). Generating Object Diagram..."
-                ),
-                "scope": scope,
-            })
+            yield _sse(_sat_progress(
+                True, False,
+                f"✅ SAT found with scope {scope} "
+                f"(command: {first_command_name}). Generating Object Diagram...",
+                scope=scope,
+            ))
 
             loop = asyncio.get_event_loop()
             try:
@@ -328,18 +289,12 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 )
                 if not xml_instance_path:
                     logger.warning("SAT=true but no Alloy XML instance was found in %s", exec_output_dir)
-                    yield _sse({
-                        "sat": True,
-                        "isValid": False,
-                        "done": True,
-                        "message": (
-                            f" Model is satisfiable (command: {first_command_name}), "
-                            "but no instance XML was found."
-                        ),
-                        "errors": [],
-                        "warnings": all_warnings,
-                        "scope": scope,
-                    })
+                    yield _sse(_sat_progress(
+                        True, True,
+                        f" Model is satisfiable (command: {first_command_name}), "
+                        "but no instance XML was found.",
+                        isValid=False, errors=[], warnings=all_warnings, scope=scope,
+                    ))
                     return
 
                 object_model = await loop.run_in_executor(
@@ -347,42 +302,26 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 )
             except Exception as exc:
                 logger.exception("Failed to convert Alloy instance to frontend ObjectDiagram")
-                yield _sse({
-                    "sat": True,
-                    "isValid": False,
-                    "done": True,
-                    "message": (
-                        f" Model is satisfiable (command: {first_command_name}), "
-                        "but instance conversion failed."
-                    ),
-                    "error": str(exc),
-                    "warnings": all_warnings,
-                    "scope": scope,
-                })
+                yield _sse(_sat_progress(
+                    True, True,
+                    f" Model is satisfiable (command: {first_command_name}), "
+                    "but instance conversion failed.",
+                    isValid=False, warnings=all_warnings, scope=scope, error=str(exc),
+                ))
                 return
 
-            yield _sse({
-                "sat": True,
-                "isValid": True,
-                "done": True,
-                "message": f" Model is satisfiable (command: {first_command_name}).",
-                "errors": [],
-                "warnings": all_warnings,
-                "scope": scope,
-                "object_model": object_model,
-                "dates_dict": dict(DATES_DICT),
-            })
+            yield _sse(_sat_progress(
+                True, True, f" Model is satisfiable (command: {first_command_name}).",
+                isValid=True, errors=[], warnings=all_warnings, scope=scope,
+                object_model=object_model, dates_dict=dict(DATES_DICT),
+            ))
             return
 
         # All scopes exhausted without finding SAT
-        yield _sse({
-            "sat": False,
-            "isValid": False,
-            "done": True,
-            "message": f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
-            "errors": [],
-            "warnings": all_warnings,
-        })
+        yield _sse(_sat_progress(
+            False, True, f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
+            isValid=False, errors=[], warnings=all_warnings,
+        ))
 
 
 def run_alloy_sat_validation(
@@ -406,13 +345,9 @@ def run_alloy_sat_validation(
         solver = AlloySolver(buml_model, scope=scope, output_dir=output_dir)
     except ValueError as exc:
         msg = str(exc)
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": msg,
-            "errors": [msg] if msg else [],
-            "warnings": warnings,
-        }, output_dir or "output"
+        return None, build_error_response(
+            msg, errors=[msg] if msg else [], warnings=warnings
+        ), output_dir or "output"
     solver.check_consistency(output_type=output_type)
     if solver.satisfiable is None:
         return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir
@@ -421,6 +356,28 @@ def run_alloy_sat_validation(
         None,
         solver.exec_output_dir,
     )
+
+
+def _sat_progress(
+    sat: bool | None,
+    done: bool,
+    message: str,
+    *,
+    scope: int | None = None,
+    **extra: Any,
+) -> dict[str, Any]:
+    """Builds an SSE progress/result message for the SAT-check stream.
+
+    Centralizes the ``{sat, done, message, scope, ...}`` shape shared by every
+    progress/result event yielded during scope iteration, so callers don't
+    duplicate it. Extra fields (``isValid``, ``errors``, ``warnings``,
+    ``object_model``, etc.) are passed through as keyword arguments.
+    """
+    data: dict[str, Any] = {"sat": sat, "done": done, "message": message}
+    if scope is not None:
+        data["scope"] = scope
+    data.update(extra)
+    return data
 
 
 def _sse(data: dict[str, Any]) -> str:

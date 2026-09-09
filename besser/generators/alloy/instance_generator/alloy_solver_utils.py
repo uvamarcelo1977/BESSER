@@ -14,6 +14,26 @@ logger = logging.getLogger(__name__)
 TIMEOUT_CALL_ALLOY = 40
 
 
+def build_error_response(
+    message: str,
+    errors: list[str] | None = None,
+    warnings: list[str] | None = None,
+) -> dict[str, Any]:
+    """Builds the standard error dict returned when satisfiability could not be determined.
+
+    Centralizes the ``{sat, isValid, message, errors, warnings}`` shape consumed
+    by ``AlloySolver.last_error`` and the frontend validation response, so callers
+    don't need to know/duplicate that structure.
+    """
+    return {
+        "sat": None,
+        "isValid": False,
+        "message": message,
+        "errors": errors if errors is not None else [message],
+        "warnings": warnings or [],
+    }
+
+
 def _instance_xml_name(instance: Any) -> str | None:
     """Extracts the XML file name (relative) from a receipt instance entry."""
     if isinstance(instance, dict):
@@ -127,25 +147,19 @@ def execute_alloy_analyzer(
     """
     java_path = resolve_java_path()
     if not java_path:
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": "Could not determine satisfiability (Java executable not found).",
-            "errors": [
+        return None, build_error_response(
+            "Could not determine satisfiability (Java executable not found).",
+            errors=[
                 "JAVA_HOME is not set (or does not point to a valid Java installation). "
                 "Set JAVA_HOME and retry."
             ],
-            "warnings": [],
-        }
+        )
     jar_path = resolve_alloy_jar_path()
     if not jar_path:
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": "Could not determine satisfiability (Alloy jar not found).",
-            "errors": ["Alloy JAR not found. Set BESSER_ALLOY_JAR or place alloy.jar in a known location."],
-            "warnings": [],
-        }
+        return None, build_error_response(
+            "Could not determine satisfiability (Alloy jar not found).",
+            errors=["Alloy JAR not found. Set BESSER_ALLOY_JAR or place alloy.jar in a known location."],
+        )
     try:
         result = subprocess.run(
             [
@@ -157,16 +171,11 @@ def execute_alloy_analyzer(
             timeout=TIMEOUT_CALL_ALLOY,
         )
     except subprocess.TimeoutExpired:
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": (
-                f"Alloy execution timed out after {TIMEOUT_CALL_ALLOY} seconds "
-                "— model may be unsatisfiable or too complex."
-            ),
-            "errors": [f"Alloy execution timed out after {TIMEOUT_CALL_ALLOY} seconds."],
-            "warnings": [],
-        }
+        return None, build_error_response(
+            f"Alloy execution timed out after {TIMEOUT_CALL_ALLOY} seconds "
+            "— model may be unsatisfiable or too complex.",
+            errors=[f"Alloy execution timed out after {TIMEOUT_CALL_ALLOY} seconds."],
+        )
     return result, None
 
 
@@ -186,26 +195,22 @@ def parse_receipt(
     if not os.path.exists(receipt_path):
         output = result.stdout + result.stderr
         logger.warning("Alloy exec produced no receipt.json. Output: %s", output[:500])
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": "Could not determine satisfiability (no receipt.json produced).",
-            "errors": [output[:500]],
-            "warnings": warnings,
-        }
+        return None, build_error_response(
+            "Could not determine satisfiability (no receipt.json produced).",
+            errors=[output[:500]],
+            warnings=warnings,
+        )
 
     with open(receipt_path, "r", encoding="utf-8") as f:
         receipt = json.load(f)
 
     commands = receipt.get("commands", {})
     if not commands:
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": "No commands were executed in the Alloy model.",
-            "errors": ["The generated .als file contains no run/check commands."],
-            "warnings": warnings,
-        }
+        return None, build_error_response(
+            "No commands were executed in the Alloy model.",
+            errors=["The generated .als file contains no run/check commands."],
+            warnings=warnings,
+        )
 
     first_command_name = next(iter(commands))
     first_command = commands[first_command_name]

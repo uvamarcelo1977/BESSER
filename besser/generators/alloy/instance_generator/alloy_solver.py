@@ -26,6 +26,7 @@ from besser.generators.alloy.instance_generator.alloy_converter import (
     alloy_xml_to_frontend_object_model,
 )
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
+    build_error_response,
     execute_alloy_analyzer,
     parse_receipt,
     resolve_all_instance_xmls,
@@ -93,13 +94,7 @@ class AlloySolver:
                 num_instances=num_instances,
             )
         except (EnumReferenceError, ValueError) as exc:
-            self.last_error = {
-                "sat": None,
-                "isValid": False,
-                "message": str(exc),
-                "errors": [str(exc)],
-                "warnings": [],
-            }
+            self.last_error = build_error_response(str(exc))
             return None
         if error:
             self.last_error = error
