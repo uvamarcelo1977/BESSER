@@ -59,7 +59,7 @@ buml_object_instance = solver.generate_object_diagrams(num_instances=2)
 assert buml_object_instance is not None, "The object diagram code generation failed."
 
 # Genera el código completo del modelo BUML integrado a partir de la instancia generada.
-# Diagrama BUML completo (clases + objetos).
+# Diagrama BUML completo (clases + objetos) y lo almacena el directorio clsobjdir.
 solver = AlloySolver(library_model, output_dir="clsobjdir")
 buml_diagram_code = solver.generate_integrated_buml_model()
 assert buml_diagram_code is not None, "The integrated BUML model code generation failed."
