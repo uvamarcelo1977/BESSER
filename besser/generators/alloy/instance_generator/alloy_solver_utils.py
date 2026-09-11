@@ -21,20 +21,6 @@ def _instance_xml_name(instance: Any) -> str | None:
     return instance
 
 
-def resolve_first_instance_xml(
-    exec_output_dir: str | Path, solutions: list[dict] | None = None
-) -> str | None:
-    """
-    Determines the absolute path to the XML file holding the first instance/solution
-    produced by the Alloy Analyzer.
-
-    Tries to resolve the file referenced by *solutions* (as read from ``receipt.json``)
-    first, falling back to scanning *exec_output_dir* for any ``.xml`` file.
-    """
-    resolved = resolve_all_instance_xmls(exec_output_dir, solutions)
-    return resolved[0] if resolved else None
-
-
 def resolve_all_instance_xmls(
     exec_output_dir: str | Path, solutions: list[dict] | None = None
 ) -> list[str]:

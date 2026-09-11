@@ -3,11 +3,11 @@ from .alloy_converter import (
     BUMLModelIntegrator,
 )
 from .alloy_solver import AlloySolver
-from .alloy_solver_utils import resolve_first_instance_xml
+from .alloy_solver_utils import resolve_all_instance_xmls
 
 __all__ = [
     "AlloySolver",
     "AlloyToBesserConverter",
     "BUMLModelIntegrator",
-    "resolve_first_instance_xml",
+    "resolve_all_instance_xmls",
 ]

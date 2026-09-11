@@ -40,6 +40,7 @@ from besser.generators.alloy.instance_generator.alloy_solver import (
 )
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
     parse_receipt,
+    resolve_all_instance_xmls,
     resolve_alloy_jar_path,
     resolve_java_path,
 )
@@ -85,6 +86,14 @@ def _alloy_real():
     skipped rather than failing.
     """
     return resolve_alloy_jar_path() is not None and resolve_java_path() is not None
+
+
+def _first_instance_xml(solver) -> str:
+    """Checks consistency in XML mode and returns the first instance XML path."""
+    assert solver.check_consistency() is True
+    xml_paths = resolve_all_instance_xmls(solver.exec_output_dir, solver.solutions)
+    assert xml_paths, "Expected at least one Alloy instance XML file"
+    return xml_paths[0]
 
 
 # ---------------------------------------------------------------------------
@@ -239,10 +248,10 @@ class TestAlloySolverPipelineWithoutEndpoint:
         satisfiable = solver.check_consistency()
         assert satisfiable is True
 
-    def test_generate_instance_xml(self, person_model, tmpdir):
+    def test_solver_resolves_first_instance_xml(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         assert xml_path is not None
         assert os.path.isfile(xml_path)
@@ -250,7 +259,8 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
     def test_generate_object_diagrams(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -287,7 +297,7 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
     def test_generate_integrated_buml_model(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         integrated_code = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
@@ -345,7 +355,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -356,7 +366,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_includes_attributes(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -365,7 +375,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_includes_association(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -376,7 +386,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_object_model_contains_all(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -387,7 +397,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_integrated_buml_model_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
@@ -401,7 +411,7 @@ class TestAlloySolverInstanceGenerationRichModel:
         # reconstruct the class diagram + object model from the real Alloy
         # instance.
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 

@@ -23,7 +23,7 @@ from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy import (
     DATES_DICT,
     AlloySolver,
-    resolve_first_instance_xml,
+    resolve_all_instance_xmls,
 )
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
@@ -168,12 +168,29 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
             "scope": scope,
         })
 
+        def run_consistency_check(scope=scope):
+            try:
+                solver = AlloySolver(buml_model, scope=scope)
+            except ValueError as exc:
+                msg = str(exc)
+                return None, {
+                    "sat": None,
+                    "isValid": False,
+                    "message": msg,
+                    "errors": [msg] if msg else [],
+                    "warnings": all_warnings or [],
+                }
+            solver.check_consistency()
+            if solver.satisfiable is None:
+                return None, {**solver.last_error, "warnings": all_warnings or []}
+            return (
+                (solver.satisfiable, solver.command_name, solver.solutions),
+                None,
+            )
+
         try:
-            parsed, error, _, _ = await asyncio.wait_for(
-                asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda s=scope: run_alloy_sat_validation(buml_model, all_warnings, scope=s)
-                ),
+            parsed, error = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(None, run_consistency_check),
                 timeout=TIMEOUT_SECONDS,
             )
         except asyncio.TimeoutError:
@@ -274,15 +291,34 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 "scope": scope,
             })
 
+            def run_object_check(scope=scope):
+                try:
+                    solver = AlloySolver(
+                        buml_model, scope=scope,
+                        output_dir=os.path.join(temp_dir, f"scope_{scope}"),
+                    )
+                except ValueError as exc:
+                    msg = str(exc)
+                    return None, {
+                        "sat": None,
+                        "isValid": False,
+                        "message": msg,
+                        "errors": [msg] if msg else [],
+                        "warnings": all_warnings or [],
+                    }, os.path.join(temp_dir, f"scope_{scope}"), None
+                solver.check_consistency()
+                if solver.satisfiable is None:
+                    return None, {**solver.last_error, "warnings": all_warnings or []}, solver.exec_output_dir, solver
+                return (
+                    (solver.satisfiable, solver.command_name, solver.solutions),
+                    None,
+                    solver.exec_output_dir,
+                    solver,
+                )
+
             try:
                 parsed, error, exec_output_dir, solver = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda s=scope: run_alloy_sat_validation(
-                            buml_model, all_warnings, scope=s, output_type="xml",
-                            output_dir=os.path.join(temp_dir, f"scope_{s}"),
-                        )
-                    ),
+                    asyncio.get_event_loop().run_in_executor(None, run_object_check),
                     timeout=TIMEOUT_SECONDS,
                 )
             except asyncio.TimeoutError:
@@ -326,9 +362,10 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
 
             loop = asyncio.get_event_loop()
             try:
-                xml_instance_path = await loop.run_in_executor(
-                    None, resolve_first_instance_xml, exec_output_dir, solutions
+                xml_paths = await loop.run_in_executor(
+                    None, resolve_all_instance_xmls, exec_output_dir, solutions
                 )
+                xml_instance_path = xml_paths[0] if xml_paths else None
                 if not xml_instance_path:
                     logger.warning("SAT=true but no Alloy XML instance was found in %s", exec_output_dir)
                     yield _sse({
@@ -405,48 +442,6 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
             "errors": [],
             "warnings": all_warnings,
         })
-
-
-def run_alloy_sat_validation(
-    buml_model: DomainModel,
-    all_warnings: list[str] | None = None,
-    scope: int = 5,
-    output_type: str = "json",
-    output_dir: str | None = None,
-) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str, AlloySolver | None]:
-    """Translate a BUML class diagram + OCL constraints into Alloy, execute
-    the Alloy Analyzer, and return the consistency-check result.
-
-    This is a thin wrapper around :meth:`AlloySolver.check_consistency` (the
-    single source of truth for the Alloy execution). It builds the solver, folds
-    in the web-layer ``warnings``, and exposes the result in the legacy
-    ``(parsed_data, error_response, exec_output_dir)`` shape where
-    *parsed_data* is ``(sat, command_name, solutions)``. The built solver is
-    returned as the fourth element so callers can reuse it (e.g.
-    :func:`generate_alloy_do_stream` runs the same object-diagram generator
-    that ``tests/generators/alloy/test_alloy_solver.py`` exercises).
-    """
-    warnings = all_warnings or []
-    try:
-        solver = AlloySolver(buml_model, scope=scope, output_dir=output_dir)
-    except ValueError as exc:
-        msg = str(exc)
-        return None, {
-            "sat": None,
-            "isValid": False,
-            "message": msg,
-            "errors": [msg] if msg else [],
-            "warnings": warnings,
-        }, output_dir or "output", None
-    solver.check_consistency(output_type=output_type)
-    if solver.satisfiable is None:
-        return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir, solver
-    return (
-        (solver.satisfiable, solver.command_name, solver.solutions),
-        None,
-        solver.exec_output_dir,
-        solver,
-    )
 
 
 def _sse(data: dict[str, Any]) -> str:
