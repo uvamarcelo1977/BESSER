@@ -415,11 +415,11 @@ def run_alloy_sat_validation(
         }, output_dir or "output"
     solver.check_consistency(output_type=output_type)
     if solver.satisfiable is None:
-        return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir
+        return None, {**solver.last_error, "warnings": warnings}, solver.alloy_output_dir
     return (
         (solver.satisfiable, solver.command_name, solver.solutions),
         None,
-        solver.exec_output_dir,
+        solver.alloy_output_dir,
     )
 
 

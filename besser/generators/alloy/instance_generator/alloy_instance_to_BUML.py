@@ -1,46 +1,19 @@
-"""
-Alloy instance converter for UML-BESSER models.
-
-This module contains the translation from Alloy instance XML files back into
-BUML object diagrams:
-
-- ``AlloyToBesserConverter``: parses an Alloy XML instance into BESSER objects,
-- ``alloy_xml_to_frontend_object_model``: entry point that turns an Alloy
-  instance XML file into the frontend ObjectDiagram JSON format,
-- ``BUMLModelIntegrator``: integrates an original BUML model (class diagram)
-  with an object diagram generated from Alloy.
-"""
-
 import logging
 import re
-import xml.etree.ElementTree as ET
 from typing import Any
+import xml.etree.ElementTree as ET
 
-from besser.BUML.metamodel.structural import DomainModel
-from besser.generators.alloy.instance_generator.alloy_solver_utils import (
-    DATE_SIG_PATTERN,
-    get_class_name,
-    get_date_value,
-    get_enum_value,
-    get_primitive_value,
-    is_domain_class_name,
-    is_enum_value,
-    remove_class_prefix,
-)
-from besser.generators.alloy.translate_ocl_alloy import (
-    DATES_DICT,
-    EnumReferenceError,
-)
-from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json.object_diagram_converter import (
-    object_buml_to_json,
-)
+# TODO PABLO: Importing this from another module is not good. Needs refactor!
+from besser.generators.alloy.translate_ocl_alloy import DATES_DICT
 
 logger = logging.getLogger(__name__)
 
+# TODO PABLO: This class is very hard to understand. Needs refactor!
+class AlloyToBUML:
+    """Converts Alloy XML instances to BUML object diagrams."""
 
-class AlloyToBesserConverter:
-    """Converts Alloy XML instances to BESSER objects."""
-
+    # TODO PABLO: I don't like that we create objects of this class
+    # each time we want to convert an Alloy instance. Needs refactor!
     def __init__(self, xml_file: str):
         """
         Initializes the converter with the given Alloy XML file.
@@ -246,7 +219,7 @@ class AlloyToBesserConverter:
         )
         return leaf_sig['class_name']
 
-    def generate_object_diagram_code(self, date_as_datetime: bool = True) -> str:
+    def generate_object_diagram(self, date_as_datetime: bool = True) -> str:
         """
         Generates BUML code for the object diagram derived from the XML.
 
@@ -403,172 +376,269 @@ class AlloyToBesserConverter:
         code_lines.append(")")
         return "\n".join(code_lines)
 
-    def to_json(self, reference_class_model: dict[str, Any]) -> dict[str, Any]:
-        """
-        Converts the parsed Alloy instance into the frontend ObjectDiagram JSON format.
-
-        Args:
-            reference_class_model: Reference class diagram JSON, used to map attribute types.
-
-        Returns:
-            Dictionary representing the object diagram in JSON format.
-        """
-        code = self.generate_object_diagram_code()
-        return object_buml_to_json(code, reference_class_model)
 
 
-def alloy_xml_to_frontend_object_model(
-    xml_instance_path: str, reference_class_model: dict[str, Any]
-) -> dict[str, Any]:
+
+# ---------------------------------------------------------------------------
+# Pure helpers for converting Alloy atoms/signatures into BUML object values
+# ---------------------------------------------------------------------------
+
+DATE_SIG_PATTERN = re.compile(r"^d\d{8}$")
+
+
+def get_class_name(sig_label: str) -> str:
     """
-    Converts an Alloy instance XML file into the frontend ObjectDiagram JSON.
+    Extracts the class name from a signature label.
+    Args:
+        sig_label: label of the signature (e.g., 'this/Player')
 
-    The Alloy instance is received in XML format. The result is provided
-    in the JSON format for ObjectDiagram, expected by the frontend.
+    Returns:
+        Class name (e.g., 'Player')
     """
-    converter = AlloyToBesserConverter(xml_instance_path)
-    return converter.to_json(reference_class_model)
+    if "/" in sig_label:
+        return sig_label.split("/")[-1]
+    return sig_label
 
 
-class BUMLModelIntegrator:
-    """Integrates an original BUML model with an object diagram generated from Alloy."""
+def remove_class_prefix(field_name: str, class_name: str) -> str:
+    """
+    Removes the class prefix from a field name.
+    Args:
+        field_name: field name (e.g., 'Player_name')
+        class_name: class name (e.g., 'Player')
 
-    def __init__(self, original_buml_content: str, xml_instance_file: str):
-        """
-        Initializes the integrator.
+    Returns:
+        Field name without prefix (e.g., 'name')
+    """
+    prefix = f"{class_name}_"
+    if field_name.startswith(prefix):
+        return field_name[len(prefix):]
+    elif field_name.__contains__("_"):
+        return field_name[field_name.index("_") + 1:]
+    return field_name
 
-        Args:
-            original_buml_content: Source code of the original BUML file (class diagram)
-            xml_instance_file: Path to the Alloy instance XML file
-        """
-        self.xml_instance_file = xml_instance_file
-        self.original_content = original_buml_content
 
-    def extract_structural_model_section(self) -> str:
-        """
-        Extracts the structural model section (class diagram) from the original BUML content.
+def is_enum_value(atom_label: str) -> bool:
+    """Determines if an atom is an enumeration value."""
+    return atom_label.startswith("ENUM_")
 
-        Returns:
-            The code of the structural model section.
-        """
-        patterns = [
-            r'################\s*\n#\s*OBJECT MODEL\s*#',
-            r'##############\s*\n\s*from besser\.BUML\.metamodel\.object',
-            r'######################\s*\n#\s*PROJECT DEFINITION\s*#'
-        ]
 
-        end_pos = len(self.original_content)
-        for pattern in patterns:
-            match = re.search(pattern, self.original_content, re.IGNORECASE)
-            if match:
-                end_pos = min(end_pos, match.start())
+def get_enum_value(atom_label: str) -> str:
+    """
+    Extracts the enumeration value from an atom label.
+    Args:
+        atom_label: atom label (e.g., 'ENUM_Position_CENTER$0')
 
-        structural_section = self.original_content[:end_pos].rstrip()
-        return structural_section
+    Returns:
+        Enumeration value (e.g., 'CENTER')
+    """
+    # Format: ENUM_EnumName_VALUE$n
+    parts = atom_label.split("_")
+    if len(parts) >= 3:
+        value = "_".join(parts[2:])  # take everything after ENUM_EnumName_
+        # Remove suffix $n
+        if "$" in value:
+            value = value.split("$")[0]
+        return value
+    return atom_label
 
-    def extract_project_section(self) -> str:
-        """
-        Extracts the project definition section from the original BUML content if it exists.
 
-        Returns:
-            The code of the project section or an empty string if not found.
-        """
-        pattern = r'######################\s*\n#\s*PROJECT DEFINITION\s*#\s*\n######################\s*\n(.*)'
-        match = re.search(pattern, self.original_content, re.DOTALL)
+def get_primitive_value(atom_label: str, atom_type: str | None = None) -> Any:
+    """
+    Extracts the primitive value of an atom.
+    Args:
+        atom_label: atom label
+        atom_type: expected type (Int, String, etc.)
 
-        if match:
-            project_section = match.group(0).strip()
+    Returns:
+        Converted primitive value
+    """
+    # Integers
+    try:
+        return int(atom_label)
+    except ValueError:
+        pass
 
-            models_pattern = r'(models=\[)([^\]]+)(\])'
+    # Strings - return identifier without suffix
+    if "$" in atom_label:
+        base_name = atom_label.split("$")[0]
+        return f'"{base_name}"'  # Return as quoted string
 
-            def replace_models(match):
-                prefix = match.group(1)
-                models_list = match.group(2).strip()
-                suffix = match.group(3)
+    return f'"{atom_label}"'
 
-                if 'object_model' in models_list:
-                    return match.group(0)
 
-                if models_list:
-                    return f"{prefix}{models_list}, object_model{suffix}"
-                return f"{prefix}object_model{suffix}"
+def get_date_value(atom_label: str) -> str:
+    """
+    Extracts the date value from an atom.
 
-            project_section = re.sub(models_pattern, replace_models, project_section)
+    Args:
+        atom_label: atom label (e.g., 'date0$0', 'd01012000$0' or 'date$01')
 
-            return project_section
-        return ""
+    Returns:
+        Date value as an ISO-8601 string with quotes (e.g., '"2000-01-01"')
+    """
+    base = atom_label.split("$")[0]
+    if base in DATES_DICT:
+        sig_id = DATES_DICT[base]
+        return f'"{sig_id[5:9]}-{sig_id[1:3]}-{sig_id[3:5]}"'
+    if DATE_SIG_PATTERN.match(base):
+        return f'"{base[5:9]}-{base[1:3]}-{base[3:5]}"'
+    return f'"{atom_label}"'
 
-    def _build_default_project_section(self) -> str:
-        """
-        Builds a default ``PROJECT DEFINITION`` section wrapping the structural
-        and object models.
 
-        Without this section, the integrated file would be re-imported as a
-        bare ClassDiagram, whose parser strips ``import`` statements (assuming
-        they are unnecessary) but not the ``datetime.date(...)`` calls used by
-        the object model section, causing a ``NameError``. Wrapping both
-        models in a ``Project`` makes the importer split and parse each
-        section with its dedicated (datetime-safe) converter instead.
+def is_domain_class_name(class_name: str) -> bool:
+    """Determines if *class_name* is a user domain class."""
+    if not class_name:
+        return False
+    if is_enum_value(class_name) or class_name.startswith("ENUM_"):
+        return False
+    if class_name in ("Str", "Bool", "True", "False", "Date", "Ord"):
+        return False
+    return not DATE_SIG_PATTERN.match(class_name)
 
-        Returns:
-            The code of the project definition section.
-        """
-        return "\n".join([
-            "######################",
-            "# PROJECT DEFINITION #",
-            "######################",
-            "",
-            "from besser.BUML.metamodel.project import Project",
-            "from besser.BUML.metamodel.structural.structural import Metadata",
-            "",
-            'metadata = Metadata(description="Project generated from an Alloy-consistent instance.")',
-            "project = Project(",
-            '    name="Alloy_Instance_Project",',
-            "    models=[domain_model, object_model],",
-            '    owner="BESSER User",',
-            "    metadata=metadata",
-            ")",
-        ])
 
-    def generate_integrated_model(self, output_file: str | None = None) -> str:
-        """
-        Generates the complete integrated BUML model.
 
-        Args:
-            output_file: File to save the model (optional)
 
-        Returns:
-            The code of the integrated model.
-        """
-        structural_section = self.extract_structural_model_section()
+# TODO PABLO: Commented out for now, needs revision. Implement this later!
+#class BUMLModelIntegrator:
+    #"""Integrates an original BUML model with an object diagram generated from Alloy."""
 
-        converter = AlloyToBesserConverter(self.xml_instance_file)
-        object_diagram_code = converter.generate_object_diagram_code(date_as_datetime=True)
+    #def __init__(self, original_buml_content: str, xml_instance_file: str):
+        #"""
+        #Initializes the integrator.
 
-        project_section = self.extract_project_section()
-        if not project_section:
-            project_section = self._build_default_project_section()
+        #Args:
+            #original_buml_content: Source code of the original BUML file (class diagram)
+            #xml_instance_file: Path to the Alloy instance XML file
+        #"""
+        #self.xml_instance_file = xml_instance_file
+        #self.original_content = original_buml_content
 
-        integrated_lines = []
+    #def extract_structural_model_section(self) -> str:
+        #"""
+        #Extracts the structural model section (class diagram) from the original BUML content.
 
-        integrated_lines.append(structural_section)
-        integrated_lines.append("")
-        integrated_lines.append("")
+        #Returns:
+            #The code of the structural model section.
+        #"""
+        #patterns = [
+            #r'################\s*\n#\s*OBJECT MODEL\s*#',
+            #r'##############\s*\n\s*from besser\.BUML\.metamodel\.object',
+            #r'######################\s*\n#\s*PROJECT DEFINITION\s*#'
+        #]
 
-        integrated_lines.append("################")
-        integrated_lines.append("# OBJECT MODEL #")
-        integrated_lines.append("################")
-        integrated_lines.append("")
-        integrated_lines.append(object_diagram_code)
-        integrated_lines.append("")
-        integrated_lines.append("")
+        #end_pos = len(self.original_content)
+        #for pattern in patterns:
+            #match = re.search(pattern, self.original_content, re.IGNORECASE)
+            #if match:
+                #end_pos = min(end_pos, match.start())
 
-        integrated_lines.append(project_section)
+        #structural_section = self.original_content[:end_pos].rstrip()
+        #return structural_section
 
-        integrated_model = "\n".join(integrated_lines)
+    #def extract_project_section(self) -> str:
+        #"""
+        #Extracts the project definition section from the original BUML content if it exists.
 
-        if output_file:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(integrated_model)
+        #Returns:
+            #The code of the project section or an empty string if not found.
+        #"""
+        #pattern = r'######################\s*\n#\s*PROJECT DEFINITION\s*#\s*\n######################\s*\n(.*)'
+        #match = re.search(pattern, self.original_content, re.DOTALL)
 
-        return integrated_model
+        #if match:
+            #project_section = match.group(0).strip()
+
+            #models_pattern = r'(models=\[)([^\]]+)(\])'
+
+            #def replace_models(match):
+                #prefix = match.group(1)
+                #models_list = match.group(2).strip()
+                #suffix = match.group(3)
+
+                #if 'object_model' in models_list:
+                    #return match.group(0)
+
+                #if models_list:
+                    #return f"{prefix}{models_list}, object_model{suffix}"
+                #return f"{prefix}object_model{suffix}"
+
+            #project_section = re.sub(models_pattern, replace_models, project_section)
+
+            #return project_section
+        #return ""
+
+    #def _build_default_project_section(self) -> str:
+        #"""
+        #Builds a default ``PROJECT DEFINITION`` section wrapping the structural
+        #and object models.
+
+        #Without this section, the integrated file would be re-imported as a
+        #bare ClassDiagram, whose parser strips ``import`` statements (assuming
+        #they are unnecessary) but not the ``datetime.date(...)`` calls used by
+        #the object model section, causing a ``NameError``. Wrapping both
+        #models in a ``Project`` makes the importer split and parse each
+        #section with its dedicated (datetime-safe) converter instead.
+
+        #Returns:
+            #The code of the project definition section.
+        #"""
+        #return "\n".join([
+            #"######################",
+            #"# PROJECT DEFINITION #",
+            #"######################",
+            #"",
+            #"from besser.BUML.metamodel.project import Project",
+            #"from besser.BUML.metamodel.structural.structural import Metadata",
+            #"",
+            #'metadata = Metadata(description="Project generated from an Alloy-consistent instance.")',
+            #"project = Project(",
+            #'    name="Alloy_Instance_Project",',
+            #"    models=[domain_model, object_model],",
+            #'    owner="BESSER User",',
+            #"    metadata=metadata",
+            #")",
+        #])
+
+    #def generate_integrated_model(self, output_file: str | None = None) -> str:
+        #"""
+        #Generates the complete integrated BUML model.
+
+        #Args:
+            #output_file: File to save the model (optional)
+
+        #Returns:
+            #The code of the integrated model.
+        #"""
+        #structural_section = self.extract_structural_model_section()
+
+        #converter = AlloyToBesserConverter(self.xml_instance_file)
+        #object_diagram_code = converter.generate_object_diagram_code(date_as_datetime=True)
+
+        #project_section = self.extract_project_section()
+        #if not project_section:
+            #project_section = self._build_default_project_section()
+
+        #integrated_lines = []
+
+        #integrated_lines.append(structural_section)
+        #integrated_lines.append("")
+        #integrated_lines.append("")
+
+        #integrated_lines.append("################")
+        #integrated_lines.append("# OBJECT MODEL #")
+        #integrated_lines.append("################")
+        #integrated_lines.append("")
+        #integrated_lines.append(object_diagram_code)
+        #integrated_lines.append("")
+        #integrated_lines.append("")
+
+        #integrated_lines.append(project_section)
+
+        #integrated_model = "\n".join(integrated_lines)
+
+        #if output_file:
+            #with open(output_file, 'w', encoding='utf-8') as f:
+                #f.write(integrated_model)
+
+        #return integrated_model

@@ -38,7 +38,7 @@ from besser.generators.alloy.alloy_utils_generator import (
 from besser.generators.alloy.instance_generator.alloy_solver import (
     AlloySolver,
 )
-from besser.generators.alloy.instance_generator.alloy_solver_utils import (
+from besser.generators.alloy.instance_generator.alloy_analyzer_executor import (
     parse_receipt,
     resolve_alloy_jar_path,
     resolve_java_path,
@@ -177,8 +177,8 @@ class TestAlloySolverConstruction:
 
         solver = AlloySolver(model=model, output_dir=str(tmpdir.mkdir("out")))
 
-        assert os.path.isfile(solver.file)
-        with open(solver.file, encoding="utf-8") as f:
+        assert os.path.isfile(solver.specification)
+        with open(solver.specification, encoding="utf-8") as f:
             als_content = f.read()
         # The generated .als must use sanitized, Alloy-valid identifiers.
         assert re.search(r"sig\s+Clase_Nmero", als_content)
