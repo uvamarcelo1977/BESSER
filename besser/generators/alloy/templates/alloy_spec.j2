@@ -126,5 +126,6 @@ pred instance_model {
 {% endfor %}
 }
 
-run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{{ ", " if not loop.last else "" }}{% endfor %}
+{% set use_int = "int" in basic_signatures or "float" in basic_signatures or "integer" in basic_signatures %}
+run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{% if not loop.last %}, {% elif use_int %}, {% endif %}{% endfor %}{% if use_int %}{{ scope }} Int{% endif %}
 

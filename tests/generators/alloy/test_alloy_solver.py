@@ -285,25 +285,6 @@ class TestAlloySolverPipelineWithoutEndpoint:
         expected_names = [f"buml_object_instance{i}.py" for i in range(1, len(codes) + 1)]
         assert [p.name for p in written] == expected_names
 
-    def test_generate_object_diagram_json(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        reference_model = {
-            "elements": {
-                "elem_1": {
-                    "name": "Person",
-                    "type": "Class",
-                    "attributes": {"attr_1": {"name": "name", "type": "str"}},
-                }
-            },
-            "relationships": {},
-        }
-        obj_json = solver.generate_object_diagram_json(reference_model, xml_instance_path=xml_path)
-
-        assert obj_json is not None
-        assert "elements" in obj_json
-
     def test_generate_integrated_buml_model(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
         xml_path = solver.generate_instance_xml()
@@ -434,33 +415,6 @@ class TestAlloySolverInstanceGenerationRichModel:
         class_names = {obj.classifier.name for obj in objects}
         assert "Team" in class_names
         assert "Player" in class_names
-
-    def test_generate_object_diagram_json_team_player(self, team_player_model, tmpdir):
-        solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        reference_model = {
-            "elements": {
-                "e_team": {
-                    "name": "Team",
-                    "type": "Class",
-                    "attributes": {"a1": {"name": "name", "type": "str"}},
-                },
-                "e_player": {
-                    "name": "Player",
-                    "type": "Class",
-                    "attributes": {
-                        "a1": {"name": "name", "type": "str"},
-                        "a2": {"name": "age", "type": "int"},
-                    },
-                },
-            },
-            "relationships": {},
-        }
-        obj_json = solver.generate_object_diagram_json(reference_model, xml_instance_path=xml_path)
-
-        assert obj_json is not None
-        assert "elements" in obj_json
 
     def test_check_consistency(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)

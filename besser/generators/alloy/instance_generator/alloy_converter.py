@@ -5,8 +5,6 @@ This module contains the translation from Alloy instance XML files back into
 BUML object diagrams:
 
 - ``AlloyToBesserConverter``: parses an Alloy XML instance into BESSER objects,
-- ``alloy_xml_to_frontend_object_model``: entry point that turns an Alloy
-  instance XML file into the frontend ObjectDiagram JSON format,
 - ``BUMLModelIntegrator``: integrates an original BUML model (class diagram)
   with an object diagram generated from Alloy.
 """
@@ -14,7 +12,6 @@ BUML object diagrams:
 import logging
 import re
 import xml.etree.ElementTree as ET
-from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
@@ -30,9 +27,6 @@ from besser.generators.alloy.instance_generator.alloy_solver_utils import (
 from besser.generators.alloy.translate_ocl_alloy import (
     DATES_DICT,
     EnumReferenceError,
-)
-from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json.object_diagram_converter import (
-    object_buml_to_json,
 )
 
 logger = logging.getLogger(__name__)
@@ -402,32 +396,6 @@ class AlloyToBesserConverter:
         code_lines.append(f"    objects={{{all_objects}}}")
         code_lines.append(")")
         return "\n".join(code_lines)
-
-    def to_json(self, reference_class_model: dict[str, Any]) -> dict[str, Any]:
-        """
-        Converts the parsed Alloy instance into the frontend ObjectDiagram JSON format.
-
-        Args:
-            reference_class_model: Reference class diagram JSON, used to map attribute types.
-
-        Returns:
-            Dictionary representing the object diagram in JSON format.
-        """
-        code = self.generate_object_diagram_code()
-        return object_buml_to_json(code, reference_class_model)
-
-
-def alloy_xml_to_frontend_object_model(
-    xml_instance_path: str, reference_class_model: dict[str, Any]
-) -> dict[str, Any]:
-    """
-    Converts an Alloy instance XML file into the frontend ObjectDiagram JSON.
-
-    The Alloy instance is received in XML format. The result is provided
-    in the JSON format for ObjectDiagram, expected by the frontend.
-    """
-    converter = AlloyToBesserConverter(xml_instance_path)
-    return converter.to_json(reference_class_model)
 
 
 class BUMLModelIntegrator:

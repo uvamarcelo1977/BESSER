@@ -15,7 +15,6 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy.alloy_generator import AlloyGenerator
@@ -23,7 +22,6 @@ from besser.utilities.buml_code_builder.domain_model_builder import domain_model
 from besser.generators.alloy.instance_generator.alloy_converter import (
     AlloyToBesserConverter,
     BUMLModelIntegrator,
-    alloy_xml_to_frontend_object_model,
 )
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
     execute_alloy_analyzer,
@@ -175,18 +173,6 @@ class AlloySolver:
                 f.write(code)
 
         return codes
-
-    def generate_object_diagram_json(
-        self,
-        reference_class_model: dict[str, Any],
-        xml_instance_path: str | None = None,
-    ) -> dict[str, Any] | None:
-        """Generates the frontend ObjectDiagram JSON from a satisfying Alloy instance."""
-        if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml()
-            if not xml_instance_path:
-                return None
-        return alloy_xml_to_frontend_object_model(xml_instance_path, reference_class_model)
 
     def generate_integrated_buml_model(
         self,

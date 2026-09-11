@@ -23,11 +23,11 @@ from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy import (
     DATES_DICT,
     AlloySolver,
-    alloy_xml_to_frontend_object_model,
     resolve_first_instance_xml,
 )
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
+    object_buml_to_json,
     process_class_diagram,
 )
 from besser.utilities.web_modeling_editor.backend.services.validators.ocl_checker import (
@@ -169,7 +169,7 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
         })
 
         try:
-            parsed, error, _ = await asyncio.wait_for(
+            parsed, error, _, _ = await asyncio.wait_for(
                 asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda s=scope: run_alloy_sat_validation(buml_model, all_warnings, scope=s)
@@ -275,7 +275,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
             })
 
             try:
-                parsed, error, exec_output_dir = await asyncio.wait_for(
+                parsed, error, exec_output_dir, solver = await asyncio.wait_for(
                     asyncio.get_event_loop().run_in_executor(
                         None,
                         lambda s=scope: run_alloy_sat_validation(
@@ -310,7 +310,10 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 })
                 continue
 
-            # SAT → locate XML instance → convert to frontend Object Diagram JSON
+            # SAT → locate the XML instance → generate the BUML object diagram
+            # code with AlloySolver.generate_object_diagrams (the same generator
+            # exercised by tests/generators/alloy/test_alloy_solver.py), then
+            # convert the first generated model to the frontend ObjectDiagram JSON.
             yield _sse({
                 "sat": True,
                 "done": False,
@@ -342,8 +345,27 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                     })
                     return
 
+                buml_codes = await loop.run_in_executor(
+                    None, solver.generate_object_diagrams, xml_instance_path
+                )
+                if not buml_codes:
+                    logger.warning("SAT=true but no object diagram code was generated for %s", xml_instance_path)
+                    yield _sse({
+                        "sat": True,
+                        "isValid": False,
+                        "done": True,
+                        "message": (
+                            f" Model is satisfiable (command: {first_command_name}), "
+                            "but the object diagram could not be generated."
+                        ),
+                        "errors": [],
+                        "warnings": all_warnings,
+                        "scope": scope,
+                    })
+                    return
+
                 object_model = await loop.run_in_executor(
-                    None, alloy_xml_to_frontend_object_model, xml_instance_path, input_data.model
+                    None, object_buml_to_json, buml_codes[0], input_data.model
                 )
             except Exception as exc:
                 logger.exception("Failed to convert Alloy instance to frontend ObjectDiagram")
@@ -391,7 +413,7 @@ def run_alloy_sat_validation(
     scope: int = 5,
     output_type: str = "json",
     output_dir: str | None = None,
-) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
+) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str, AlloySolver | None]:
     """Translate a BUML class diagram + OCL constraints into Alloy, execute
     the Alloy Analyzer, and return the consistency-check result.
 
@@ -399,7 +421,10 @@ def run_alloy_sat_validation(
     single source of truth for the Alloy execution). It builds the solver, folds
     in the web-layer ``warnings``, and exposes the result in the legacy
     ``(parsed_data, error_response, exec_output_dir)`` shape where
-    *parsed_data* is ``(sat, command_name, solutions)``.
+    *parsed_data* is ``(sat, command_name, solutions)``. The built solver is
+    returned as the fourth element so callers can reuse it (e.g.
+    :func:`generate_alloy_do_stream` runs the same object-diagram generator
+    that ``tests/generators/alloy/test_alloy_solver.py`` exercises).
     """
     warnings = all_warnings or []
     try:
@@ -412,14 +437,15 @@ def run_alloy_sat_validation(
             "message": msg,
             "errors": [msg] if msg else [],
             "warnings": warnings,
-        }, output_dir or "output"
+        }, output_dir or "output", None
     solver.check_consistency(output_type=output_type)
     if solver.satisfiable is None:
-        return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir
+        return None, {**solver.last_error, "warnings": warnings}, solver.exec_output_dir, solver
     return (
         (solver.satisfiable, solver.command_name, solver.solutions),
         None,
         solver.exec_output_dir,
+        solver,
     )
 
 
