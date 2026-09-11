@@ -9,7 +9,6 @@ from besser.generators.rdf.rdf_generator import RDFGenerator
 from besser.generators.backend.backend_generator import BackendGenerator
 from besser.generators.alloy.alloy_generator import AlloyGenerator
 from besser.generators.alloy.instance_generator import AlloySolver
-from besser.generators.alloy.instance_generator import alloy_xml_to_frontend_object_model
 from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json import class_buml_to_json
 
 

@@ -21,20 +21,6 @@ def _instance_xml_name(instance: Any) -> str | None:
     return instance
 
 
-def resolve_first_instance_xml(
-    exec_output_dir: str | Path, solutions: list[dict] | None = None
-) -> str | None:
-    """
-    Determines the absolute path to the XML file holding the first instance/solution
-    produced by the Alloy Analyzer.
-
-    Tries to resolve the file referenced by *solutions* (as read from ``receipt.json``)
-    first, falling back to scanning *exec_output_dir* for any ``.xml`` file.
-    """
-    resolved = resolve_all_instance_xmls(exec_output_dir, solutions)
-    return resolved[0] if resolved else None
-
-
 def resolve_all_instance_xmls(
     exec_output_dir: str | Path, solutions: list[dict] | None = None
 ) -> list[str]:
@@ -173,14 +159,13 @@ def execute_alloy_analyzer(
 def parse_receipt(
     exec_output_dir: str,
     result: subprocess.CompletedProcess,
-    structural_warnings: list[str] | None = None,
 ) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None]:
     """Parse the ``receipt.json`` produced by the Alloy Analyzer.
 
     Returns ``(parsed_tuple, error_dict)``.  On success *error_dict* is
     ``None`` and *parsed_tuple* is ``(sat, command_name, solutions)``.
     """
-    warnings = structural_warnings or []
+    warnings: list[str] = []
     receipt_path = os.path.join(exec_output_dir, "receipt.json")
 
     if not os.path.exists(receipt_path):
@@ -278,12 +263,11 @@ def get_enum_value(atom_label: str) -> str:
     return atom_label
 
 
-def get_primitive_value(atom_label: str, atom_type: str | None = None) -> Any:
+def get_primitive_value(atom_label: str) -> Any:
     """
     Extracts the primitive value of an atom.
     Args:
         atom_label: atom label
-        atom_type: expected type (Int, String, etc.)
 
     Returns:
         Converted primitive value

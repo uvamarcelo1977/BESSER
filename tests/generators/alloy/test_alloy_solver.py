@@ -40,6 +40,7 @@ from besser.generators.alloy.instance_generator.alloy_solver import (
 )
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
     parse_receipt,
+    resolve_all_instance_xmls,
     resolve_alloy_jar_path,
     resolve_java_path,
 )
@@ -85,6 +86,14 @@ def _alloy_real():
     skipped rather than failing.
     """
     return resolve_alloy_jar_path() is not None and resolve_java_path() is not None
+
+
+def _first_instance_xml(solver) -> str:
+    """Checks consistency in XML mode and returns the first instance XML path."""
+    assert solver.check_consistency() is True
+    xml_paths = resolve_all_instance_xmls(solver.exec_output_dir, solver.solutions)
+    assert xml_paths, "Expected at least one Alloy instance XML file"
+    return xml_paths[0]
 
 
 # ---------------------------------------------------------------------------
@@ -239,10 +248,10 @@ class TestAlloySolverPipelineWithoutEndpoint:
         satisfiable = solver.check_consistency()
         assert satisfiable is True
 
-    def test_generate_instance_xml(self, person_model, tmpdir):
+    def test_solver_resolves_first_instance_xml(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         assert xml_path is not None
         assert os.path.isfile(xml_path)
@@ -250,7 +259,8 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
     def test_generate_object_diagrams(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -285,28 +295,9 @@ class TestAlloySolverPipelineWithoutEndpoint:
         expected_names = [f"buml_object_instance{i}.py" for i in range(1, len(codes) + 1)]
         assert [p.name for p in written] == expected_names
 
-    def test_generate_object_diagram_json(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        reference_model = {
-            "elements": {
-                "elem_1": {
-                    "name": "Person",
-                    "type": "Class",
-                    "attributes": {"attr_1": {"name": "name", "type": "str"}},
-                }
-            },
-            "relationships": {},
-        }
-        obj_json = solver.generate_object_diagram_json(reference_model, xml_instance_path=xml_path)
-
-        assert obj_json is not None
-        assert "elements" in obj_json
-
     def test_generate_integrated_buml_model(self, person_model, tmpdir):
         solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         integrated_code = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
@@ -364,7 +355,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -375,7 +366,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_includes_attributes(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -384,7 +375,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_includes_association(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -395,7 +386,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_object_model_contains_all(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
 
@@ -406,7 +397,7 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_integrated_buml_model_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
@@ -420,7 +411,7 @@ class TestAlloySolverInstanceGenerationRichModel:
         # reconstruct the class diagram + object model from the real Alloy
         # instance.
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+        xml_path = _first_instance_xml(solver)
 
         integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
 
@@ -434,33 +425,6 @@ class TestAlloySolverInstanceGenerationRichModel:
         class_names = {obj.classifier.name for obj in objects}
         assert "Team" in class_names
         assert "Player" in class_names
-
-    def test_generate_object_diagram_json_team_player(self, team_player_model, tmpdir):
-        solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        reference_model = {
-            "elements": {
-                "e_team": {
-                    "name": "Team",
-                    "type": "Class",
-                    "attributes": {"a1": {"name": "name", "type": "str"}},
-                },
-                "e_player": {
-                    "name": "Player",
-                    "type": "Class",
-                    "attributes": {
-                        "a1": {"name": "name", "type": "str"},
-                        "a2": {"name": "age", "type": "int"},
-                    },
-                },
-            },
-            "relationships": {},
-        }
-        obj_json = solver.generate_object_diagram_json(reference_model, xml_instance_path=xml_path)
-
-        assert obj_json is not None
-        assert "elements" in obj_json
 
     def test_check_consistency(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)

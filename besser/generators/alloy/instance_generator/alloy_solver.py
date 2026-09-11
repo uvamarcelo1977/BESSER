@@ -15,7 +15,6 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy.alloy_generator import AlloyGenerator
@@ -23,13 +22,11 @@ from besser.utilities.buml_code_builder.domain_model_builder import domain_model
 from besser.generators.alloy.instance_generator.alloy_converter import (
     AlloyToBesserConverter,
     BUMLModelIntegrator,
-    alloy_xml_to_frontend_object_model,
 )
 from besser.generators.alloy.instance_generator.alloy_solver_utils import (
     execute_alloy_analyzer,
     parse_receipt,
     resolve_all_instance_xmls,
-    resolve_first_instance_xml,
 )
 from besser.generators.alloy.translate_ocl_alloy import (
     EnumReferenceError,
@@ -58,14 +55,11 @@ class AlloySolver:
 
     def check_consistency(
         self,
-        output_type: str = "json",
         num_instances: int = 1,
     ) -> bool | None:
         """Execute the Alloy Analyzer and check model satisfiability.
 
         Args:
-            output_type: Output format requested from the Analyzer
-                (``"json"`` or ``"xml"``).
             num_instances: Number of instances to request from the Alloy
                 Analyzer when the model is satisfiable.
 
@@ -89,7 +83,7 @@ class AlloySolver:
         self.last_error = None
         try:
             result, error = execute_alloy_analyzer(
-                self.file, self.exec_output_dir, output_type=output_type,
+                self.file, self.exec_output_dir, output_type="xml",
                 num_instances=num_instances,
             )
         except (EnumReferenceError, ValueError) as exc:
@@ -113,16 +107,6 @@ class AlloySolver:
         self.command_name = command_name
         self.solutions = solutions
         return sat
-
-    def generate_instance_xml(self) -> str | None:
-        """Run the satisfiability check and resolve the first instance XML.
-
-        Returns the path to the XML file, or ``None`` if unsatisfiable.
-        """
-        satisfiable = self.check_consistency(output_type="xml")
-        if satisfiable is not True:
-            return None
-        return resolve_first_instance_xml(self.exec_output_dir, self.solutions)
 
     def generate_object_diagrams(
         self,
@@ -149,7 +133,7 @@ class AlloySolver:
         """
         if xml_instance_path is None:
             satisfiable = self.check_consistency(
-                output_type="xml", num_instances=num_instances
+                num_instances=num_instances
             )
             if satisfiable is not True:
                 return None
@@ -176,18 +160,6 @@ class AlloySolver:
 
         return codes
 
-    def generate_object_diagram_json(
-        self,
-        reference_class_model: dict[str, Any],
-        xml_instance_path: str | None = None,
-    ) -> dict[str, Any] | None:
-        """Generates the frontend ObjectDiagram JSON from a satisfying Alloy instance."""
-        if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml()
-            if not xml_instance_path:
-                return None
-        return alloy_xml_to_frontend_object_model(xml_instance_path, reference_class_model)
-
     def generate_integrated_buml_model(
         self,
         xml_instance_path: str | None = None,
@@ -195,7 +167,11 @@ class AlloySolver:
         """Generates a BUML script combining the original class diagram with the
         object diagram derived from a satisfying Alloy instance."""
         if xml_instance_path is None:
-            xml_instance_path = self.generate_instance_xml()
+            satisfiable = self.check_consistency()
+            if satisfiable is not True:
+                return None
+            resolved_xmls = resolve_all_instance_xmls(self.exec_output_dir, self.solutions)
+            xml_instance_path = resolved_xmls[0] if resolved_xmls else None
             if not xml_instance_path:
                 return None
         tmp_buml = os.path.join(self.output_dir, "_tmp_buml_content.py")
