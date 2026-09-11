@@ -20,12 +20,11 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 from besser.BUML.metamodel.structural import DomainModel
-from besser.generators.alloy import (
-    DATES_DICT,
-    AlloySolver,
-    alloy_xml_to_frontend_object_model,
-    resolve_first_instance_xml,
+from besser.generators.alloy import AlloySolver
+from besser.generators.alloy.instance_generator.alloy_analyzer_executor import (
+    AlloyResult,
 )
+from besser.generators.alloy.translate_ocl_alloy import DATES_DICT
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
     process_class_diagram,
@@ -169,10 +168,9 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
         })
 
         try:
-            parsed, error, _ = await asyncio.wait_for(
-                asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda s=scope: run_alloy_sat_validation(buml_model, all_warnings, scope=s)
+            check = await asyncio.wait_for(
+                asyncio.to_thread(
+                    run_alloy_sat_validation, buml_model, all_warnings, scope=scope
                 ),
                 timeout=TIMEOUT_SECONDS,
             )
@@ -187,17 +185,16 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
             })
             return
 
-        if error:
-            yield _sse({**error, "done": True})
+        if check["error"]:
+            yield _sse({**check["error"], "done": True})
             return
 
-        sat, first_command_name, _ = parsed
-        if sat:
+        if check["sat"]:
             yield _sse({
                 "sat": True,
                 "isValid": True,
                 "done": True,
-                "message": f" SAT found with scope {scope} (command: {first_command_name}).",
+                "message": f" SAT found with scope {scope} (command: {check['command_name']}).",
                 "errors": [],
                 "warnings": all_warnings,
                 "scope": scope,
@@ -275,13 +272,10 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
             })
 
             try:
-                parsed, error, exec_output_dir = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda s=scope: run_alloy_sat_validation(
-                            buml_model, all_warnings, scope=s, output_type="xml",
-                            output_dir=os.path.join(temp_dir, f"scope_{s}"),
-                        )
+                check = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        run_alloy_sat_validation, buml_model, all_warnings, scope=scope,
+                        output_dir=os.path.join(temp_dir, f"scope_{scope}"),
                     ),
                     timeout=TIMEOUT_SECONDS,
                 )
@@ -296,12 +290,11 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 })
                 return
 
-            if error:
-                yield _sse({**error, "done": True})
+            if check["error"]:
+                yield _sse({**check["error"], "done": True})
                 return
 
-            sat, first_command_name, solutions = parsed
-            if not sat:
+            if not check["sat"]:
                 yield _sse({
                     "sat": False,
                     "done": False,
@@ -316,7 +309,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 "done": False,
                 "message": (
                     f"✅ SAT found with scope {scope} "
-                    f"(command: {first_command_name}). Generating Object Diagram..."
+                    f"(command: {check['command_name']}). Generating Object Diagram..."
                 ),
                 "scope": scope,
             })
@@ -324,16 +317,16 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
             loop = asyncio.get_event_loop()
             try:
                 xml_instance_path = await loop.run_in_executor(
-                    None, resolve_first_instance_xml, exec_output_dir, solutions
+                    None, resolve_first_instance_xml, check["output_dir"], check["xml_files"]
                 )
                 if not xml_instance_path:
-                    logger.warning("SAT=true but no Alloy XML instance was found in %s", exec_output_dir)
+                    logger.warning("SAT=true but no Alloy XML instance was found in %s", check["output_dir"])
                     yield _sse({
                         "sat": True,
                         "isValid": False,
                         "done": True,
                         "message": (
-                            f" Model is satisfiable (command: {first_command_name}), "
+                            f" Model is satisfiable (command: {check['command_name']}), "
                             "but no instance XML was found."
                         ),
                         "errors": [],
@@ -352,7 +345,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                     "isValid": False,
                     "done": True,
                     "message": (
-                        f" Model is satisfiable (command: {first_command_name}), "
+                        f" Model is satisfiable (command: {check['command_name']}), "
                         "but instance conversion failed."
                     ),
                     "error": str(exc),
@@ -365,7 +358,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 "sat": True,
                 "isValid": True,
                 "done": True,
-                "message": f" Model is satisfiable (command: {first_command_name}).",
+                "message": f" Model is satisfiable (command: {check['command_name']}).",
                 "errors": [],
                 "warnings": all_warnings,
                 "scope": scope,
@@ -389,38 +382,68 @@ def run_alloy_sat_validation(
     buml_model: DomainModel,
     all_warnings: list[str] | None = None,
     scope: int = 5,
-    output_type: str = "json",
     output_dir: str | None = None,
-) -> tuple[tuple[Any, ...] | None, dict[str, Any] | None, str]:
-    """Translate a BUML class diagram + OCL constraints into Alloy, execute
-    the Alloy Analyzer, and return the consistency-check result.
+) -> dict[str, Any]:
+    """Generate an Alloy specification and execute it, returning the result.
+    Args:
+        buml_model: BUML domain model to check.
+        all_warnings: Web-layer warnings to fold into the response.
+        scope: Alloy scope (max atoms per signature).
+        output_dir: Where the specification is generated and analyzed. When
+            ``None`` the solver creates a temporary directory.
 
-    This is a thin wrapper around :meth:`AlloySolver.check_consistency` (the
-    single source of truth for the Alloy execution). It builds the solver, folds
-    in the web-layer ``warnings``, and exposes the result in the legacy
-    ``(parsed_data, error_response, exec_output_dir)`` shape where
-    *parsed_data* is ``(sat, command_name, solutions)``.
+    Returns:
+        A flat dict with keys ``sat``, ``command_name``, ``xml_files``,
+        ``output_dir`` and ``error``. ``error`` is ``None`` on success; on
+        translation failure or timeout it holds the SSE-ready error response.
     """
     warnings = all_warnings or []
     try:
-        solver = AlloySolver(buml_model, scope=scope, output_dir=output_dir)
+        # Generate the Alloy specification (model.als)
+        solver = AlloySolver(buml_model, output_dir=output_dir, scope=scope)
     except ValueError as exc:
         msg = str(exc)
-        return None, {
+        return {
             "sat": None,
-            "isValid": False,
-            "message": msg,
-            "errors": [msg] if msg else [],
-            "warnings": warnings,
-        }, output_dir or "output"
-    solver.check_consistency(output_type=output_type)
-    if solver.satisfiable is None:
-        return None, {**solver.last_error, "warnings": warnings}, solver.alloy_output_dir
-    return (
-        (solver.satisfiable, solver.command_name, solver.solutions),
-        None,
-        solver.alloy_output_dir,
+            "command_name": "",
+            "xml_files": [],
+            "output_dir": output_dir or "output",
+            "error": {
+                "sat": None,
+                "isValid": False,
+                "message": msg,
+                "errors": [msg] if msg else [],
+                "warnings": warnings,
+            },
+        }
+
+    # Execute the generated specification with the AlloyAnalyzerExecutor
+    result, xml_files = solver.executor.generate_instances(
+        solver.specification, solver.alloy_output_dir
     )
+
+    if result == AlloyResult.TIMEOUT:
+        return {
+            "sat": False,
+            "command_name": "",
+            "xml_files": [],
+            "output_dir": solver.alloy_output_dir,
+            "error": {
+                "sat": False,
+                "isValid": False,
+                "message": f"Alloy Analyzer timed out with scope {scope}.",
+                "errors": [],
+                "warnings": warnings,
+            },
+        }
+
+    return {
+        "sat": result == AlloyResult.SAT,
+        "command_name":"instance_model",
+        "xml_files": xml_files,
+        "output_dir": solver.alloy_output_dir,
+        "error": None,
+    }
 
 
 def _sse(data: dict[str, Any]) -> str:
