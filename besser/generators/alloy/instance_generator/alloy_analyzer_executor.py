@@ -28,7 +28,7 @@ class AlloyAnalyzerExecutor():
     Returns a pair (result, instance_files) where result is SAT, UNSAT, or TIMEOUT and 
     instance_files is a list of the generated instance files (if any).
     Raises RuntimeError exceptions if the execution of the Alloy Analyzer fails."""
-    def execute_alloy_analyzer(self, spec_als: str, output_dir: str, 
+    def generate_instances(self, spec_als: str, output_dir: str, 
                             num_instances: int = 1, timeout = GLOBAL_TIMEOUT):
         self.output_dir = output_dir
         # Clean up any previous instance files before generating new ones 

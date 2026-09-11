@@ -31,7 +31,7 @@ class AlloySolver:
         Returns an AlloyResult indicating whether the model is satisfiable 
         (SAT), unsatisfiable (UNSAT), or if the analysis timed out (TIMEOUT).
         """
-        (result, instance_xml_files) = self.executor.execute_alloy_analyzer(self.specification, self.alloy_output_dir)
+        (result, instance_xml_files) = self.executor.generate_instances(self.specification, self.alloy_output_dir)
         return result
 
     def generate_object_diagrams(self, num_instances: int = 1):
@@ -44,7 +44,7 @@ class AlloySolver:
         """
         # TODO PABLO: I don't like the repeated output of this method. I think we should
         # either return the list of instances or write them to files, but not both.
-        (res, instance_xml_files) = self.executor.execute_alloy_analyzer(self.specification, 
+        (res, instance_xml_files) = self.executor.generate_instances(self.specification, 
                                             self.alloy_output_dir, num_instances=num_instances)
         buml_instances = []
         for xml_path in instance_xml_files:
