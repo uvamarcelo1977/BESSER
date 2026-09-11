@@ -27,6 +27,7 @@ from besser.generators.alloy.instance_generator.alloy_analyzer_executor import (
 from besser.generators.alloy.translate_ocl_alloy import DATES_DICT
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
+    object_buml_to_json,
     process_class_diagram,
 )
 from besser.utilities.web_modeling_editor.backend.services.validators.ocl_checker import (
@@ -49,13 +50,9 @@ def convert_json_to_buml(input_data: DiagramInput) -> DomainModel | dict[str, An
     """
     diagram_type = input_data.model.get("type") if input_data.model else None
     if diagram_type != "ClassDiagram":
-        return {
-            "sat": None,
-            "isValid": False,
-            "message": "Semantic  Check is only available for Class Diagrams.",
-            "errors": [],
-            "warnings": [],
-        }
+        return _error_payload(
+            "Semantic  Check is only available for Class Diagrams.",
+        )
     json_data = {"title": input_data.title, "model": input_data.model}
     return process_class_diagram(json_data)
 
@@ -111,13 +108,11 @@ def validate_ocl_constraints(
         ocl_errors.append(ocl_result.get("message", "OCL validation failed."))
     all_warnings = structural_warnings or []
     if ocl_errors:
-        return all_warnings, {
-            "sat": None,
-            "isValid": False,
-            "message": " OCL constraints are invalid — SAT check skipped.",
-            "errors": ocl_errors,
-            "warnings": all_warnings,
-        }
+        return all_warnings, _error_payload(
+            " OCL constraints are invalid — SAT check skipped.",
+            errors=ocl_errors,
+            warnings=all_warnings,
+        )
     return all_warnings, None
 
 #----------------------------------------------------------------------
@@ -143,14 +138,11 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
 
     structural_errors, structural_warnings = validate_buml_structure(buml_model)
     if structural_errors:
-        yield _sse({
-            "sat": None,
-            "isValid": False,
-            "message": " Structural validation failed — SAT check skipped.",
-            "errors": structural_errors,
-            "warnings": structural_warnings,
-            "done": True,
-        })
+        yield _event_failure(
+            " Structural validation failed — SAT check skipped.",
+            errors=structural_errors,
+            warnings=structural_warnings,
+        )
         return
 
     all_warnings, ocl_error = validate_ocl_constraints(buml_model, structural_warnings)
@@ -160,12 +152,7 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
 
     # Steps 4-6: iterate scopes
     for scope in SCOPE_STEPS:
-        yield _sse({
-            "sat": None,
-            "done": False,
-            "message": f"🔍 Trying scope {scope}...",
-            "scope": scope,
-        })
+        yield _event_progress(f"🔍 Trying scope {scope}...", scope=scope)
 
         try:
             check = await asyncio.wait_for(
@@ -175,14 +162,11 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
                 timeout=TIMEOUT_SECONDS,
             )
         except asyncio.TimeoutError:
-            yield _sse({
-                "sat": False,
-                "isValid": False,
-                "done": True,
-                "message": f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
-                "errors": [],
-                "warnings": all_warnings,
-            })
+            yield _event_failure(
+                f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
+                sat=False,
+                warnings=all_warnings,
+            )
             return
 
         if check["error"]:
@@ -190,33 +174,25 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
             return
 
         if check["sat"]:
-            yield _sse({
-                "sat": True,
-                "isValid": True,
-                "done": True,
-                "message": f" SAT found with scope {scope} (command: {check['command_name']}).",
-                "errors": [],
-                "warnings": all_warnings,
-                "scope": scope,
-            })
+            yield _event_success(
+                f" SAT found with scope {scope} (command: {check['command_name']}).",
+                warnings=all_warnings,
+                scope=scope,
+            )
             return
 
-        yield _sse({
-            "sat": False,
-            "done": False,
-            "message": f" UNSAT with scope {scope}. Trying larger scope...",
-            "scope": scope,
-        })
+        yield _event_progress(
+            f" UNSAT with scope {scope}. Trying larger scope...",
+            sat=False,
+            scope=scope,
+        )
 
     # All scopes exhausted without finding SAT
-    yield _sse({
-        "sat": False,
-        "isValid": False,
-        "done": True,
-        "message": f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
-        "errors": [],
-        "warnings": all_warnings,
-    })
+    yield _event_failure(
+        f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
+        sat=False,
+        warnings=all_warnings,
+    )
 
 
 async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[str, None]:
@@ -246,14 +222,11 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
 
     structural_errors, structural_warnings = validate_buml_structure(buml_model)
     if structural_errors:
-        yield _sse({
-            "sat": None,
-            "isValid": False,
-            "message": " Structural validation failed — SAT check skipped.",
-            "errors": structural_errors,
-            "warnings": structural_warnings,
-            "done": True,
-        })
+        yield _event_failure(
+            " Structural validation failed — SAT check skipped.",
+            errors=structural_errors,
+            warnings=structural_warnings,
+        )
         return
 
     all_warnings, ocl_error = validate_ocl_constraints(buml_model, structural_warnings)
@@ -264,12 +237,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
     # Steps 4-6: iterate scopes until SAT is found
     with tempfile.TemporaryDirectory() as temp_dir:
         for scope in SCOPE_STEPS:
-            yield _sse({
-                "sat": None,
-                "done": False,
-                "message": f"🔍 Trying scope {scope}...",
-                "scope": scope,
-            })
+            yield _event_progress(f"🔍 Trying scope {scope}...", scope=scope)
 
             try:
                 check = await asyncio.wait_for(
@@ -280,14 +248,11 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                     timeout=TIMEOUT_SECONDS,
                 )
             except asyncio.TimeoutError:
-                yield _sse({
-                    "sat": False,
-                    "isValid": False,
-                    "done": True,
-                    "message": f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
-                    "errors": [],
-                    "warnings": all_warnings,
-                })
+                yield _event_failure(
+                    f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
+                    sat=False,
+                    warnings=all_warnings,
+                )
                 return
 
             if check["error"]:
@@ -295,87 +260,63 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 return
 
             if not check["sat"]:
-                yield _sse({
-                    "sat": False,
-                    "done": False,
-                    "message": f" UNSAT with scope {scope}. Trying larger scope...",
-                    "scope": scope,
-                })
+                yield _event_progress(
+                    f" UNSAT with scope {scope}. Trying larger scope...",
+                    sat=False,
+                    scope=scope,
+                )
                 continue
 
-            # SAT → locate XML instance → convert to frontend Object Diagram JSON
-            yield _sse({
-                "sat": True,
-                "done": False,
-                "message": (
-                    f"✅ SAT found with scope {scope} "
-                    f"(command: {check['command_name']}). Generating Object Diagram..."
-                ),
-                "scope": scope,
-            })
+            # SAT → convert the first BUML object instance to frontend Object Diagram JSON
+            yield _event_progress(
+                f"✅ SAT found with scope {scope} "
+                f"(command: {check['command_name']}). Generating Object Diagram...",
+                sat=True,
+                scope=scope,
+            )
 
-            loop = asyncio.get_event_loop()
-            try:
-                xml_instance_path = await loop.run_in_executor(
-                    None, resolve_first_instance_xml, check["output_dir"], check["xml_files"]
+            if not check["buml_instances"]:
+                logger.warning("SAT=true but no BUML object instance was generated")
+                yield _event_failure(
+                    f" Model is satisfiable (command: {check['command_name']}), "
+                    "but no object diagram was generated.",
+                    sat=True,
+                    warnings=all_warnings,
+                    scope=scope,
                 )
-                if not xml_instance_path:
-                    logger.warning("SAT=true but no Alloy XML instance was found in %s", check["output_dir"])
-                    yield _sse({
-                        "sat": True,
-                        "isValid": False,
-                        "done": True,
-                        "message": (
-                            f" Model is satisfiable (command: {check['command_name']}), "
-                            "but no instance XML was found."
-                        ),
-                        "errors": [],
-                        "warnings": all_warnings,
-                        "scope": scope,
-                    })
-                    return
+                return
 
-                object_model = await loop.run_in_executor(
-                    None, alloy_xml_to_frontend_object_model, xml_instance_path, input_data.model
+            try:
+                object_model = await asyncio.to_thread(
+                    object_buml_to_json, check["buml_instances"][0], input_data.model
                 )
             except Exception as exc:
                 logger.exception("Failed to convert Alloy instance to frontend ObjectDiagram")
-                yield _sse({
-                    "sat": True,
-                    "isValid": False,
-                    "done": True,
-                    "message": (
-                        f" Model is satisfiable (command: {check['command_name']}), "
-                        "but instance conversion failed."
-                    ),
-                    "error": str(exc),
-                    "warnings": all_warnings,
-                    "scope": scope,
-                })
+                yield _event_failure(
+                    f" Model is satisfiable (command: {check['command_name']}), "
+                    "but instance conversion failed.",
+                    sat=True,
+                    error=str(exc),
+                    warnings=all_warnings,
+                    scope=scope,
+                )
                 return
 
-            yield _sse({
-                "sat": True,
-                "isValid": True,
-                "done": True,
-                "message": f" Model is satisfiable (command: {check['command_name']}).",
-                "errors": [],
-                "warnings": all_warnings,
-                "scope": scope,
-                "object_model": object_model,
-                "dates_dict": dict(DATES_DICT),
-            })
+            yield _event_success(
+                f" Model is satisfiable (command: {check['command_name']}).",
+                warnings=all_warnings,
+                scope=scope,
+                object_model=object_model,
+                dates_dict=dict(DATES_DICT),
+            )
             return
 
         # All scopes exhausted without finding SAT
-        yield _sse({
-            "sat": False,
-            "isValid": False,
-            "done": True,
-            "message": f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
-            "errors": [],
-            "warnings": all_warnings,
-        })
+        yield _event_failure(
+            f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
+            sat=False,
+            warnings=all_warnings,
+        )
 
 
 def run_alloy_sat_validation(
@@ -393,9 +334,11 @@ def run_alloy_sat_validation(
             ``None`` the solver creates a temporary directory.
 
     Returns:
-        A flat dict with keys ``sat``, ``command_name``, ``xml_files``,
-        ``output_dir`` and ``error``. ``error`` is ``None`` on success; on
-        translation failure or timeout it holds the SSE-ready error response.
+        A flat dict with keys ``sat``, ``command_name``, ``buml_instances``,
+        ``output_dir`` and ``error``. ``buml_instances`` is a list of BUML
+        object-diagram code strings (empty unless SAT). ``error`` is ``None``
+        on success; on translation failure or timeout it holds the SSE-ready
+        error response.
     """
     warnings = all_warnings or []
     try:
@@ -406,44 +349,96 @@ def run_alloy_sat_validation(
         return {
             "sat": None,
             "command_name": "",
-            "xml_files": [],
+            "buml_instances": [],
             "output_dir": output_dir or "output",
-            "error": {
-                "sat": None,
-                "isValid": False,
-                "message": msg,
-                "errors": [msg] if msg else [],
-                "warnings": warnings,
-            },
+            "error": _error_payload(
+                msg,
+                errors=[msg] if msg else [],
+                warnings=warnings,
+            ),
         }
 
-    # Execute the generated specification with the AlloyAnalyzerExecutor
-    result, xml_files = solver.executor.generate_instances(
-        solver.specification, solver.alloy_output_dir
-    )
+    # Execute the generated specification, producing BUML object instances
+    result, buml_instances = solver.generate_object_diagrams(num_instances=1)
 
     if result == AlloyResult.TIMEOUT:
         return {
             "sat": False,
             "command_name": "",
-            "xml_files": [],
+            "buml_instances": [],
             "output_dir": solver.alloy_output_dir,
-            "error": {
-                "sat": False,
-                "isValid": False,
-                "message": f"Alloy Analyzer timed out with scope {scope}.",
-                "errors": [],
-                "warnings": warnings,
-            },
+            "error": _error_payload(
+                f"Alloy Analyzer timed out with scope {scope}.",
+                sat=False,
+                warnings=warnings,
+            ),
         }
 
     return {
         "sat": result == AlloyResult.SAT,
         "command_name":"instance_model",
-        "xml_files": xml_files,
+        "buml_instances": buml_instances,
         "output_dir": solver.alloy_output_dir,
         "error": None,
     }
+
+
+def _error_payload(
+    message: str,
+    *,
+    sat: bool | None = None,
+    errors: list[str] | None = None,
+    warnings: list[str] | None = None,
+    **extra: Any,
+) -> dict[str, Any]:
+    """Builds an SSE-ready error payload (without the ``done`` flag)."""
+    return {
+        "sat": sat,
+        "isValid": False,
+        "message": message,
+        "errors": list(errors or []),
+        "warnings": list(warnings or []),
+        **extra,
+    }
+
+
+def _event_progress(message: str, *, sat: bool | None = None, **extra: Any) -> str:
+    """Formats a non-terminal progress event as an SSE line."""
+    return _sse({"sat": sat, "done": False, "message": message, **extra})
+
+
+def _event_success(
+    message: str,
+    *,
+    errors: list[str] | None = None,
+    warnings: list[str] | None = None,
+    **extra: Any,
+) -> str:
+    """Formats a terminal SAT success event as an SSE line."""
+    return _sse({
+        "sat": True,
+        "isValid": True,
+        "done": True,
+        "message": message,
+        "errors": list(errors or []),
+        "warnings": list(warnings or []),
+        **extra,
+    })
+
+
+def _event_failure(
+    message: str,
+    *,
+    sat: bool | None = None,
+    errors: list[str] | None = None,
+    warnings: list[str] | None = None,
+    **extra: Any,
+) -> str:
+    """Formats a terminal failure event as an SSE line."""
+    return _sse({
+        **_error_payload(message, sat=sat, errors=errors, warnings=warnings, **extra),
+        "done": True,
+    })
 
 
 def _sse(data: dict[str, Any]) -> str:
