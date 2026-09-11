@@ -5,6 +5,11 @@ import xml.etree.ElementTree as ET
 
 # TODO PABLO: Importing this from another module is not good. Needs refactor!
 from besser.generators.alloy.translate_ocl_alloy import DATES_DICT
+#DATES_DICT es un diccionario que llevo para poder convertir a las fechas en dat0,date1..
+# con la codificación de llamar a las fecjas como d01012001 no hacia falta el diccionario
+# porque era la forma de poder rastrear luego en el xml cual era la fecha. se entiende? 
+#La otra manera es ir propagando el diccionario por un montón de funciones y clases, y no me gustaba
+#porque cargaba más las interfaces.
 
 logger = logging.getLogger(__name__)
 
