@@ -21,6 +21,9 @@ class AlloySolver:
         self.alloy_output_dir = os.path.join(self.output_dir, "alloy_output")
         # TODO PABLO: I don't like that we need to create an AlloyGenerator object
         # each time we want to generate instances. Needs refactor!
+        # Es cierto que cada vez que se crea un AlloySolver se genera invoca al generador. Una
+        # alternativa seria la de pasarle el modelo alloy ya creado , no se? me cerraba que 
+        #  AlloySolver se encargue de generar el alloy y de generar los diagramas de objetos.
         generator = AlloyGenerator(model=self.model, output_dir=output_dir, scope=scope)
         generator.generate()
         self.specification = os.path.join(output_dir, "model.als")
