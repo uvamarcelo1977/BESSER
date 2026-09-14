@@ -41,16 +41,17 @@ from besser.generators.alloy.alloy_utils_generator import (
     build_consistency_rule,
     sanitize_alloy_name,
 )
-from besser.generators.alloy.translate_ocl_alloy import (
-    DATES_DICT,
-    EnumReferenceError,
-    TranslatorState,
+from besser.generators.alloy.date_registry import (
     encode_date,
-    generate_dates_and_order,
     is_date,
-    ocl_to_alloy,
     parse_ocl_date,
     random_date,
+)
+from besser.generators.alloy.translate_ocl_alloy import (
+    EnumReferenceError,
+    TranslatorState,
+    generate_dates_and_order,
+    ocl_to_alloy,
 )
 
 # ---------------------------------------------------------------------------
@@ -761,8 +762,8 @@ def test_date_comparison_operators(operator, expected, tmpdir):
 def test_date_order_fact_is_emitted(tmpdir):
     """With two date literals, ``fact Order`` pins the util/ordering chain:
     ``date0 = first`` and ``date1 = last`` over the sigs sorted ascending
-    (date0 -> d01012000 and date1 -> d03152021 per DATES_DICT). The OCL
-    constraints reference the same dateN atoms."""
+    (date0 -> d01012000 and date1 -> d03152021 per the generator's date
+    registry). The OCL constraints reference the same dateN atoms."""
     output_dir = tmpdir.mkdir("output")
     model = _date_person_model([
         "self.birthDate > '15-03-2021'",
@@ -780,8 +781,8 @@ def test_date_order_fact_is_emitted(tmpdir):
     assert "date0 = first" in spec
     assert "date0.next = date1" in spec
     assert "date1 = last" in spec
-    assert DATES_DICT["date0"] == "d01012000"
-    assert DATES_DICT["date1"] == "d03152021"
+    assert generator.date_registry.snapshot()["date0"] == "d01012000"
+    assert generator.date_registry.snapshot()["date1"] == "d03152021"
 
 
 def test_date_value_deduped_across_constraints(tmpdir):
@@ -981,10 +982,11 @@ def test_random_date_within_bounds():
 
 def test_generate_dates_and_order():
     """generate_dates_and_order fills up to scope, emits one sigs (date0,
-    date1, ...) for all dates, rebuilds DATES_DICT, and appends a fact Order
-    with the dates sorted ascending."""
+    date1, ...) for all dates, returns a registry mapping each sequential sig
+    name to its dMMDDYYYY id, and appends a fact Order with the dates sorted
+    ascending."""
     existing = ["d01012000"]  # 2000-01-01
-    result = generate_dates_and_order(
+    result, registry = generate_dates_and_order(
         ocl_dates=existing,
         scope=3,
         start=date(2001, 1, 1),
@@ -994,18 +996,18 @@ def test_generate_dates_and_order():
     sigs = re.findall(r"one sig (date\d+) extends Date \{\}", result)
     assert len(sigs) == 3  # every date (existing + generated) emits a one sig
 
-    # DATES_DICT maps each sequential sig name (in ascending date order) to its
-    # dMMDDYYYY encoding; 2000-01-01 (d01012000) is the earliest date -> date0.
-    assert len(DATES_DICT) == len(sigs)
-    assert set(sigs) == set(DATES_DICT)
-    assert DATES_DICT["date0"] == "d01012000"
-    generated = [v for k, v in DATES_DICT.items() if k != "date0"]
+    # The registry maps each sequential sig name (in ascending date order) to
+    # its dMMDDYYYY encoding; 2000-01-01 (d01012000) is the earliest date -> date0.
+    assert len(registry.snapshot()) == len(sigs)
+    assert set(sigs) == set(registry.snapshot())
+    assert registry.snapshot()["date0"] == "d01012000"
+    generated = [v for k, v in registry.snapshot().items() if k != "date0"]
     assert len(generated) == 2
     for g in generated:
         assert date(2001, 1, 1) <= parse_ocl_date(g) <= date(2001, 1, 5)
 
     assert "fact Order {" in result
-    ordered = sorted(sigs, key=lambda s: parse_ocl_date(DATES_DICT[s]))
+    ordered = sorted(sigs, key=lambda s: parse_ocl_date(registry.snapshot()[s]))
     assert ordered[0] == "date0"  # earliest date is first in the chain
     assert f"{ordered[0]} = first" in result
     for i in range(len(ordered) - 1):

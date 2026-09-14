@@ -24,7 +24,6 @@ from besser.generators.alloy import AlloySolver
 from besser.generators.alloy.instance_generator.alloy_analyzer_executor import (
     AlloyResult,
 )
-from besser.generators.alloy.translate_ocl_alloy import DATES_DICT
 from besser.utilities.web_modeling_editor.backend.models.diagram import DiagramInput
 from besser.utilities.web_modeling_editor.backend.services.converters import (
     object_buml_to_json,
@@ -307,7 +306,7 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 warnings=all_warnings,
                 scope=scope,
                 object_model=object_model,
-                dates_dict=dict(DATES_DICT),
+                dates_dict=check["dates_dict"],
             )
             return
 
@@ -335,9 +334,11 @@ def run_alloy_sat_validation(
 
     Returns:
         A flat dict with keys ``sat``, ``command_name``, ``buml_instances``,
-        ``output_dir`` and ``error``. ``buml_instances`` is a list of BUML
-        object-diagram code strings (empty unless SAT). ``error`` is ``None``
-        on success; on translation failure or timeout it holds the SSE-ready
+        ``output_dir``, ``dates_dict`` and ``error``. ``buml_instances`` is a
+        list of BUML object-diagram code strings (empty unless SAT).
+        ``dates_dict`` maps each sequential ``dateN`` sig name of the generated
+        specification to its ``dMMDDYYYY`` id. ``error`` is ``None`` on
+        success; on translation failure or timeout it holds the SSE-ready
         error response.
     """
     warnings = all_warnings or []
@@ -351,6 +352,7 @@ def run_alloy_sat_validation(
             "command_name": "",
             "buml_instances": [],
             "output_dir": output_dir or "output",
+            "dates_dict": {},
             "error": _error_payload(
                 msg,
                 errors=[msg] if msg else [],
@@ -367,6 +369,7 @@ def run_alloy_sat_validation(
             "command_name": "",
             "buml_instances": [],
             "output_dir": solver.alloy_output_dir,
+            "dates_dict": solver.date_registry.snapshot(),
             "error": _error_payload(
                 f"Alloy Analyzer timed out with scope {scope}.",
                 sat=False,
@@ -379,6 +382,7 @@ def run_alloy_sat_validation(
         "command_name":"instance_model",
         "buml_instances": buml_instances,
         "output_dir": solver.alloy_output_dir,
+        "dates_dict": solver.date_registry.snapshot(),
         "error": None,
     }
 

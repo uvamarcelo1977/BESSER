@@ -16,10 +16,6 @@ from besser.generators.alloy.alloy_utils_generator import (
     sanitize_model_names,
     translate_constraints,
 )
-from besser.generators.alloy.translate_ocl_alloy import (
-    DATES_DICT,
-    resolve_ocl_date_literals,
-)
 
 
 class AlloyGenerator(GeneratorInterface):
@@ -46,6 +42,9 @@ class AlloyGenerator(GeneratorInterface):
         """
         super().__init__(model, output_dir)
         self.scope = scope
+        # Populated during generate(): maps each sequential ``dateN`` sig name
+        # to its ``dMMDDYYYY`` id (empty when the model has no dates).
+        self.date_registry = None
         templates_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
         self.env = Environment(
             loader=FileSystemLoader(templates_path),
@@ -84,9 +83,11 @@ class AlloyGenerator(GeneratorInterface):
         enums = {e.name: {lit.name for lit in (e.literals or set())} for e in enum_types}
 
         status = translate_constraints(model, inherits_from, data, enums)
-        date_block = generate_date_block(status, basic_signatures, self.scope)
-        if status.dates and DATES_DICT:
-            resolve_ocl_date_literals(model.constraints)
+        date_block, self.date_registry = generate_date_block(
+            status, basic_signatures, self.scope
+        )
+        if status.dates and self.date_registry:
+            self.date_registry.rewrite_facts(model.constraints)
 
         classes = model.classes_sorted_by_inheritance()
         associations_by_class = {c.name: [] for c in classes}

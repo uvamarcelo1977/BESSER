@@ -16,10 +16,9 @@ Internal flow:
 """
 
 # ── Standard library ─────────────────────────────────────────────────────────
-import random
 import re
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 
 # ── Third-party ──────────────────────────────────────────────────────────────
 from antlr4 import CommonTokenStream, InputStream
@@ -29,6 +28,14 @@ from dateutil import parser as dateutil_parser
 # ── BESSER / BUML ─────────────────────────────────────────────────────────────
 from besser.BUML.notations.ocl.BOCLLexer import BOCLLexer
 from besser.BUML.notations.ocl.BOCLParser import BOCLParser
+from besser.generators.alloy.date_registry import (
+    DATE_TYPES,
+    YEAR_END,
+    YEAR_START,
+    DateRegistry,
+    encode_date,
+    is_date,
+)
 
 # ── Types ─────────────────────────────────────────────────────────────────────
 Token = tuple[str, str]
@@ -890,115 +897,43 @@ def parse_predicate(tokens: list[Token]):
 # ══════════════════════════════════════════════════════════════════════════════
 # 6. DATE HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
-
-_DATE_TYPES = {"date", "datetime", "time", "timedelta"}
-
-_DATE_PATTERN = re.compile(
-    r"^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}$"
-    r"|^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:,\s+\d{4})?$",
-    re.IGNORECASE,
-)
-
-_YEAR_START = 1970
-
-_YEAR_END = 2038
-
-DATES_DICT: dict[str, str] = {}
-
-def parse_ocl_date(s: str) -> date:
-    """Converts ``'dMMDDYYYY'`` -> ``date``. E.g. ``'d10131977'`` -> ``date(1977, 10, 13)``."""
-    mm = int(s[1:3])
-    dd = int(s[3:5])
-    yyyy = int(s[5:9])
-    return date(yyyy, mm, dd)
-
-
-def encode_date(d: date) -> str:
-    """Converts ``date`` -> ``'dMMDDYYYY'``."""
-    return 'd' + d.strftime('%m%d%Y')
-
-
-def random_date(start: date, end: date) -> date:
-    """Generates a random date between *start* and *end* (inclusive)."""
-    delta = end - start
-    random_days = random.randint(0, delta.days)
-    return start + timedelta(days=random_days)
+#
+# Date encoding/parsing, literal detection, random generation and the
+# ``dateN -> dMMDDYYYY`` mapping live in
+# :mod:`besser.generators.alloy.date_registry`. The mapping is held by a
+# :class:`~besser.generators.alloy.date_registry.DateRegistry` instance, built
+# by :func:`generate_dates_and_order` and threaded explicitly through the
+# generation pipeline (it is never stored in a module-level global); date
+# literals are rewritten to the registry's atom names by
+# :meth:`DateRegistry.rewrite_facts`.
 
 
 def generate_dates_and_order(
     ocl_dates: list[str],
     scope: int,
-    start: date = date(_YEAR_START, 1, 1),
-    end: date = date(_YEAR_END, 1, 1),
+    start: date = date(YEAR_START, 1, 1),
+    end: date = date(YEAR_END, 1, 1),
     max_attempts: int = 10000,
-) -> str:
+) -> tuple[str, DateRegistry]:
     """
     Fills *ocl_dates* up to *scope* with new unique dates, emits a
     ``one sig dateN extends Date {}`` line for every date (sorted ascending),
     then appends a fact fixing the total order of all dates from smallest to
     largest.
 
+    Returns:
+        A tuple ``(block, registry)`` where *block* is the Alloy date
+        signature/ordering text and *registry* maps each sequential ``dateN``
+        sig name to its ``dMMDDYYYY`` id.
     """
-    dates_set = set(ocl_dates)
-    res = ''
-
-    attempts = 0
-    while len(dates_set) < scope:
-        if attempts >= max_attempts:
-            raise RuntimeError(
-                f"Could not generate a unique new date after {max_attempts} attempts "
-                f"(date range may be exhausted for scope={scope})."
-            )
-        new_d = random_date(start, end)
-        encoded = encode_date(new_d)
-
-        # skip if already present, retry
-        if encoded in dates_set:
-            attempts += 1
-            continue
-
-        dates_set.add(encoded)
-        attempts = 0  # reset counter after a successful generation
-
-    # sort all dates (original + generated) ascending
-    sorted_dates = sorted(dates_set, key=parse_ocl_date)
-
-    # Rebuild DATES_DICT with sequential sig names and emit one sig per date.
-    DATES_DICT.clear()
-    for i, d in enumerate(sorted_dates):
-        DATES_DICT[f"date{i}"] = d
-        res += f"one sig date{i} extends Date {{}}\n"
-
-    # build ordering fact using util/ordering's first/last/next
-    date_names = [f"date{i}" for i in range(len(sorted_dates))]
-    fact_lines = [f'{date_names[0]} = first']
-    for i in range(len(date_names) - 1):
-        fact_lines.append(f'{date_names[i]}.next = {date_names[i + 1]}')
-    fact_lines.append(f'{date_names[-1]} = last')
-
-    res += 'fact Order {\n'
-    res += '\n'.join(f'    {line}' for line in fact_lines)
-    res += '\n}\n'
-
-    return res
-
-
-def is_date(s: str) -> str | None:
-    """
-    Detects whether *s* is a date literal and returns its Alloy id (``dMMDDYYYY``) or ``None``.
-
-    The whole content (after stripping single/double quotes) must be a date, so
-    arbitrary strings that merely contain a date-like substring (e.g.
-    ``'date 2024-01-01 x'``) are left untouched.
-    """
-    contents = s.strip().strip("'").strip('"').strip()
-    if not _DATE_PATTERN.match(contents):
-        return None
-    try:
-        curr_date = dateutil_parser.parse(contents)
-        return encode_date(curr_date)
-    except (ValueError, OverflowError):
-        return None
+    registry = DateRegistry.build(
+        ocl_dates,
+        scope,
+        start=start,
+        end=end,
+        max_attempts=max_attempts,
+    )
+    return registry.render_sigs_and_order(), registry
 
 
 def parse_date(s: str, state: TranslatorState) -> str:
@@ -1027,28 +962,6 @@ def parse_date(s: str, state: TranslatorState) -> str:
     return ""
 
 
-_DATE_LITERAL_PATTERN = re.compile(r"\bd\d{8}\b")
-
-
-def resolve_ocl_date_literals(constraints) -> None:
-    """Rewrites translated OCL facts in place.
-
-    Replaces every ``dMMDDYYYY`` literal id produced by :func:`is_date` /
-    :func:`parse_date` with the sequential ``dateN`` sig name assigned by
-    :func:`generate_dates_and_order` (via :data:`DATES_DICT`), so OCL date
-    constants use exactly the same atoms as randomly generated dates.\n
-    Unknown ids (not present in :data:`DATES_DICT`) are left untouched.
-    """
-    if not DATES_DICT:
-        return
-    name_by_id = {v: k for k, v in DATES_DICT.items()}
-    for constraint in constraints:
-        constraint.expression = _DATE_LITERAL_PATTERN.sub(
-            lambda m: name_by_id.get(m.group(0), m.group(0)),
-            constraint.expression,
-        )
-
-
 def _is_date_field(subject_field: str, data: dict) -> bool:
     """Returns ``True`` if *subject_field* references a date-typed attribute.
 
@@ -1061,7 +974,7 @@ def _is_date_field(subject_field: str, data: dict) -> bool:
     for curr_class, fields in data.items():
         for curr_field in fields:
             field_name, field_type = curr_field.split(":", 1)
-            if field_type in _DATE_TYPES and f"{curr_class}_{field_name}" in subject_field:
+            if field_type in DATE_TYPES and f"{curr_class}_{field_name}" in subject_field:
                 return True
     return False
 

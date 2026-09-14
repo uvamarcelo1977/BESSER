@@ -26,6 +26,10 @@ class AlloySolver:
         #  AlloySolver se encargue de generar el alloy y de generar los diagramas de objetos.
         generator = AlloyGenerator(model=self.model, output_dir=output_dir, scope=scope)
         generator.generate()
+        # Registry of the generated spec's date atoms: each ``dateN`` sig name
+        # mapped to its ``dMMDDYYYY`` id. Shared with the instance converters so
+        # they decode the exact dates produced for this specification.
+        self.date_registry = generator.date_registry
         self.specification = os.path.join(output_dir, "model.als")
         self.executor = AlloyAnalyzerExecutor()
 
@@ -51,7 +55,7 @@ class AlloySolver:
                                             self.alloy_output_dir, num_instances=num_instances)
         buml_instances = []
         for xml_path in instance_xml_files:
-            converter = AlloyToBUML(xml_path)
+            converter = AlloyToBUML(xml_path, date_registry=self.date_registry)
             buml_instances.append(converter.generate_object_diagram())
 
         os.makedirs(self.output_dir, exist_ok=True)

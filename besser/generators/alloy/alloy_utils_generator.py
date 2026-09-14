@@ -10,6 +10,7 @@ import re
 from collections import defaultdict
 
 from besser.BUML.metamodel.structural import DomainModel, Enumeration
+from besser.generators.alloy.date_registry import DateRegistry
 from besser.generators.alloy.translate_ocl_alloy import (
     TranslatorState,
     generate_dates_and_order,
@@ -132,7 +133,7 @@ def build_consistency_rule(
 
 def generate_date_block(
     state: TranslatorState, basic_signatures: set, scope: int
-) -> str:
+) -> tuple[str, DateRegistry]:
     """Generate the date universe and ordering block when needed.
 
     Args:
@@ -141,12 +142,14 @@ def generate_date_block(
         scope:           Alloy scope (max atoms per signature).
 
     Returns:
-        A string with the date ``one sig`` declarations and ordering fact,
-        or an empty string when no date support is required.
+        A tuple ``(block, registry)`` with the date ``one sig`` declarations
+        and ordering fact, and a :class:`DateRegistry` mapping sequential sig
+        names to ``dMMDDYYYY`` ids. Both are empty when no date support is
+        required.
     """
     if state.dates or "date" in basic_signatures:
         return generate_dates_and_order(state.dates, scope)
-    return ""
+    return "", DateRegistry.empty()
 
 
 def build_inheritance_and_attribute_maps(
