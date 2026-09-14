@@ -258,7 +258,10 @@ def tokenize_tree(tree, parser) -> list[Token]:
             return
 
         if tokens and tokens[-1][0] == "::":
-            tokens.append(("enum", txt))
+            if txt.lower() == "allinstances":
+                tokens.append(("allInstances", "allInstances"))
+            else:
+                tokens.append(("enum", txt))
             return
 
         if txt == ".":
@@ -554,10 +557,11 @@ def write_prefix_ocl(
 
     def _collapse_possible_allInstances(toks: list[Token]) -> list[Token]:
         """
-        Collapses ``Class.allInstances()`` into a single token.
-        This is a special case of navigation that is not a field, so it
-        does not get prefixed with the class name.  Instead, it becomes
-        a single token of type ``allInstances`` with value ``allInstances``.
+        Collapses ``Class.allInstances()`` or ``Class::allInstances()``
+        into a single token.  This is a special case of navigation that is
+        not a field, so it does not get prefixed with the class name.
+        Instead, it becomes a single token of type ``class`` with value
+        ``ClassName`` (which denotes the Alloy signature / set of instances).
         """
         result: list[Token] = []
         i = 0
@@ -565,7 +569,7 @@ def write_prefix_ocl(
             if (
                 i + 4 < len(toks)
                 and toks[i][0] == "id"
-                and toks[i + 1][0] == "dot"
+                and toks[i + 1][0] in ("dot", "::")
                 and toks[i + 2][0] == "allInstances"
                 and toks[i + 3][0] == "("
                 and toks[i + 4][0] == ")"

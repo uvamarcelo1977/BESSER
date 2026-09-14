@@ -523,6 +523,55 @@ def test_allinstances_over_other_class_than_context(tmpdir):
     assert "e.Employee_age > 16" in spec
 
 
+def test_allinstances_doublecolon_forall_over_context_type(tmpdir):
+    """Class::allInstances()->forAll(v | ...) on the context class must become
+    an Alloy quantification over the class signature, with attribute names
+    prefixed by their owning class (same treatment as the dot form)."""
+    spec = _generate_allinstances_spec(
+        "Employee::allInstances()->forAll(e | e.age > 16)",
+        tmpdir,
+    )
+    assert "all self:this/Employee" in spec
+    assert "all e : Employee" in spec
+    assert "e.Employee_age > 16" in spec
+
+
+def test_allinstances_doublecolon_exists_over_context_type(tmpdir):
+    """Class::allInstances()->exists(v | ...) on the context class must become
+    an Alloy ``some`` quantification over the class signature."""
+    spec = _generate_allinstances_spec(
+        "Employee::allInstances()->exists(e | e.age > 16)",
+        tmpdir,
+    )
+    assert "all self:this/Employee" in spec
+    assert "some e : Employee" in spec
+    assert "e.Employee_age > 16" in spec
+
+
+def test_allinstances_doublecolon_size_over_context_type(tmpdir):
+    """Class::allInstances()->size() must translate to the Alloy cardinality of
+    the class signature (``#(Class)``)."""
+    spec = _generate_allinstances_spec(
+        "Employee::allInstances()->size() = 3",
+        tmpdir,
+    )
+    assert "all self:this/Employee" in spec
+    assert "#(Employee) = 3" in spec
+
+
+def test_allinstances_doublecolon_over_other_class_than_context(tmpdir):
+    """Class::allInstances() on a class different from the constraint's context
+    must quantify over the target class and still prefix its attribute names."""
+    spec = _generate_allinstances_spec(
+        "Employee::allInstances()->forAll(e | e.age > 16)",
+        tmpdir,
+        context_name="Department",
+    )
+    assert "all self:this/Department" in spec
+    assert "all e : Employee" in spec
+    assert "e.Employee_age > 16" in spec
+
+
 # ---------------------------------------------------------------------------
 # Enumeration reference validation (OCL constraints against enum literals)
 # ---------------------------------------------------------------------------
