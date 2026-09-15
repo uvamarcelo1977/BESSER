@@ -1216,6 +1216,14 @@ def _translate_binaryop(node: BinaryOp, inherits_from: dict, state: TranslatorSt
 
 # ── 8d. Calls ─────────────────────────────────────────────────────────────────
 
+def _as_set(expr: str, state: TranslatorState) -> str:
+    """Return ``expr`` as a flat Alloy set and record that representation."""
+    if not state.is_set_origin:
+        state.is_set_origin = True
+        return f"image[{expr}]"
+    return expr
+
+
 def _apply_asset(expr: str, state: TranslatorState) -> str:
     """
     Translates ``->asSet()`` to Alloy.
@@ -1225,10 +1233,7 @@ def _apply_asset(expr: str, state: TranslatorState) -> str:
     so that any subsequent chained operation (``->size()``, ``->union()``, etc.)
     treats it as ``set univ`` instead of ``univ -> univ``.
     """
-    if not state.is_set_origin:
-        state.is_set_origin = True
-        return f"image[{expr}]"
-    return expr
+    return _as_set(expr, state)
 
 
 def _build_call_handlers() -> dict[str, callable]:
@@ -1240,13 +1245,15 @@ def _build_call_handlers() -> dict[str, callable]:
     return {
         "size":           lambda expr, args, state: f"#({expr})",
         "excluding":      lambda expr, args, state: (
-            f"({expr})" if args[0].lower() == "null" else f"({expr} - {args[0]})"
+            f"({_as_set(expr, state)})" if args[0].lower() == "null"
+            else f"({_as_set(expr, state)} - {args[0]})"
         ),
         "including":      lambda expr, args, state: (
-            f"({expr})" if args[0].lower() == "null" else f"({expr} + {args[0]})"
+            f"({_as_set(expr, state)})" if args[0].lower() == "null"
+            else f"({_as_set(expr, state)} + {args[0]})"
         ),
-        "union":          lambda expr, args, state: f"({expr} + {args[0]})",
-        "intersection":   lambda expr, args, state: f"({expr} & {args[0]})",
+        "union":          lambda expr, args, state: f"({_as_set(expr, state)} + {args[0]})",
+        "intersection":   lambda expr, args, state: f"({_as_set(expr, state)} & {args[0]})",
         "isempty":        lambda expr, args, state: f"(#({expr}) = 0)",
         "notempty":       lambda expr, args, state: f"(#({expr}) > 0)",
         "closure":        lambda expr, args, state: f"{expr}.*{args[0]}",

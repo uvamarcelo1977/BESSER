@@ -53,6 +53,18 @@ from besser.generators.alloy.translate_ocl_alloy import (
     random_date,
 )
 
+
+def test_collect_including_flattens_relation_before_union():
+    alloy = ocl_to_alloy(
+        {"Author": ["_"], "Book": ["_"]},
+        {"Author": ["books:Book"], "Book": ["authors:Author"]},
+        "self.books->collect(c | c.authors)->including(self)->size() > 0",
+        context_name="Author",
+        enums={},
+    )
+
+    assert "image[ collect[toSeq[self,Author_books],Book_authors]] + self" in alloy
+
 # ---------------------------------------------------------------------------
 # Fixture
 # ---------------------------------------------------------------------------
