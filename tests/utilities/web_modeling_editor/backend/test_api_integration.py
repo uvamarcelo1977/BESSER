@@ -10,8 +10,10 @@ do not support the legacy TestClient(app=...) pattern.
 """
 
 import asyncio
+import io
 import json
 import os
+import zipfile
 from typing import Any
 
 import httpx
@@ -398,6 +400,22 @@ class TestGenerateOutput:
         response = client.post("/besser_api/generate-output", json=payload)
         assert response.status_code == 200
         assert "application/zip" in response.headers.get("content-type", "")
+
+    def test_generate_alloy_returns_zip(self, class_diagram_input):
+        """Alloy generator returns a ZIP archive with model.als and str_ops.als."""
+        payload = {**class_diagram_input, "generator": "alloy"}
+        response = client.post("/besser_api/generate-output", json=payload)
+        assert response.status_code == 200
+        assert "application/zip" in response.headers.get("content-type", "")
+        content_disp = response.headers.get("content-disposition", "")
+        assert "alloy_specification.zip" in content_disp
+
+        body = response.content
+        assert body.startswith(b"PK")
+        with zipfile.ZipFile(io.BytesIO(body)) as zf:
+            names = zf.namelist()
+            assert "model.als" in names
+            assert "str_ops.als" in names
 
 
 # ---------------------------------------------------------------------------

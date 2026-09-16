@@ -88,6 +88,7 @@ class AlloyGenerator(GeneratorInterface):
         if status.dates and DATES_DICT:
             resolve_ocl_date_literals(model.constraints)
 
+        needs_str_ops = bool(status.string_ops.registered_names())
         classes = model.classes_sorted_by_inheritance()
         associations_by_class = {c.name: [] for c in classes}
         for assoc in model.associations:
@@ -107,7 +108,11 @@ class AlloyGenerator(GeneratorInterface):
             sigsnv=sigs_nv,
             scope=self.scope,
             facts_rules=facts_rules,
+            string_ops=needs_str_ops,
         )
 
         with open(file_path, mode="w", encoding="utf-8") as f:
             f.write(spec)
+
+        if needs_str_ops:
+            status.string_ops.generate_str_ops_model(os.path.dirname(file_path))

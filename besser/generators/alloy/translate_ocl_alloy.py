@@ -29,10 +29,10 @@ from dateutil import parser as dateutil_parser
 # ── BESSER / BUML ─────────────────────────────────────────────────────────────
 from besser.BUML.notations.ocl.BOCLLexer import BOCLLexer
 from besser.BUML.notations.ocl.BOCLParser import BOCLParser
+from besser.generators.alloy.string_ops import StringOpError, StringOpsRegistry
 
 # ── Types ─────────────────────────────────────────────────────────────────────
 Token = tuple[str, str]
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 1. TRANSLATION STATE
@@ -58,6 +58,8 @@ class TranslatorState:
                          set once via :meth:`set_enums`.
         data:            ``{ClassName: ['field:Type', ...]}`` attribute map of the
                          model, used to detect date-typed attribute operands.
+        string_ops:      OCL String operation registry used to translate
+                         String method calls and to emit ``str_ops.als``.
     """
 
     cont_select: int = 0
@@ -66,6 +68,7 @@ class TranslatorState:
     is_set_origin: bool = True
     enums: dict[str, set[str]] = field(default_factory=dict)
     data: dict = field(default_factory=dict)
+    string_ops: StringOpsRegistry = StringOpsRegistry()
     _enum_token_index: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
 
     def init_constraint(self) -> None:
@@ -322,13 +325,6 @@ def tokenize_tree(tree, parser) -> list[Token]:
             tokens.append(("call", low))
             return
 
-        # "size": call when preceded by '->', attribute id when preceded by '.'
-        if low == "size":
-            last = next((t for t in reversed(tokens) if t[0] not in ("(", ")")), None)
-            kind = "call" if (last and last[0] == "arrow") else "id"
-            tokens.append((kind, "size"))
-            return
-
         if low == "allinstances":
             tokens.append(("allInstances", "allInstances"))
             return
@@ -345,7 +341,22 @@ def tokenize_tree(tree, parser) -> list[Token]:
             walk(node.getChild(i))
 
     walk(tree)
-    return _normalize_enum_pattern(tokens)
+    return _normalize_enum_pattern(_normalize_dot_calls(tokens))
+
+
+def _normalize_dot_calls(tokens: list[Token]) -> list[Token]:
+    """
+    Promotes an ``id`` directly followed by ``(`` to a ``call``.  The OCL grammar
+    only produces ``ID LPAREN`` after a dot (``dotMethodCall``/``dotSize``), so
+    this is always a method call (e.g. ``self.title.size()``), never attribute
+    navigation.
+    """
+    return [
+        ("call", tokens[i][1])
+        if tokens[i][0] == "id" and i + 1 < len(tokens) and tokens[i + 1][0] == "("
+        else tokens[i]
+        for i in range(len(tokens))
+    ]
 
 
 def _normalize_enum_pattern(tokens: list[Token]) -> list[Token]:
@@ -776,54 +787,72 @@ def parse_predicate(tokens: list[Token]):
                     args = _collect_args()
                 node = Call(node, callname, args)
 
-            while peek() and peek()[0] == "arrow":
-                consume("arrow")
-                nxt = peek()
-                if nxt is None:
-                    break
+            while True:
+                if peek() and peek()[0] == "arrow":
+                    consume("arrow")
+                    nxt = peek()
+                    if nxt is None:
+                        break
 
-                if nxt[0] == "iterator_op":
-                    kind = consume("iterator_op")[1]
-                    if not (peek() and peek()[1] == "("):
-                        raise ValueError("Missing '(' after iterator_op")
-                    consume("(")
+                    if nxt[0] == "iterator_op":
+                        kind = consume("iterator_op")[1]
+                        if not (peek() and peek()[1] == "("):
+                            raise ValueError("Missing '(' after iterator_op")
+                        consume("(")
 
-                    varnames: list[str] = []
-                    if peek() and peek()[0] == "id":
-                        varnames.append(consume("id")[1])
-                        while peek() and peek()[0] == ",":
-                            consume(",")
-                            if peek() and peek()[0] == "id":
-                                varnames.append(consume("id")[1])
-                            else:
-                                raise ValueError("Expected identifier after ',' in iterator")
-
-                    if peek() and peek()[0] == ":":
-                        consume(":")
+                        varnames: list[str] = []
                         if peek() and peek()[0] == "id":
-                            consume("id")  # type annotation ignored
+                            varnames.append(consume("id")[1])
+                            while peek() and peek()[0] == ",":
+                                consume(",")
+                                if peek() and peek()[0] == "id":
+                                    varnames.append(consume("id")[1])
+                                else:
+                                    raise ValueError("Expected identifier after ',' in iterator")
 
-                    if not (peek() and peek()[0] == "pipe"):
-                        raise ValueError("Missing '|' in iterator_op")
-                    consume("pipe")
+                        if peek() and peek()[0] == ":":
+                            consume(":")
+                            if peek() and peek()[0] == "id":
+                                consume("id")  # type annotation ignored
 
-                    depth = 1
-                    inner_toks: list[Token] = []
-                    while True:
-                        t = consume()
-                        if t[1] == "(":
-                            depth += 1
-                        elif t[1] == ")":
-                            depth -= 1
-                            if depth == 0:
-                                break
-                        inner_toks.append(t)
+                        if not (peek() and peek()[0] == "pipe"):
+                            raise ValueError("Missing '|' in iterator_op")
+                        consume("pipe")
 
-                    node = IteratorOp(kind, varnames, node, parse_predicate(inner_toks))
-                    continue
+                        depth = 1
+                        inner_toks: list[Token] = []
+                        while True:
+                            t = consume()
+                            if t[1] == "(":
+                                depth += 1
+                            elif t[1] == ")":
+                                depth -= 1
+                                if depth == 0:
+                                    break
+                            inner_toks.append(t)
 
-                if nxt[0] in ("call", "id"):
-                    callname = consume()[1]
+                        node = IteratorOp(kind, varnames, node, parse_predicate(inner_toks))
+                        continue
+
+                    if nxt[0] in ("call", "id"):
+                        callname = consume()[1]
+                        args = []
+                        if peek() and peek()[1] == "(":
+                            consume("(")
+                            args = _collect_args()
+                        node = Call(node, callname, args)
+                        continue
+
+                    raise ValueError(f"Unexpected token after '->': {nxt}")
+
+                if (
+                    peek()
+                    and peek()[0] == "dot"
+                    and peek(1)
+                    and peek(1)[0] == "call"
+                ):
+                    consume("dot")
+                    callname = consume("call")[1]
                     args = []
                     if peek() and peek()[1] == "(":
                         consume("(")
@@ -831,7 +860,7 @@ def parse_predicate(tokens: list[Token]):
                     node = Call(node, callname, args)
                     continue
 
-                raise ValueError(f"Unexpected token after '->': {nxt}")
+                break
 
             return node
 
@@ -1070,6 +1099,22 @@ def _is_date_field(subject_field: str, data: dict) -> bool:
     return False
 
 
+def _field_type_of(subject_field: str, data: dict) -> str:
+    """Return the Alloy type of *subject_field* (e.g. ``self.Book_title`` → ``str``), or ``''``.
+
+    The match is *exact* (full prefixed name at the end of the expression) so
+    compound collection expressions that merely *contain* a field reference are
+    not misclassified as that field's type.
+    """
+    for curr_class, fields in data.items():
+        for curr_field in fields:
+            field_name, field_type = curr_field.split(":", 1)
+            pref = f"{curr_class}_{field_name}"
+            if subject_field == pref or subject_field.endswith("." + pref):
+                return field_type
+    return ""
+
+
 def process_string_types(input_string: str) -> str:
     """Extracts string literals from *input_string* and generates a ``one sig`` per unique value.
 
@@ -1293,6 +1338,20 @@ def _translate_call(node: Call, inherits_from: dict, estado: TranslatorState) ->
 
     if name == "ocliskindof":
         return f"{expr} in {args[0]}"
+
+    if _field_type_of(expr, estado.data) == "str" or (
+        isinstance(node.expr, Call)
+        and node.expr.callname.lower() != "size"
+        and node.expr.callname.lower() in estado.string_ops.registered_names()
+    ):
+        translated = estado.string_ops.translate(name, expr, args)
+        if translated is not None:
+            return translated
+        raise StringOpError(
+            f"OCL String operation '{node.callname}()' is not supported on a "
+            f"String attribute. Registered operations: "
+            f"{', '.join(estado.string_ops.registered_names())}."
+        )
 
     handler = CALL_HANDLERS.get(name)
     if handler:

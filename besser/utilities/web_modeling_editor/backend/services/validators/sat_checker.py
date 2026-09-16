@@ -151,48 +151,50 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
         return
 
     # Steps 4-6: iterate scopes
-    for scope in SCOPE_STEPS:
-        yield _event_progress(f"🔍 Trying scope {scope}...", scope=scope)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for scope in SCOPE_STEPS:
+            yield _event_progress(f"🔍 Trying scope {scope}...", scope=scope)
 
-        try:
-            check = await asyncio.wait_for(
-                asyncio.to_thread(
-                    run_alloy_sat_validation, buml_model, all_warnings, scope=scope
-                ),
-                timeout=TIMEOUT_SECONDS,
-            )
-        except asyncio.TimeoutError:
-            yield _event_failure(
-                f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
+            try:
+                check = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        run_alloy_sat_validation, buml_model, all_warnings, scope=scope,
+                        output_dir=os.path.join(temp_dir, f"scope_{scope}"),
+                    ),
+                    timeout=TIMEOUT_SECONDS,
+                )
+            except asyncio.TimeoutError:
+                yield _event_failure(
+                    f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
+                    sat=False,
+                    warnings=all_warnings,
+                )
+                return
+
+            if check["error"]:
+                yield _sse({**check["error"], "done": True})
+                return
+
+            if check["sat"]:
+                yield _event_success(
+                    f" SAT found with scope {scope} (command: {check['command_name']}).",
+                    warnings=all_warnings,
+                    scope=scope,
+                )
+                return
+
+            yield _event_progress(
+                f" UNSAT with scope {scope}. Trying larger scope...",
                 sat=False,
-                warnings=all_warnings,
-            )
-            return
-
-        if check["error"]:
-            yield _sse({**check["error"], "done": True})
-            return
-
-        if check["sat"]:
-            yield _event_success(
-                f" SAT found with scope {scope} (command: {check['command_name']}).",
-                warnings=all_warnings,
                 scope=scope,
             )
-            return
 
-        yield _event_progress(
-            f" UNSAT with scope {scope}. Trying larger scope...",
+        # All scopes exhausted without finding SAT
+        yield _event_failure(
+            f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
             sat=False,
-            scope=scope,
+            warnings=all_warnings,
         )
-
-    # All scopes exhausted without finding SAT
-    yield _event_failure(
-        f" UNSAT with all scopes tried ({SCOPE_STEPS}). Model is likely unsatisfiable.",
-        sat=False,
-        warnings=all_warnings,
-    )
 
 
 async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[str, None]:

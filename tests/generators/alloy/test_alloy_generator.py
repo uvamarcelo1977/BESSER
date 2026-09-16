@@ -127,6 +127,26 @@ def test_generator_creates_als_file(team_player_model, tmpdir):
     assert os.path.isfile(als_file)
 
 
+def test_generator_emits_str_ops_module(team_player_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    generator = AlloyGenerator(model=team_player_model, output_dir=str(output_dir))
+
+    generator.generate()
+
+    model_path = os.path.join(str(output_dir), "model.als")
+    with open(model_path, "r", encoding="utf-8") as f:
+        spec = f.read()
+    assert "open str_ops" in spec
+
+    # str_ops.als must live in the same directory as model.als so that
+    # Alloy can resolve the ``open str_ops`` reference.
+    str_ops_path = os.path.join(str(output_dir), "str_ops.als")
+    assert os.path.dirname(str_ops_path) == os.path.dirname(model_path)
+    with open(str_ops_path, "r", encoding="utf-8") as f:
+        str_ops = f.read()
+    assert str_ops.startswith("module str_ops")
+
+
 def test_signatures_and_attributes_present(team_player_model, tmpdir):
     output_dir = tmpdir.mkdir("output")
     generator = AlloyGenerator(model=team_player_model, output_dir=str(output_dir))
