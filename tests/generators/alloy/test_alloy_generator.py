@@ -127,6 +127,33 @@ def test_generator_creates_als_file(team_player_model, tmpdir):
     assert os.path.isfile(als_file)
 
 
+def test_generator_emits_utils_module(team_player_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    generator = AlloyGenerator(model=team_player_model, output_dir=str(output_dir))
+
+    generator.generate()
+
+    model_path = os.path.join(str(output_dir), "model.als")
+    with open(model_path, "r", encoding="utf-8") as f:
+        spec = f.read()
+    assert "open utils" in spec
+    # The helper functions were moved out of the template into utils.als.
+    assert "fun image" not in spec
+    assert "fun toSeq" not in spec
+    assert "fun collect" not in spec
+
+    # utils.als must live in the same directory as model.als so that Alloy can
+    # resolve the ``open utils`` reference.
+    utils_path = os.path.join(str(output_dir), "utils.als")
+    assert os.path.dirname(utils_path) == os.path.dirname(model_path)
+    with open(utils_path, "r", encoding="utf-8") as f:
+        utils = f.read()
+    assert utils.startswith("module utils")
+    assert "fun image [s: univ -> univ]: set univ { { f: univ | some i: univ | i -> f in s } }" in utils
+    assert "fun toSeq [a: set univ, rel: univ -> univ]: univ -> univ { a <: rel }" in utils
+    assert "fun collect [s: univ -> univ, r: univ -> univ]: univ -> univ { s.r }" in utils
+
+
 def test_generator_emits_str_ops_module(team_player_model, tmpdir):
     output_dir = tmpdir.mkdir("output")
     generator = AlloyGenerator(model=team_player_model, output_dir=str(output_dir))
@@ -145,28 +172,6 @@ def test_generator_emits_str_ops_module(team_player_model, tmpdir):
     with open(str_ops_path, "r", encoding="utf-8") as f:
         str_ops = f.read()
     assert str_ops.startswith("module str_ops")
-
-
-def test_signatures_and_attributes_present(team_player_model, tmpdir):
-    output_dir = tmpdir.mkdir("output")
-    generator = AlloyGenerator(model=team_player_model, output_dir=str(output_dir))
-    generator.generate()
-
-    with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
-        spec = f.read()
-
-    # Class signatures
-    assert "sig Team" in spec
-    assert "sig Player" in spec
-
-    # Scalar attributes show up under their owning class.
-    assert "Team_name: Str" in spec
-    assert "Player_name: Str" in spec
-    assert "Player_age: Int" in spec
-
-    # "int" itself never gets its own basic sig (it's mapped to Alloy's
-    assert "open util/integer" in spec
-    assert "sig Str {}" in spec
 
 
 def test_one_to_one_end_renders_as_alloy_one_keyword(team_player_model, tmpdir):

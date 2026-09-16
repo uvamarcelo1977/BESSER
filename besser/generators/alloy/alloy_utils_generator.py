@@ -8,6 +8,7 @@ sanitization utilities for Alloy-compatible identifiers.
 
 import re
 from collections import defaultdict
+from pathlib import Path
 
 from besser.BUML.metamodel.structural import DomainModel, Enumeration
 from besser.generators.alloy.translate_ocl_alloy import (
@@ -231,3 +232,22 @@ def translate_constraints(
             inherits_from, data, ocl_str, context, state, enums
         )
     return state
+
+
+_UTILS_SNIPPETS = (
+    "fun image [s: univ -> univ]: set univ { { f: univ | some i: univ | i -> f in s } }\n"
+    "fun toSeq [a: set univ, rel: univ -> univ]: univ -> univ { a <: rel }\n"
+    "fun collect [s: univ -> univ, r: univ -> univ]: univ -> univ { s.r }\n"
+)
+
+
+def generate_utils_module(output_dir: str | Path) -> Path:
+    """Writes ``utils.als`` in *output_dir* with the shared Alloy helper functions.
+
+    ``model.als`` opens this module via ``open utils``, so it must live in the
+    same directory as the generated specification.
+    """
+    content = "module utils\n\n" + _UTILS_SNIPPETS
+    path = Path(output_dir) / "utils.als"
+    path.write_text(content, encoding="utf-8")
+    return path
