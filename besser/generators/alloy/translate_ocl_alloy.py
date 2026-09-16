@@ -787,54 +787,72 @@ def parse_predicate(tokens: list[Token]):
                     args = _collect_args()
                 node = Call(node, callname, args)
 
-            while peek() and peek()[0] == "arrow":
-                consume("arrow")
-                nxt = peek()
-                if nxt is None:
-                    break
+            while True:
+                if peek() and peek()[0] == "arrow":
+                    consume("arrow")
+                    nxt = peek()
+                    if nxt is None:
+                        break
 
-                if nxt[0] == "iterator_op":
-                    kind = consume("iterator_op")[1]
-                    if not (peek() and peek()[1] == "("):
-                        raise ValueError("Missing '(' after iterator_op")
-                    consume("(")
+                    if nxt[0] == "iterator_op":
+                        kind = consume("iterator_op")[1]
+                        if not (peek() and peek()[1] == "("):
+                            raise ValueError("Missing '(' after iterator_op")
+                        consume("(")
 
-                    varnames: list[str] = []
-                    if peek() and peek()[0] == "id":
-                        varnames.append(consume("id")[1])
-                        while peek() and peek()[0] == ",":
-                            consume(",")
-                            if peek() and peek()[0] == "id":
-                                varnames.append(consume("id")[1])
-                            else:
-                                raise ValueError("Expected identifier after ',' in iterator")
-
-                    if peek() and peek()[0] == ":":
-                        consume(":")
+                        varnames: list[str] = []
                         if peek() and peek()[0] == "id":
-                            consume("id")  # type annotation ignored
+                            varnames.append(consume("id")[1])
+                            while peek() and peek()[0] == ",":
+                                consume(",")
+                                if peek() and peek()[0] == "id":
+                                    varnames.append(consume("id")[1])
+                                else:
+                                    raise ValueError("Expected identifier after ',' in iterator")
 
-                    if not (peek() and peek()[0] == "pipe"):
-                        raise ValueError("Missing '|' in iterator_op")
-                    consume("pipe")
+                        if peek() and peek()[0] == ":":
+                            consume(":")
+                            if peek() and peek()[0] == "id":
+                                consume("id")  # type annotation ignored
 
-                    depth = 1
-                    inner_toks: list[Token] = []
-                    while True:
-                        t = consume()
-                        if t[1] == "(":
-                            depth += 1
-                        elif t[1] == ")":
-                            depth -= 1
-                            if depth == 0:
-                                break
-                        inner_toks.append(t)
+                        if not (peek() and peek()[0] == "pipe"):
+                            raise ValueError("Missing '|' in iterator_op")
+                        consume("pipe")
 
-                    node = IteratorOp(kind, varnames, node, parse_predicate(inner_toks))
-                    continue
+                        depth = 1
+                        inner_toks: list[Token] = []
+                        while True:
+                            t = consume()
+                            if t[1] == "(":
+                                depth += 1
+                            elif t[1] == ")":
+                                depth -= 1
+                                if depth == 0:
+                                    break
+                            inner_toks.append(t)
 
-                if nxt[0] in ("call", "id"):
-                    callname = consume()[1]
+                        node = IteratorOp(kind, varnames, node, parse_predicate(inner_toks))
+                        continue
+
+                    if nxt[0] in ("call", "id"):
+                        callname = consume()[1]
+                        args = []
+                        if peek() and peek()[1] == "(":
+                            consume("(")
+                            args = _collect_args()
+                        node = Call(node, callname, args)
+                        continue
+
+                    raise ValueError(f"Unexpected token after '->': {nxt}")
+
+                if (
+                    peek()
+                    and peek()[0] == "dot"
+                    and peek(1)
+                    and peek(1)[0] == "call"
+                ):
+                    consume("dot")
+                    callname = consume("call")[1]
                     args = []
                     if peek() and peek()[1] == "(":
                         consume("(")
@@ -842,7 +860,7 @@ def parse_predicate(tokens: list[Token]):
                     node = Call(node, callname, args)
                     continue
 
-                raise ValueError(f"Unexpected token after '->': {nxt}")
+                break
 
             return node
 
@@ -1321,7 +1339,11 @@ def _translate_call(node: Call, inherits_from: dict, estado: TranslatorState) ->
     if name == "ocliskindof":
         return f"{expr} in {args[0]}"
 
-    if _field_type_of(expr, estado.data) == "str":
+    if _field_type_of(expr, estado.data) == "str" or (
+        isinstance(node.expr, Call)
+        and node.expr.callname.lower() != "size"
+        and node.expr.callname.lower() in estado.string_ops.registered_names()
+    ):
         translated = estado.string_ops.translate(name, expr, args)
         if translated is not None:
             return translated

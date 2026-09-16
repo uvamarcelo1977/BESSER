@@ -24,7 +24,7 @@ class StringOpsRegistry:
             "fun str_substring[s: Str, start: Int, end: Int] : Str {s}",
         ),
         ( "concat", "str_concat",
-                    "fun str_concat[s: Str, start: Int, end: Int] : Str {s}",
+                    "fun str_concat[s: Str,t: Str] : Str {s}",
         ),
     ]
 
