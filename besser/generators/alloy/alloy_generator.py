@@ -12,6 +12,7 @@ from besser.generators import GeneratorInterface
 from besser.generators.alloy.alloy_utils_generator import (
     build_inheritance_and_attribute_maps,
     generate_date_block,
+    generate_utils_module,
     process_associations,
     sanitize_model_names,
     translate_constraints,
@@ -113,6 +114,7 @@ class AlloyGenerator(GeneratorInterface):
 
         with open(file_path, mode="w", encoding="utf-8") as f:
             f.write(spec)
+        generate_utils_module(os.path.dirname(file_path))
 
         if needs_str_ops:
             status.string_ops.generate_str_ops_model(os.path.dirname(file_path))
