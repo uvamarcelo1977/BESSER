@@ -8,10 +8,13 @@ open util/integer
 {% if has_date_values %}
 open util/ordering[Date]
 {% endif %}
+{% if string_ops %}
+open str_ops
+{% endif %}
 
 -- Basic signatures
 {% for tipo in basic_signatures %}
-{% if tipo not in ['bool', 'int', 'float', 'date'] %}
+{% if tipo not in ['str','bool', 'int', 'float', 'date'] %}
 sig {{ strname(tipo) }} {}
 {% endif %}
 {% endfor %}
@@ -34,7 +37,6 @@ one sig {{ literals | join(', ') }} extends {{ e.name }} {}
 -- Helper functions
 {% raw %}
 fun image [s: univ -> univ]: set univ { { f: univ | some i: univ | i -> f in s } }
-
 fun toSeq [a: set univ, rel: univ -> univ]: univ -> univ { a <: rel }
 fun collect [s: univ -> univ, r: univ -> univ]: univ -> univ { s.r }
 {% endraw %}
@@ -125,7 +127,7 @@ pred instance_model {
   some {{ strname(sig) }}
 {% endfor %}
 }
-
 {% set use_int = "int" in basic_signatures or "float" in basic_signatures or "integer" in basic_signatures %}
-run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{% if not loop.last %}, {% elif use_int %}, {% endif %}{% endfor %}{% if use_int %}{{ scope }} Int{% endif %}
+{% set use_str = "str" in basic_signatures or "string" in basic_signatures or "Str" in basic_signatures %}
 
+run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{% if not loop.last %}, {% elif use_int or use_str %}, {% endif %}{% endfor %}{% if use_int %}{{ scope }} Int{% if use_str %}, {% endif %}{% endif %}{% if use_str %}{{ scope }} Str{% endif %}

@@ -219,7 +219,7 @@ SUPPORTED_GENERATORS: Dict[str, GeneratorInfo] = {
     # Formal methods / Verification (Based on class diagrams)
     "alloy": GeneratorInfo(
         generator_class=AlloyGenerator,
-        output_type="als",
+        output_type="zip",
         file_extension=".als",
         category="formal_methods",
         requires_class_diagram=True
@@ -283,7 +283,7 @@ def get_filename_for_generator(generator_type: str, base_name: str = "output") -
     elif generator_type == "test_case":
         return "test_hypothesis.py"
     elif generator_type == "alloy":
-        return "model.als"
+        return "alloy_specification.zip"
     elif generator_type == "pydantic":
         return "pydantic_classes.py"
     elif generator_type == "sqlalchemy":
