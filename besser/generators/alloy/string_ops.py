@@ -20,8 +20,9 @@ class StringOpsRegistry:
 
     _DEFAULT_OPERATIONS: list[StringOp] = [
         ("size", "len", "fun len[s: Str ] : Int { #(s.data)}"),
+        ("concat", "concat", "fun concat[s,m: Str] : Str { { res: Str | res.data = s.data.append[m.data]}}"),
+        ("substring", "substring", "fun substring[s: Str, i,j: Int] : Str { { res: Str | res.data = s.data.subseq[i,j]}}"),
     ]
-
     def __init__(self, operations: Iterable[StringOp] | None = None) -> None:
         self._ops: dict[str, StringOp] = {}
         for ocl_name, alloy_name, alloy_code in (

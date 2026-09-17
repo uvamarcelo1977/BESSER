@@ -1009,7 +1009,7 @@ def generate_dates_and_order(
         fact_lines.append(f'{date_names[i]}.next = {date_names[i + 1]}')
     fact_lines.append(f'{date_names[-1]} = last')
 
-    res += 'fact Order {\n'
+    res += 'fact DateOrder {\n'
     res += '\n'.join(f'    {line}' for line in fact_lines)
     res += '\n}\n'
 
