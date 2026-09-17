@@ -65,16 +65,17 @@ class AlloyToBUML:
             field_label = field.get('label')
             parent_id = field.get('parentID')
 
-            tuples = []
-            for tuple_elem in field.findall('tuple'):
-                atoms = [atom.get('label') for atom in tuple_elem.findall('atom')]
-                if len(atoms) >= 2:
-                    tuples.append((atoms[0], atoms[1]))
+            raw_tuples = [
+                [atom.get('label') for atom in tuple_elem.findall('atom')]
+                for tuple_elem in field.findall('tuple')
+            ]
+            tuples = [(atoms[0], atoms[1]) for atoms in raw_tuples if len(atoms) >= 2]
 
             self.fields[field_id] = {
                 'label': field_label,
                 'parent_id': parent_id,
-                'tuples': tuples
+                'tuples': tuples,
+                'raw_tuples': raw_tuples,
             }
 
     def _date_sig_label(self) -> str | None:
@@ -162,6 +163,50 @@ class AlloyToBUML:
                         and class_name not in ['Str', 'Bool', 'True', 'False']):
                     return True
         return False
+
+    def _str_signature(self) -> tuple[str, str] | None:
+        """Returns the ``(label, sig_id)`` of the 'Str' signature (e.g., ``('strings/Str', '24')``)."""
+        for sig_id, sig_data in self.signatures.items():
+            if get_class_name(sig_data['label']) == "Str" and not sig_data.get('builtin'):
+                return sig_data['label'], sig_id
+        return None
+
+    def is_str_value(self, atom_label: str) -> bool:
+        """
+        Determines if an atom is a value of the Alloy 'Str' signature.
+
+        String atoms are represented with format ``<str_sig_label>$N``
+        (e.g., ``'strings/Str$0'``).
+        """
+        str_signature = self._str_signature()
+        if str_signature is None:
+            return False
+        str_sig_label = str_signature[0]
+        return atom_label in self.atoms_by_sig.get(str_sig_label, [])
+
+    def _str_data_tuples(self, atom_label: str) -> list[tuple[str, str]]:
+        """Returns the ``(index, Char atom)`` pairs composing *atom_label*'s string.
+
+        The ``data`` field of the ``Str`` signature stores one ``(Str, index, Char)``
+        tuple per character (e.g., ``('strings/Str$0', '0', 'strings/z$0')``).
+        """
+        str_signature = self._str_signature()
+        if str_signature is None:
+            return []
+        _, str_sig_id = str_signature
+        for field_data in self.fields.values():
+            if field_data['parent_id'] != str_sig_id:
+                continue
+            pairs = []
+            for atoms in field_data['raw_tuples']:
+                if len(atoms) >= 3 and atoms[0] == atom_label:
+                    pairs.append((atoms[1], atoms[2]))
+            return pairs
+        return []
+
+    def _str_value_expression(self, atom_label: str) -> str:
+        """Returns the BUML code expression for a string-typed attribute value."""
+        return f'"{get_str_value(self._str_data_tuples(atom_label))}"'
 
     def _pair_association_fields(self) -> dict[str, frozenset]:
         """
@@ -312,6 +357,8 @@ class AlloyToBUML:
                         elif is_enum_value(tuple_to):
                             enum_value = get_enum_value(tuple_to)
                             attributes[attr_name] = f'"{enum_value}"'
+                        elif self.is_str_value(tuple_to):
+                            attributes[attr_name] = self._str_value_expression(tuple_to)
                         else:
                             attributes[attr_name] = get_primitive_value(tuple_to)
 
@@ -489,6 +536,34 @@ def get_date_value(atom_label: str) -> str:
     if DATE_SIG_PATTERN.match(base):
         return f'"{base[5:9]}-{base[1:3]}-{base[3:5]}"'
     return f'"{atom_label}"'
+
+
+def char_to_letter(char_atom_label: str) -> str:
+    """
+    Extracts the letter of a Char atom.
+
+    Args:
+        char_atom_label: atom label (e.g., 'strings/z$0')
+
+    Returns:
+        Letter (e.g., 'z')
+    """
+    base = char_atom_label.split("$")[0]
+    return get_class_name(base)
+
+
+def get_str_value(index_char_pairs: list[tuple[str, str]]) -> str:
+    """
+    Decodes the value of a Str atom from its ``(index, Char atom)`` pairs.
+
+    Args:
+        index_char_pairs: list of ``(index_label, char_atom_label)`` pairs
+
+    Returns:
+        Decoded string value (e.g., 'zab')
+    """
+    ordered = sorted(index_char_pairs, key=lambda pair: int(pair[0]))
+    return "".join(char_to_letter(char_atom) for _, char_atom in ordered)
 
 
 def is_domain_class_name(class_name: str) -> bool:
