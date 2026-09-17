@@ -41,7 +41,6 @@ import re
 import sys
 from pathlib import Path
 
-
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -49,12 +48,19 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from besser.BUML.metamodel.structural import (
-    Class, Property, BinaryAssociation, Multiplicity, Generalization,
-    Enumeration, EnumerationLiteral, Constraint,
-    DomainModel, StringType, IntegerType,
+    BinaryAssociation,
+    Class,
+    Constraint,
+    DomainModel,
+    Enumeration,
+    EnumerationLiteral,
+    Generalization,
+    IntegerType,
+    Multiplicity,
+    Property,
+    StringType,
 )
 from besser.generators.alloy.alloy_generator import AlloyGenerator
-
 
 # ---------------------------------------------------------------------------
 # Fixture: football domain model
@@ -319,10 +325,10 @@ def test_two_to_four_multiplicity_has_lower_and_upper_bound_facts(football_model
     )
 
     assert (
-        "#(a.Fan_favoriteTeams)>=2" in spec or "#(b.Fan_favoriteTeams)>=2" in spec
+        "#(a.Fan_favoriteTeams) >= 2" in spec or "#(b.Fan_favoriteTeams) >= 2" in spec
     ), spec
     assert (
-        "#(a.Fan_favoriteTeams)<=4" in spec or "#(b.Fan_favoriteTeams)<=4" in spec
+        "#(a.Fan_favoriteTeams) <= 4" in spec or "#(b.Fan_favoriteTeams) <= 4" in spec
     ), spec
 
 

@@ -41,16 +41,22 @@ from besser.generators.alloy.alloy_utils_generator import (
     build_consistency_rule,
     sanitize_alloy_name,
 )
-from besser.generators.alloy.translate_ocl_alloy import (
+from besser.generators.alloy.date_ops import (
     DATES_DICT,
-    EnumReferenceError,
-    TranslatorState,
+    DateOpsRegistry,
     encode_date,
     generate_dates_and_order,
-    is_date,
-    ocl_to_alloy,
     parse_ocl_date,
     random_date,
+)
+from besser.generators.alloy.instance_generator.alloy_instance_to_BUML import (
+    get_date_value,
+)
+from besser.generators.alloy.translate_ocl_alloy import (
+    EnumReferenceError,
+    TranslatorState,
+    is_date,
+    ocl_to_alloy,
 )
 
 
@@ -154,24 +160,82 @@ def test_generator_emits_utils_module(team_player_model, tmpdir):
     assert "fun collect [s: univ -> univ, r: univ -> univ]: univ -> univ { s.r }" in utils
 
 
-def test_generator_emits_str_ops_module(team_player_model, tmpdir):
+def test_generator_emits_date_ops_module(tmpdir):
+    """A date-typed model must ``open date`` in model.als and emit ``date.als``
+    (owning ``sig Date {}`` and the comparison predicates) in the same directory."""
     output_dir = tmpdir.mkdir("output")
-    generator = AlloyGenerator(model=team_player_model, output_dir=str(output_dir))
-
+    generator = AlloyGenerator(
+        model=_date_person_model(["self.birthDate >= '01-01-2000'"]),
+        output_dir=str(output_dir),
+    )
     generator.generate()
 
     model_path = os.path.join(str(output_dir), "model.als")
     with open(model_path, "r", encoding="utf-8") as f:
         spec = f.read()
-    assert "open str_ops" in spec
+    assert "open date" in spec
 
-    # str_ops.als must live in the same directory as model.als so that
-    # Alloy can resolve the ``open str_ops`` reference.
-    str_ops_path = os.path.join(str(output_dir), "str_ops.als")
-    assert os.path.dirname(str_ops_path) == os.path.dirname(model_path)
-    with open(str_ops_path, "r", encoding="utf-8") as f:
-        str_ops = f.read()
-    assert str_ops.startswith("module str_ops")
+    # date.als must live in the same directory as model.als so that
+    # Alloy can resolve the ``open date`` reference.
+    date_ops_path = os.path.join(str(output_dir), "date.als")
+    assert os.path.dirname(date_ops_path) == os.path.dirname(model_path)
+    with open(date_ops_path, "r", encoding="utf-8") as f:
+        date_mod = f.read()
+    assert date_mod.startswith("module date")
+    assert "sig Date {}" in date_mod
+    for op_name in ("dateGt", "dateGte", "dateLt", "dateLte"):
+        assert f"pred {op_name}[a, b: Date]" in date_mod
+    assert "one sig Date0 extends Date {}" in date_mod
+    assert "fact DateOrder {" in date_mod
+    assert "Date0 = first" in date_mod
+    assert "Date0.next = Date1" in date_mod
+    assert "one sig Date0 extends Date {}" not in spec
+
+
+def test_date_ops_registry_defaults():
+    """DateOpsRegistry must ship the four ordered comparisons, translated to the
+    dedicated ``date`` module predicates, and leave ``=``/``!=`` to the caller."""
+    registry = DateOpsRegistry()
+    assert registry.registered_names() == ["<", "<=", ">", ">="]
+    assert registry.translate(">", "a", "b") == "(dateGt[a,b])"
+    assert registry.translate(">=", "a", "b") == "(dateGte[a,b])"
+    assert registry.translate("<", "a", "b") == "(dateLt[a,b])"
+    assert registry.translate("<=", "a", "b") == "(dateLte[a,b])"
+    assert registry.translate("=", "a", "b") is None
+    assert registry.translate("!=", "a", "b") is None
+    assert registry.translate("unknown", "a", "b") is None
+
+
+def test_date_ops_registry_custom_operations(tmpdir):
+    """Custom operations must replace the defaults and feed date.als snippets."""
+    registry = DateOpsRegistry(
+        [(">", "customGt", "pred customGt[a, b: Date] { a in nexts[b] }")]
+    )
+    assert registry.registered_names() == [">"]
+    assert registry.translate(">", "x", "y") == "(customGt[x,y])"
+    assert registry.translate("<", "x", "y") is None
+
+    date_ops_path = registry.generate_date_ops_model(str(tmpdir))
+    assert date_ops_path.name == "date.als"
+    content = date_ops_path.read_text(encoding="utf-8")
+    assert content.startswith("module date")
+    assert "sig Date {}" in content
+    assert "customGt" in content
+
+
+def test_get_date_value_strips_module_prefix():
+    """Atoms of the DateN sigs are labelled ``date/DateN$0`` because date.als
+    is an opened module.  The ``date/`` prefix must be stripped before
+    matching DATES_DICT, otherwise the raw atom label would be rendered
+    instead of the real date."""
+    saved = dict(DATES_DICT)
+    try:
+        DATES_DICT.update({"Date0": "d01012000", "Date2": "d03152021"})
+        assert get_date_value("date/Date2$0") == '"2021-03-15"'
+        assert get_date_value("Date0$0") == '"2000-01-01"'
+    finally:
+        DATES_DICT.clear()
+        DATES_DICT.update(saved)
 
 
 def test_one_to_one_end_renders_as_alloy_one_keyword(team_player_model, tmpdir):
@@ -260,7 +324,7 @@ def test_recursive_association_fields_not_duplicated(tmpdir):
     assert spec.count("A_p: Str") == 1
     assert spec.count("A_rol1: one A") == 1
     assert spec.count("A_rol2: one A") == 1
-    assert "fact{A_rol2= ~A_rol1}" in spec or "fact{A_rol1= ~A_rol2}" in spec
+    assert "fact{A_rol2 = ~A_rol1}" in spec or "fact{A_rol1 = ~A_rol2}" in spec
 
 
 def test_generic_instance_model_predicate_and_run(team_player_model, tmpdir):
@@ -387,7 +451,7 @@ def test_bidirectional_navigation_consistency_fact(team_player_model, tmpdir):
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
 
-    assert "Team_players= ~Player_team" in spec or "Player_team= ~Team_players" in spec
+    assert "Team_players = ~Player_team" in spec or "Player_team = ~Team_players" in spec
 
 
 def test_non_navigable_end_is_omitted_entirely(tmpdir):
@@ -459,7 +523,7 @@ def test_unidirectional_three_to_star_side_is_enforced_via_inverse(tmpdir):
     assert "B_as" not in spec
     # …but every B is still forced to link at least 3 A's via the inverse.
     # (The quantified variable name depends on the association-end unpack order.)
-    assert re.search(r"#\(A_bs\.[ab]\)>=3", spec), spec
+    assert re.search(r"#\(A_bs\.[ab]\) >= 3", spec), spec
     # And the 0..* B side must not emit spurious min/max facts.
     assert "#(a.A_bs)>=" not in spec
     assert "#(a.A_bs)<=" not in spec
@@ -786,7 +850,7 @@ def _date_person_model(expressions, with_birth_attr=True) -> DomainModel:
 
 
 def _generate_date_spec(model, tmpdir, scope=5) -> str:
-    """Run AlloyGenerator on a date model and return the .als text."""
+    """Run AlloyGenerator on a date model and return the model.als text."""
     output_dir = tmpdir.mkdir("output")
     generator = AlloyGenerator(model=model, output_dir=str(output_dir), scope=scope)
     generator.generate()
@@ -794,61 +858,73 @@ def _generate_date_spec(model, tmpdir, scope=5) -> str:
         return f.read()
 
 
+def _generate_date_spec_and_module(model, tmpdir, scope=5) -> tuple[str, str]:
+    """Run AlloyGenerator on a date model and return ``(model.als, date.als)`` text."""
+    output_dir = tmpdir.mkdir("output")
+    generator = AlloyGenerator(model=model, output_dir=str(output_dir), scope=scope)
+    generator.generate()
+    with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
+        spec = f.read()
+    with open(os.path.join(str(output_dir), "date.als"), "r", encoding="utf-8") as f:
+        date_mod = f.read()
+    return spec, date_mod
+
+
 def test_date_attribute_renders_with_ordering_sig(tmpdir):
-    """A date attribute plus a date literal must yield ``sig Date {}``,
+    """A date attribute plus a date literal must yield ``open date``,
     ``open util/ordering[Date]`` and a ``date``-typed attribute."""
-    spec = _generate_date_spec(
+    spec, date_mod = _generate_date_spec_and_module(
         _date_person_model(["self.birthDate >= '01-01-2000'"]),
         tmpdir,
         scope=1,
     )
     assert "open util/ordering[Date]" in spec
-    assert "sig Date {}" in spec
+    assert "open date" in spec
     assert "Person_birthDate: Date" in spec
-    assert "one sig date0 extends Date {}" in spec
+    assert "one sig Date0 extends Date {}" in date_mod
     assert "I16" not in spec
 
 
 def test_date_ocl_equality_translates_to_one_sig(tmpdir):
     """Date equality must render as Alloy ``=`` between the attribute and the
     emitted ``one sig``, without any I16 machinery."""
-    spec = _generate_date_spec(
+    spec, date_mod = _generate_date_spec_and_module(
         _date_person_model(["self.birthDate = '01-01-2000'"]),
         tmpdir,
         scope=1,
     )
-    assert "one sig date0 extends Date {}" in spec
-    assert "(self.Person_birthDate = date0)" in spec
+    assert "one sig Date0 extends Date {}" in date_mod
+    assert "(self.Person_birthDate = Date0)" in spec
 
 
 @pytest.mark.parametrize(
     "operator,expected",
     [
-        (">", "(gt[self.Person_birthDate,date0])"),
-        (">=", "(gte[self.Person_birthDate,date0])"),
-        ("<", "(lt[self.Person_birthDate,date0])"),
-        ("<=", "(lte[self.Person_birthDate,date0])"),
-        ("<>", "(self.Person_birthDate != date0)"),
+        (">", "(dateGt[self.Person_birthDate,Date0])"),
+        (">=", "(dateGte[self.Person_birthDate,Date0])"),
+        ("<", "(dateLt[self.Person_birthDate,Date0])"),
+        ("<=", "(dateLte[self.Person_birthDate,Date0])"),
+        ("<>", "(self.Person_birthDate != Date0)"),
     ],
 )
 def test_date_comparison_operators(operator, expected, tmpdir):
     """Ordered comparisons between a date attribute and a date literal must use
-    util/ordering predicates (gt/gte/lt/lte), and inequality (``<>``) must
-    render as ``!=``."""
-    spec = _generate_date_spec(
+    the ``date.als`` comparison predicates (dateGt/dateGte/dateLt/dateLte), and
+    inequality (``<>``) must render as ``!=``."""
+    spec, date_mod = _generate_date_spec_and_module(
         _date_person_model([f"self.birthDate {operator} '01-01-2000'"]),
         tmpdir,
         scope=1,
     )
-    assert "one sig date0 extends Date {}" in spec
+    assert "one sig Date0 extends Date {}" in date_mod
     assert expected in spec
 
 
 def test_date_order_fact_is_emitted(tmpdir):
-    """With two date literals, ``fact Order`` pins the util/ordering chain:
-    ``date0 = first`` and ``date1 = last`` over the sigs sorted ascending
-    (date0 -> d01012000 and date1 -> d03152021 per DATES_DICT). The OCL
-    constraints reference the same dateN atoms."""
+    """With two date literals, ``fact DateOrder`` pins the util/ordering chain
+    inside ``date.als``: ``Date0 = first`` and ``Date1 = last`` over the sigs
+    sorted ascending (Date0 -> d01012000 and Date1 -> d03152021 per DATES_DICT).
+    The OCL constraints reference the same DateN atoms."""
     output_dir = tmpdir.mkdir("output")
     model = _date_person_model([
         "self.birthDate > '15-03-2021'",
@@ -858,21 +934,23 @@ def test_date_order_fact_is_emitted(tmpdir):
     generator.generate()
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
-    assert "one sig date0 extends Date {}" in spec
-    assert "one sig date1 extends Date {}" in spec
-    assert "(gt[self.Person_birthDate,date1])" in spec
-    assert "(lte[self.Person_birthDate,date0])" in spec
-    assert "fact Order {" in spec
-    assert "date0 = first" in spec
-    assert "date0.next = date1" in spec
-    assert "date1 = last" in spec
-    assert DATES_DICT["date0"] == "d01012000"
-    assert DATES_DICT["date1"] == "d03152021"
+    with open(os.path.join(str(output_dir), "date.als"), "r", encoding="utf-8") as f:
+        date_mod = f.read()
+    assert "one sig Date0 extends Date {}" in date_mod
+    assert "one sig Date1 extends Date {}" in date_mod
+    assert "(dateGt[self.Person_birthDate,Date1])" in spec
+    assert "(dateLte[self.Person_birthDate,Date0])" in spec
+    assert "fact DateOrder {" in date_mod
+    assert "Date0 = first" in date_mod
+    assert "Date0.next = Date1" in date_mod
+    assert "Date1 = last" in date_mod
+    assert DATES_DICT["Date0"] == "d01012000"
+    assert DATES_DICT["Date1"] == "d03152021"
 
 
 def test_date_value_deduped_across_constraints(tmpdir):
     """The same date literal in two constraints must declare a single sig."""
-    spec = _generate_date_spec(
+    _, date_mod = _generate_date_spec_and_module(
         _date_person_model([
             "self.birthDate = '01-01-2000'",
             "self.birthDate <> '01-01-2000'",
@@ -880,15 +958,15 @@ def test_date_value_deduped_across_constraints(tmpdir):
         tmpdir,
         scope=1,
     )
-    assert spec.count("one sig date0 extends Date {}") == 1
+    assert date_mod.count("one sig Date0 extends Date {}") == 1
 
 
 def test_date_attribute_without_date_literals_opens_ordering(tmpdir):
-    """A date attribute with no OCL date literal must declare ``sig Date {}`` and
-    open ``util/ordering[Date]``: the generator opens the ordering module whenever
-    the model has any date-typed attribute or date literal."""
+    """A date attribute with no OCL date literal must open ``date`` and
+    ``util/ordering[Date]``: the generator writes both modules whenever the
+    model has any date-typed attribute or date literal."""
     spec = _generate_date_spec(_date_person_model([]), tmpdir)
-    assert "sig Date {}" in spec
+    assert "open date" in spec
     assert "open util/ordering[Date]" in spec
     assert "Person_birthDate: Date" in spec
 
@@ -896,7 +974,7 @@ def test_date_attribute_without_date_literals_opens_ordering(tmpdir):
 def test_date_literal_without_date_attribute_emits_ordering_sig(tmpdir):
     """An OCL constraint comparing two date literals (no date attribute at all)
     must still declare the ordering sig."""
-    spec = _generate_date_spec(
+    spec, date_mod = _generate_date_spec_and_module(
         _date_person_model(
             ["'01-01-2000' < '15-03-2021'"],
             with_birth_attr=False,
@@ -905,10 +983,10 @@ def test_date_literal_without_date_attribute_emits_ordering_sig(tmpdir):
         scope=2,
     )
     assert "open util/ordering[Date]" in spec
-    assert "sig Date {}" in spec
-    assert "one sig date0 extends Date {}" in spec
-    assert "one sig date1 extends Date {}" in spec
-    assert "(lt[date0,date1])" in spec
+    assert "open date" in spec
+    assert "one sig Date0 extends Date {}" in date_mod
+    assert "one sig Date1 extends Date {}" in date_mod
+    assert "(dateLt[Date0,Date1])" in spec
 
 
 def test_datetime_time_timedelta_attributes_map_to_date(tmpdir):
@@ -940,8 +1018,8 @@ def test_datetime_time_timedelta_attributes_map_to_date(tmpdir):
 
 
 def test_datetime_attribute_vs_date_literal_uses_ordering(tmpdir):
-    """A DateTimeType attribute compared with a date literal must produce a
-    valid util/ordering predicate against the literal's sequential sig
+    """A DateTimeType attribute compared with a date literal must produce the
+    ``date.als`` comparison predicate against the literal's sequential sig
     (previously it produced ``gte[datetime,date]`` — an Alloy type error)."""
     Event = Class(name="Event")
     Event.attributes = {
@@ -962,16 +1040,18 @@ def test_datetime_attribute_vs_date_literal_uses_ordering(tmpdir):
 
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
+    with open(os.path.join(str(output_dir), "date.als"), "r", encoding="utf-8") as f:
+        date_mod = f.read()
 
     assert "Event_happensAt: Date" in spec
-    assert "one sig date0 extends Date {}" in spec
-    assert "(gte[self.Event_happensAt,date0])" in spec
+    assert "one sig Date0 extends Date {}" in date_mod
+    assert "(dateGte[self.Event_happensAt,Date0])" in spec
     assert "open util/ordering[Date]" in spec
 
 
 def test_date_attribute_vs_date_attribute_uses_ordering(tmpdir):
-    """Comparing two date-typed attributes must use the util/ordering predicate
-    (``gt``) and open ``util/ordering[Date]`` even when no date literal appears
+    """Comparing two date-typed attributes must use the ``date.als`` predicate
+    (``dateGt``) and open ``util/ordering[Date]`` even when no date literal appears
     anywhere (previously it fell back to Alloy set superset comparison)."""
     Patient = Class(name="Patient")
     Record = Class(name="Record")
@@ -1003,11 +1083,13 @@ def test_date_attribute_vs_date_attribute_uses_ordering(tmpdir):
 
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
         spec = f.read()
+    with open(os.path.join(str(output_dir), "date.als"), "r", encoding="utf-8") as f:
+        date_mod = f.read()
 
     assert "open util/ordering[Date]" in spec
-    assert "(gt[self.Patient_records.Record_createdDate,self.Patient_birthDate])" in spec
-    assert "one sig d" in spec
-    assert "fact Order {" in spec
+    assert "(dateGt[self.Patient_records.Record_createdDate,self.Patient_birthDate])" in spec
+    assert "one sig Date" in date_mod
+    assert "fact DateOrder {" in date_mod
 
 
 def test_string_literal_with_date_substring_is_not_treated_as_date(tmpdir):
@@ -1066,9 +1148,9 @@ def test_random_date_within_bounds():
 
 
 def test_generate_dates_and_order():
-    """generate_dates_and_order fills up to scope, emits one sigs (date0,
-    date1, ...) for all dates, rebuilds DATES_DICT, and appends a fact Order
-    with the dates sorted ascending."""
+    """generate_dates_and_order fills up to scope, emits one sigs (Date0,
+    Date1, ...) for all dates, rebuilds DATES_DICT, and appends a fact
+    DateOrder with the dates sorted ascending."""
     existing = ["d01012000"]  # 2000-01-01
     result = generate_dates_and_order(
         ocl_dates=existing,
@@ -1077,22 +1159,22 @@ def test_generate_dates_and_order():
         end=date(2001, 1, 5),
     )
 
-    sigs = re.findall(r"one sig (date\d+) extends Date \{\}", result)
+    sigs = re.findall(r"one sig (Date\d+) extends Date \{\}", result)
     assert len(sigs) == 3  # every date (existing + generated) emits a one sig
 
     # DATES_DICT maps each sequential sig name (in ascending date order) to its
-    # dMMDDYYYY encoding; 2000-01-01 (d01012000) is the earliest date -> date0.
+    # dMMDDYYYY encoding; 2000-01-01 (d01012000) is the earliest date -> Date0.
     assert len(DATES_DICT) == len(sigs)
     assert set(sigs) == set(DATES_DICT)
-    assert DATES_DICT["date0"] == "d01012000"
-    generated = [v for k, v in DATES_DICT.items() if k != "date0"]
+    assert DATES_DICT["Date0"] == "d01012000"
+    generated = [v for k, v in DATES_DICT.items() if k != "Date0"]
     assert len(generated) == 2
     for g in generated:
         assert date(2001, 1, 1) <= parse_ocl_date(g) <= date(2001, 1, 5)
 
-    assert "fact Order {" in result
+    assert "fact DateOrder {" in result
     ordered = sorted(sigs, key=lambda s: parse_ocl_date(DATES_DICT[s]))
-    assert ordered[0] == "date0"  # earliest date is first in the chain
+    assert ordered[0] == "Date0"  # earliest date is first in the chain
     assert f"{ordered[0]} = first" in result
     for i in range(len(ordered) - 1):
         assert f"{ordered[i]}.next = {ordered[i + 1]}" in result
@@ -1138,7 +1220,7 @@ class TestBuildConsistencyRule:
             "Team", "players", [3, 4], "Player", "team", [1, 1],
             arrow_a_b=True, arrow_b_a=True,
         )
-        assert "#(a.Team_players)>=3" in rule
+        assert "#(a.Team_players) >= 3" in rule
         assert "#(a.Team_players)<=4" in rule
 
     def test_unbounded_max_is_not_emitted(self):
@@ -1147,7 +1229,7 @@ class TestBuildConsistencyRule:
             "Team", "players", [3, 9999], "Player", "team", [1, 1],
             arrow_a_b=True, arrow_b_a=True,
         )
-        assert "#(a.Team_players)>=3" in rule
+        assert "#(a.Team_players) >= 3" in rule
         assert "<=" not in rule
 
     def test_non_navigable_direction_uses_inverse_field_for_its_facts(self):
@@ -1159,7 +1241,7 @@ class TestBuildConsistencyRule:
             arrow_a_b=False, arrow_b_a=True,
         )
         assert "Team_players" not in rule
-        assert "#(Player_team.a)>=3" in rule
+        assert "#(Player_team.a) >= 3" in rule
         assert "#(Player_team.a)<=4" in rule
 
     def test_non_navigable_b_to_a_side_fact_uses_inverse_of_a_to_b_field(self):
@@ -1170,5 +1252,5 @@ class TestBuildConsistencyRule:
             "A", "bs", [0, 9999], "B", "as", [3, 9999],
             arrow_a_b=True, arrow_b_a=False,
         )
-        assert "#(A_bs.b)>=3" in rule
+        assert "#(A_bs.b) >= 3" in rule
         assert "b.B_as" not in rule

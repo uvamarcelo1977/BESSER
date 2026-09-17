@@ -8,45 +8,39 @@ open util/integer
 {% if has_date_values -%}
 open util/ordering[Date]
 {% endif -%}
+{% if date_ops -%}
+open date
+{% endif -%}
 open utils
 {% if string_ops -%}
-open str_ops
+open strings
 {% endif %}
 
--- Basic signatures
 {% for tipo in basic_signatures -%}
 {% if tipo not in ['str','bool', 'int', 'float', 'date'] -%}
 sig {{ strname(tipo) }} {}
 {% endif -%}
 {% endfor -%}
-{% if has_date_values -%}
-sig Date {}
-{% endif %}
-
 {% if enum_types -%}
--- Enumerations
 {% for e in enum_types %}
 {% set literals = [] -%}
 {% for v in e.literals -%}
 {% do literals.append("ENUM_" ~ e.name ~ "_" ~ v.name) -%}
 {% endfor -%}
 abstract sig {{ e.name }} {}
-one sig {{ literals | join(', ') }} extends {{ e.name }} {}
+one sig {{ literals | join(',\n') | indent(8) }} extends {{ e.name }} {}
 {% endfor %}
 
-{% endif -%}
-{% if date_block -%}
-{{ date_block }}
 {% endif -%}
 {% macro alloy_model(class_obj, associations) -%}
 {% if class_obj.name not in ['Integer', 'String'] -%}
 {% set lines = [] -%}
-{# --- 1. Mapeo de atributos --- #}
+
 {% for attr in class_obj.attributes -%}
 {% set typename = "Int" if (attr.type.name in ["int", "float", "integer"]) else ("Bool" if attr.type.name == "bool" else ("Date" if attr.type.name in ("date", "datetime", "time", "timedelta") else strname(attr.type.name))) -%}
 {% do lines.append(class_obj.name ~ "_" ~ attr.name ~ ": " ~ typename) -%}
 {% endfor -%}
-{# --- 2. Mapeo de asociaciones --- #}
+
 {% for association in associations if association.ends | length == 2 -%}
 {% set ends_list = association.ends | list -%}
 {% set e1 = ends_list[0] -%}
@@ -58,7 +52,7 @@ one sig {{ literals | join(', ') }} extends {{ e.name }} {}
 {% set mult = "lone " if (end_ref.multiplicity.min == 0 and end_ref.multiplicity.max == 1) else ("set " if end_ref.multiplicity.max > 1 else "one ") -%}
 {% do lines.append(class_obj.name ~ "_" ~ end_ref.name ~ ": " ~ mult ~ typename) -%}
 {% endfor -%}
-{# Relaciones normales #}
+
 {% else -%}
 {% set target_end = e2 if e1.type.name == class_obj.name else (e1 if e2.type.name == class_obj.name else None) -%}
 {% if target_end and target_end.is_navigable -%}
@@ -68,7 +62,6 @@ one sig {{ literals | join(', ') }} extends {{ e.name }} {}
 {% endif -%}
 {% endif -%}
 {% endfor -%}
-{# --- 3. Encabezado de la signature --- #}
 {% if class_obj.parents() -%}
 {% if class_obj.parents() | length > 1 -%}
 {% set header = "sig " ~ class_obj.name ~ " in " ~ (class_obj.parents() | map(attribute='name') | join(' + ')) -%}
@@ -89,13 +82,13 @@ one sig {{ literals | join(', ') }} extends {{ e.name }} {}
 {%- endif -%}
 {%- endif -%}
 {%- endmacro %}
--- Classes
+
 {% for class_obj in classes %}
 {{ alloy_model(class_obj, associations_by_class.get(class_obj.name, [])) }}
 
 {% endfor %}
 {% if constraints -%}
--- Constraints
+
 {% for c in constraints %}
 {{ c.expression }}
 {% endfor %}

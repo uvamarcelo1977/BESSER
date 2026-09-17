@@ -19,15 +19,10 @@ class StringOpsRegistry:
     """Registry of OCL String operations (3-tuples) and ``str_ops.als`` generator."""
 
     _DEFAULT_OPERATIONS: list[StringOp] = [
-        ("size", "str_size", "fun str_size[s: Str] : Int { s.length }"),
-        ( "substring", "str_substring",
-            "fun str_substring[s: Str, start: Int, end: Int] : Str {s}",
-        ),
-        ( "concat", "str_concat",
-                    "fun str_concat[s: Str,t: Str] : Str {s}",
-        ),
+        ("size", "len", "fun len[s: Str ] : Int { #(s.data)}"),
+        ("concat", "concat", "fun concat[s,m: Str] : Str { { res: Str | res.data = s.data.append[m.data]}}"),
+        ("substring", "substring", "fun substring[s: Str, i,j: Int] : Str { { res: Str | res.data = s.data.subseq[i,j]}}"),
     ]
-
     def __init__(self, operations: Iterable[StringOp] | None = None) -> None:
         self._ops: dict[str, StringOp] = {}
         for ocl_name, alloy_name, alloy_code in (
@@ -60,14 +55,40 @@ class StringOpsRegistry:
         """Writes ``str_ops.als`` in *output_dir* with every registered snippet."""
         snippets = "\n\n".join(entry[2] for entry in self._ops.values())
         content = (
-            "module str_ops\n"
-            + "sig Str{\n"
-            + "   length: Int\n"
-            + "}{\n"
-            + " length >= 0\n"
+            "module string\n"
+            + "abstract sig Char {}\n"
+            + "one sig a extends Char {}\n"
+            + "one sig b extends Char {}\n"
+            + "one sig c extends Char {}\n"
+            + "one sig d extends Char {}\n"
+            + "one sig e extends Char {}\n"
+            + "one sig f extends Char {}\n"
+            + "one sig g extends Char {}\n"
+            + "one sig h extends Char {}\n"
+            + "one sig i extends Char {}\n"
+            + "one sig j extends Char {}\n"
+            + "one sig k extends Char {}\n"
+            + "one sig l extends Char {}\n"
+            + "one sig m extends Char {}\n"
+            + "one sig n extends Char {}\n"
+            + "one sig o extends Char {}\n"
+            + "one sig p extends Char {}\n"
+            + "one sig q extends Char {}\n"
+            + "one sig r extends Char {}\n"
+            + "one sig s extends Char {}\n"
+            + "one sig t extends Char {}\n"
+            + "one sig u extends Char {}\n"
+            + "one sig v extends Char {}\n"
+            + "one sig w extends Char {}\n"
+            + "one sig x extends Char {}\n"
+            + "one sig y extends Char {}\n"
+            + "one sig z extends Char {}\n"
+            + "sig   Str{\n"
+            + "    data: seq Char\n"
             + "}\n"
             + snippets
         )
-        path = Path(output_dir) / "str_ops.als"
+        path = Path(output_dir) / "strings.als"
         path.write_text(content, encoding="utf-8")
         return path
+    
