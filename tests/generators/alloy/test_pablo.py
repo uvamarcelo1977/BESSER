@@ -39,8 +39,14 @@ library_model: DomainModel = DomainModel(name="Library_model", types={library, b
                                          associations={lib_book_association, book_author_association})
 
 
-os.environ['JAVA_HOME'] = '/opt/homebrew/Cellar/openjdk@21/21.0.11/libexec/openjdk.jdk/Contents/Home'
-os.environ['BESSER_ALLOY_JAR'] = '/Users/pponzio/code/besser/releases/BESSER/besser/BUML/notations/ocl/consistency/alloy.jar'
+#os.environ['JAVA_HOME'] = '/opt/homebrew/Cellar/openjdk@21/21.0.11/libexec/openjdk.jdk/Contents/Home'
+#os.environ['BESSER_ALLOY_JAR'] = '/Users/pponzio/code/besser/releases/BESSER/besser/BUML/notations/ocl/consistency/alloy.jar'
+
+os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-21-openjdk-amd64'
+os.environ['BESSER_ALLOY_JAR'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'besser', 'BUML', 'notations', 'ocl', 'consistency', 'alloy.jar')
+
+
+
 # Semantic consistency check
 solver = AlloySolver(library_model, output_dir="otdir")
 result = solver.check_consistency()
@@ -51,6 +57,24 @@ solver = AlloySolver(library_model, output_dir="otdir")
 (res, instance_xml_files) = solver.generate_object_diagrams(num_instances=2)
 assert result == AlloyResult.SAT, "The model is not consistent."
 assert len(instance_xml_files) == 2, "The number of generated instances is not correct."
+
+
+
+solver = AlloySolver(library_model, output_dir="otdir_2")
+# Agregué en generate_object_diagrams un parámetro  raw_metamodel_syntax=True para generar 
+# el modelo BUML de objetos ajustando a la notación más clara.
+# Cuando raw_metamodel_syntax=False (por defecto) lo genera en un formato que lo acepta 
+# object_buml_to_json , si lo generamos directamente en el formato último que compartiste Pablo
+#  object_buml_to_json no lo soporta. Habría que tocar ese método pero no lo hice porque 
+# no sé si conviene tocar lo que ellos ya tienen listo.
+
+#De todas formas la notación más clara no la levanta bien el editor besser correctamente(el de ellos).
+
+(res, instance_xml_files) = solver.generate_object_diagrams(num_instances=2,raw_metamodel_syntax=True)
+assert result == AlloyResult.SAT, "The model is not consistent."
+assert len(instance_xml_files) == 2, "The number of generated instances is not correct."
+
+
 
 # Genera el código completo del modelo BUML integrado a partir de la instancia generada.
 # Diagrama BUML completo (clases + objetos).

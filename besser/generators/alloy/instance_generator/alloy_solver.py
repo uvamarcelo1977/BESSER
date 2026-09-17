@@ -37,7 +37,7 @@ class AlloySolver:
         (result, instance_xml_files) = self.executor.generate_instances(self.specification, self.alloy_output_dir)
         return result
 
-    def generate_object_diagrams(self, num_instances: int = 1):
+    def generate_object_diagrams(self, num_instances: int = 1,raw_metamodel_syntax: bool = False):
         """Generates BUML object diagrams from satisfying Alloy instances.
         Returns an AlloyResult indicating the result of the analysis and a list of 
         BUML instances. The list is empty if no satisfying instances were found or if 
@@ -52,8 +52,7 @@ class AlloySolver:
         buml_instances = []
         for xml_path in instance_xml_files:
             converter = AlloyToBUML(xml_path)
-            buml_instances.append(converter.generate_object_diagram())
-
+            buml_instances.append(converter.generate_object_diagram(raw_metamodel_syntax=raw_metamodel_syntax))
         os.makedirs(self.output_dir, exist_ok=True)
         #Clean up any previous instance files before writing new ones
         for file in Path(self.output_dir).glob("buml_object_instance*.py"):

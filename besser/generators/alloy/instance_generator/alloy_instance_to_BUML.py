@@ -263,7 +263,7 @@ class AlloyToBUML:
         )
         return leaf_sig['class_name']
 
-    def generate_object_diagram(self, date_as_datetime: bool = True) -> str:
+    def generate_object_diagram_old(self, date_as_datetime: bool = True) -> str:
         """
         Generates BUML code for the object diagram derived from the XML.
 
@@ -424,6 +424,347 @@ class AlloyToBUML:
 
 
 
+    def _collect_domain_classes(self) -> set[str]:
+        """Computes the set of domain class names and populates ``self._domain_signatures``.
+
+        The enumeration signatures and the Alloy date signatures (``this/Date``
+        and its concrete ``this/DateN`` children) are excluded, since they
+        should not be materialized as objects.
+        """
+        date_class_names = self._date_signature_class_names()
+        domain_classes = set()
+        for sig_label, atoms in self.atoms_by_sig.items():
+            if not sig_label.startswith("this/"):
+                continue
+            class_name = get_class_name(sig_label)
+            if not is_domain_class_name(class_name):
+                continue
+            if class_name in date_class_names:
+                continue
+            if atoms and all(is_enum_value(atom) for atom in atoms):
+                continue
+            domain_classes.add(class_name)
+
+        self._domain_signatures = []
+        for sig_id, sig_data in self.signatures.items():
+            class_name = get_class_name(sig_data['label'])
+            if class_name not in domain_classes:
+                continue
+            self._domain_signatures.append({
+                'class_name': class_name,
+                'atoms': set(sig_data['atoms']),
+                'depth': self._signature_depth(sig_id),
+            })
+
+        return domain_classes
+
+    def generate_object_diagram(
+        self, date_as_datetime: bool = True, raw_metamodel_syntax: bool = False
+    ) -> str:
+        """
+        Generates BUML code for the object diagram derived from the XML.
+
+        Only the most specific concrete class of each atom is instantiated,
+        inherited attributes are incorporated, and multiple associations
+        between the same classes or objects are preserved.
+
+        Args:
+            date_as_datetime: When ``True`` (default), date-typed attribute
+                values are emitted as real ``datetime.date(...)`` constants,
+                matching the convention used by
+                ``BUMLModelIntegrator.generate_integrated_model`` so the
+                generated code is directly executable/importable on its own.
+                When ``False``, they are emitted as ISO-8601 strings instead;
+                ``object_buml_to_json`` accepts both forms.
+            raw_metamodel_syntax: When ``False`` (default), the generated code
+                uses the fluent API (``ClassName("name").attributes(**{...}).build()``
+                and ``setattr(obj, 'relation', target)``), which is the only
+                style ``object_buml_to_json`` (used e.g. by ``sat_checker.py``)
+                knows how to parse back into JSON. When ``True``, the code is
+                written with the raw BUML object-metamodel constructors instead
+                (``Object(...)``, ``AttributeLink(...)``, ``DataValue(...)``,
+                ``LinkEnd(...)``, ``Link(...)``), matching the style used in
+                ``tests/BUML/metamodel/object/library_object.py``. This raw
+                style is **not** understood by ``object_buml_to_json``, and it
+                assumes the referenced classes/properties (e.g. ``player``,
+                ``name``) already exist as variables in the scope where the
+                generated code is executed, exactly like the structural-model
+                convention it mirrors.
+        """
+        if raw_metamodel_syntax:
+            return self._generate_object_diagram_raw(date_as_datetime)
+        return self._generate_object_diagram_fluent(date_as_datetime)
+
+    def _generate_object_diagram_fluent(self, date_as_datetime: bool = True) -> str:
+        """Generates the object diagram using the fluent API (see ``generate_object_diagram``)."""
+        model_name = "Object_Diagram"
+        header_title = f"{model_name} - object model definition"
+        header_border = "#" * (len(header_title) + 8)
+
+        code_lines = [
+            header_border,
+            f"#   {header_title}   #",
+            header_border,
+            "",
+            "from besser.BUML.metamodel.object import ObjectModel",
+            "import datetime",
+            "",
+        ]
+
+        domain_classes = self._collect_domain_classes()
+
+        created_objects = {}  # atom_label -> variable_name
+        object_class_names = {}  # variable_name -> class_name
+        relations = []  # [(from_var, relation_name, to_atom, field_name), ...]
+
+        for sig_label, atoms in self.atoms_by_sig.items():
+            class_name = get_class_name(sig_label)
+
+            if class_name not in domain_classes:
+                continue
+
+            for i, atom_label in enumerate(atoms):
+                if self._leaf_class_for(atom_label) != class_name:
+                    continue
+
+                obj_var = f"{class_name.lower()}_{i}_obj"
+                obj_name = atom_label.replace('$', '_')
+
+                created_objects[atom_label] = obj_var
+                object_class_names[obj_var] = class_name
+                attributes = {}
+
+                # Traverse all fields to also include attributes and associations
+                # inherited from ancestor classes.
+                for field_data in self.fields.values():
+                    field_name = field_data['label']
+                    tuples = field_data['tuples']
+                    attr_name = remove_class_prefix(field_name, class_name)
+
+                    for tuple_from, tuple_to in tuples:
+                        if tuple_from != atom_label:
+                            continue
+
+                        if self.is_date_value(tuple_to):
+                            attributes[attr_name] = self._date_value_expression(tuple_to, date_as_datetime)
+                        elif self.is_object_reference(tuple_to):
+                            relations.append((obj_var, attr_name, tuple_to, field_name))
+                        elif is_enum_value(tuple_to):
+                            enum_value = get_enum_value(tuple_to)
+                            attributes[attr_name] = f'"{enum_value}"'
+                        elif self.is_str_value(tuple_to):
+                            attributes[attr_name] = self._str_value_expression(tuple_to)
+                        else:
+                            attributes[attr_name] = get_primitive_value(tuple_to)
+
+                attribute_mapping_parts = []
+                for attr_name, attr_value in attributes.items():
+                    attribute_mapping_parts.append(f"{attr_name!r}: {attr_value}")
+
+                code_lines.append(f"# {class_name} object")
+                if attribute_mapping_parts:
+                    code_lines.append(
+                        f'{obj_var} = {class_name}("{obj_name}").attributes(**{{{", ".join(attribute_mapping_parts)}}}).build()'
+                    )
+                else:
+                    code_lines.append(
+                        f'{obj_var} = {class_name}("{obj_name}").build()'
+                    )
+                code_lines.append("")
+
+        paired_fields = self._pair_association_fields()
+        seen_links = set()
+        deduplicated_relations = []
+        for from_var, relation_name, to_atom, field_name in relations:
+            if to_atom not in created_objects:
+                continue
+            to_var = created_objects[to_atom]
+            assoc_id = paired_fields.get(field_name, frozenset([field_name]))
+            canonical = (frozenset([from_var, to_var]), assoc_id)
+            if canonical in seen_links:
+                continue
+            seen_links.add(canonical)
+            deduplicated_relations.append((from_var, relation_name, to_atom))
+
+        relations = deduplicated_relations
+
+        # Group relations by (from_var, relation_name) to handle multiplicity 'many'
+        grouped_relations = {}
+        for from_var, relation_name, to_atom in relations:
+            if to_atom in created_objects:
+                key = (from_var, relation_name)
+                if key not in grouped_relations:
+                    grouped_relations[key] = []
+                grouped_relations[key].append(created_objects[to_atom])
+
+        for (from_var, relation_name), to_vars in grouped_relations.items():
+            unique_targets = sorted(set(to_vars))
+            from_class = object_class_names.get(from_var, from_var)
+            to_class = object_class_names.get(unique_targets[0], unique_targets[0])
+            code_lines.append(f"# {from_class} object and {to_class} object link")
+            if len(unique_targets) == 1:
+                code_lines.append(
+                    f"setattr({from_var}, {relation_name!r}, {unique_targets[0]})"
+                )
+            else:
+                targets_expr = ", ".join(unique_targets)
+                code_lines.append(
+                    f"setattr({from_var}, {relation_name!r}, {{{targets_expr}}})"
+                )
+            code_lines.append("")
+
+        code_lines.append("# Object model definition")
+        all_objects = ", ".join(created_objects.values())
+        code_lines.append("object_model: ObjectModel = ObjectModel(")
+        code_lines.append(f'    name="{model_name}",')
+        code_lines.append(f"    objects={{{all_objects}}}")
+        code_lines.append(")")
+        return "\n".join(code_lines)
+
+    def _raw_attribute_value(self, atom_label: str, date_as_datetime: bool) -> tuple[str, str]:
+        """Returns the ``(classifier_expr, value_expr)`` pair for a primitive attribute value.
+
+        ``classifier_expr`` is a reference to the structural primitive type
+        variable (e.g. ``StringType``) that must already be in scope, matching
+        the convention illustrated in ``tests/BUML/metamodel/object/library_object.py``.
+        """
+        if self.is_date_value(atom_label):
+            return "DateType", self._date_value_expression(atom_label, date_as_datetime)
+        if is_enum_value(atom_label):
+            enum_name = get_enum_name(atom_label)
+            enum_value = get_enum_value(atom_label)
+            return f"{enum_name}Enum", f'"{enum_value}"'
+        if self.is_str_value(atom_label):
+            return "StringType", self._str_value_expression(atom_label)
+        value = get_primitive_value(atom_label)
+        if isinstance(value, int):
+            return "IntegerType", str(value)
+        return "StringType", value
+
+    def _generate_object_diagram_raw(self, date_as_datetime: bool = True) -> str:
+        """Generates the object diagram using the raw BUML metamodel constructors (see ``generate_object_diagram``)."""
+        model_name = "Object_Diagram"
+        header_title = f"{model_name} - object model definition"
+        header_border = "#" * (len(header_title) + 8)
+
+        code_lines = [
+            header_border,
+            f"#   {header_title}   #",
+            header_border,
+            "",
+            "from besser.BUML.metamodel.object import Object, AttributeLink, DataValue, LinkEnd, Link, ObjectModel",
+            "import datetime",
+            "",
+        ]
+
+        domain_classes = self._collect_domain_classes()
+
+        created_objects = {}  # atom_label -> object_var
+        object_class_names = {}  # object_var -> class_name
+        relations = []  # [(from_var, from_class, relation_name, to_atom, field_name), ...]
+
+        for sig_label, atoms in self.atoms_by_sig.items():
+            class_name = get_class_name(sig_label)
+
+            if class_name not in domain_classes:
+                continue
+
+            class_var = class_name.lower()
+
+            for i, atom_label in enumerate(atoms):
+                if self._leaf_class_for(atom_label) != class_name:
+                    continue
+
+                obj_var = f"{class_name.lower()}_{i}_obj"
+                obj_name = atom_label.replace('$', '_')
+
+                created_objects[atom_label] = obj_var
+                object_class_names[obj_var] = class_name
+
+                slot_vars = []
+                attribute_lines = []
+
+                # Traverse all fields to also include attributes and associations
+                # inherited from ancestor classes.
+                for field_data in self.fields.values():
+                    field_name = field_data['label']
+                    tuples = field_data['tuples']
+                    attr_name = remove_class_prefix(field_name, class_name)
+
+                    for tuple_from, tuple_to in tuples:
+                        if tuple_from != atom_label:
+                            continue
+
+                        if self.is_object_reference(tuple_to):
+                            relations.append((obj_var, class_name, attr_name, tuple_to, field_name))
+                            continue
+
+                        classifier_expr, value_expr = self._raw_attribute_value(tuple_to, date_as_datetime)
+                        slot_var = f"{obj_var}_{attr_name}"
+                        attribute_lines.append(
+                            f'{slot_var}: AttributeLink = AttributeLink(attribute={attr_name}, '
+                            f'value=DataValue(classifier={classifier_expr}, value={value_expr}))'
+                        )
+                        slot_vars.append(slot_var)
+
+                code_lines.append(f"# {class_name} object attributes")
+                code_lines.extend(attribute_lines)
+                code_lines.append(f"# {class_name} object")
+                slots_expr = ", ".join(slot_vars)
+                code_lines.append(
+                    f'{obj_var}: Object = Object(name="{obj_name}", classifier={class_var}, slots=[{slots_expr}])'
+                )
+                code_lines.append("")
+
+        paired_fields = self._pair_association_fields()
+        seen_links = set()
+        deduplicated_relations = []
+        for from_var, from_class, relation_name, to_atom, field_name in relations:
+            if to_atom not in created_objects:
+                continue
+            to_var = created_objects[to_atom]
+            assoc_id = paired_fields.get(field_name, frozenset([field_name]))
+            canonical = (frozenset([from_var, to_var]), assoc_id)
+            if canonical in seen_links:
+                continue
+            seen_links.add(canonical)
+            deduplicated_relations.append((from_var, from_class, relation_name, to_var, field_name, assoc_id))
+
+        for link_index, (from_var, from_class, relation_name, to_var, field_name, assoc_id) in enumerate(
+            deduplicated_relations, start=1
+        ):
+            to_class = object_class_names.get(to_var, to_var)
+            assoc_var = f"{from_class.lower()}_{to_class.lower()}_association"
+            link_var = f"{from_var}_{to_var}_link_{link_index}"
+            from_end_var = f"{from_var}_end_{link_index}"
+            to_end_var = f"{to_var}_end_{link_index}"
+
+            # The reverse role name is the other field paired with this one
+            # (the two halves of the same bidirectional association).
+            partner_fields = assoc_id - {field_name}
+            to_relation_name = remove_class_prefix(next(iter(partner_fields)), to_class) if partner_fields else relation_name
+
+            code_lines.append(f"# {from_class} object and {to_class} object link")
+            code_lines.append(
+                f'{from_end_var}: LinkEnd = LinkEnd(name="{from_end_var}", association_end={relation_name}, object={from_var})'
+            )
+            code_lines.append(
+                f'{to_end_var}: LinkEnd = LinkEnd(name="{to_end_var}", association_end={to_relation_name}, object={to_var})'
+            )
+            code_lines.append(
+                f'{link_var}: Link = Link(name="{link_var}", association={assoc_var}, connections=[{from_end_var}, {to_end_var}])'
+            )
+            code_lines.append("")
+
+        code_lines.append("# Object model definition")
+        all_objects = ", ".join(created_objects.values())
+        code_lines.append("object_model: ObjectModel = ObjectModel(")
+        code_lines.append(f'    name="{model_name}",')
+        code_lines.append(f"    objects={{{all_objects}}}")
+        code_lines.append(")")
+        return "\n".join(code_lines)
+
+
 
 # ---------------------------------------------------------------------------
 # Pure helpers for converting Alloy atoms/signatures into BUML object values
@@ -487,6 +828,20 @@ def get_enum_value(atom_label: str) -> str:
             value = value.split("$")[0]
         return value
     return atom_label
+
+
+def get_enum_name(atom_label: str) -> str:
+    """
+    Extracts the enumeration name from an atom label.
+    Args:
+        atom_label: atom label (e.g., 'ENUM_Position_CENTER$0')
+
+    Returns:
+        Enumeration name (e.g., 'Position')
+    """
+    # Format: ENUM_EnumName_VALUE$n
+    parts = atom_label.split("_")
+    return parts[1] if len(parts) >= 3 else atom_label
 
 
 def get_primitive_value(atom_label: str, atom_type: str | None = None) -> Any:
