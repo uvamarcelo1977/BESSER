@@ -967,7 +967,7 @@ def generate_dates_and_order(
 ) -> str:
     """
     Fills *ocl_dates* up to *scope* with new unique dates, emits a
-    ``one sig dateN extends Date {}`` line for every date (sorted ascending),
+    ``one sig DateN extends Date {}`` line for every date (sorted ascending),
     then appends a fact fixing the total order of all dates from smallest to
     largest.
 
@@ -999,11 +999,11 @@ def generate_dates_and_order(
     # Rebuild DATES_DICT with sequential sig names and emit one sig per date.
     DATES_DICT.clear()
     for i, d in enumerate(sorted_dates):
-        DATES_DICT[f"date{i}"] = d
-        res += f"one sig date{i} extends Date {{}}\n"
+        DATES_DICT[f"Date{i}"] = d
+        res += f"one sig Date{i} extends Date {{}}\n"
 
     # build ordering fact using util/ordering's first/last/next
-    date_names = [f"date{i}" for i in range(len(sorted_dates))]
+    date_names = [f"Date{i}" for i in range(len(sorted_dates))]
     fact_lines = [f'{date_names[0]} = first']
     for i in range(len(date_names) - 1):
         fact_lines.append(f'{date_names[i]}.next = {date_names[i + 1]}')
@@ -1039,8 +1039,8 @@ def parse_date(s: str, state: TranslatorState) -> str:
     Parses *s* as a date and records its ``dMMDDYYYY`` id on *state*.
 
     The ``one sig`` declarations and the ordering fact are emitted later by
-    :func:`generate_dates_and_order`, which assigns the sequential ``dateN``
-    sig names (``date0``, ``date1``, ...) to every date of the model — OCL
+    :func:`generate_dates_and_order`, which assigns the sequential ``DateN``
+    sig names (``Date0``, ``Date1``, ...) to every date of the model — OCL
     literals are treated exactly like randomly generated dates. Duplicated
     literals are only recorded once across the whole model.
 
@@ -1067,7 +1067,7 @@ def resolve_ocl_date_literals(constraints) -> None:
     """Rewrites translated OCL facts in place.
 
     Replaces every ``dMMDDYYYY`` literal id produced by :func:`is_date` /
-    :func:`parse_date` with the sequential ``dateN`` sig name assigned by
+    :func:`parse_date` with the sequential ``DateN`` sig name assigned by
     :func:`generate_dates_and_order` (via :data:`DATES_DICT`), so OCL date
     constants use exactly the same atoms as randomly generated dates.\n
     Unknown ids (not present in :data:`DATES_DICT`) are left untouched.
