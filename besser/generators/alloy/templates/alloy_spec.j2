@@ -8,6 +8,9 @@ open util/integer
 {% if has_date_values -%}
 open util/ordering[Date]
 {% endif -%}
+{% if date_ops -%}
+open date
+{% endif -%}
 open utils
 {% if string_ops -%}
 open strings
@@ -18,10 +21,6 @@ open strings
 sig {{ strname(tipo) }} {}
 {% endif -%}
 {% endfor -%}
-{% if has_date_values -%}
-sig Date {}
-{% endif %}
-
 {% if enum_types -%}
 {% for e in enum_types %}
 {% set literals = [] -%}
@@ -32,9 +31,6 @@ abstract sig {{ e.name }} {}
 one sig {{ literals | join(',\n') | indent(8) }} extends {{ e.name }} {}
 {% endfor %}
 
-{% endif -%}
-{% if date_block -%}
-{{ date_block }}
 {% endif -%}
 {% macro alloy_model(class_obj, associations) -%}
 {% if class_obj.name not in ['Integer', 'String'] -%}

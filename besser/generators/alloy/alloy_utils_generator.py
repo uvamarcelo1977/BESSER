@@ -13,7 +13,6 @@ from pathlib import Path
 from besser.BUML.metamodel.structural import DomainModel, Enumeration
 from besser.generators.alloy.translate_ocl_alloy import (
     TranslatorState,
-    generate_dates_and_order,
     ocl_to_alloy,
 )
 
@@ -111,9 +110,9 @@ def build_consistency_rule(
             nav = None
         if nav:
             if mult_b[0] >= 1 and mult_b[0] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all a: {class_a} | #({nav})>={mult_b[0]} }}"
+                res += f"\nfact{{ all a: {class_a} | #({nav}) >= {mult_b[0]} }}"
             if mult_b[1] >= 1 and mult_b[1] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all a: {class_a} | #({nav})<={mult_b[1]} }}"
+                res += f"\nfact{{ all a: {class_a} | #({nav})<={mult_b[1]} }}"
 
     if not (mult_a[0] == 1 and mult_a[1] == 1):
         if arrow_b_a:
@@ -124,9 +123,9 @@ def build_consistency_rule(
             nav = None
         if nav:
             if mult_a[0] >= 1 and mult_a[0] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all b: {class_b} | #({nav})>={mult_a[0]} }}"
+                res += f"\nfact{{ all b: {class_b} | #({nav}) >= {mult_a[0]} }}"
             if mult_a[1] >= 1 and mult_a[1] < MULTIPLICITY_LIMIT:
-                res += f"\nfact{{all b: {class_b} | #({nav})<={mult_a[1]} }}"
+                res += f"\nfact{{ all b: {class_b} | #({nav}) <= {mult_a[1]} }}"
 
     return res
 
@@ -146,7 +145,7 @@ def generate_date_block(
         or an empty string when no date support is required.
     """
     if state.dates or "date" in basic_signatures:
-        return generate_dates_and_order(state.dates, scope)
+        return state.date_ops.generate_date_block(state.dates, scope)
     return ""
 
 
@@ -209,7 +208,7 @@ def process_associations(model: DomainModel, data: dict) -> list[str]:
 
         if arrow_a_b and arrow_b_a:
             facts_rules.append(
-                f"fact{{{d.type.name}_{h.name}= ~{h.type.name}_{d.name}}}"
+                f"fact{{{d.type.name}_{h.name} = ~{h.type.name}_{d.name}}}"
             )
 
     return facts_rules

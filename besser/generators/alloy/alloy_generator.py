@@ -90,6 +90,7 @@ class AlloyGenerator(GeneratorInterface):
             resolve_ocl_date_literals(model.constraints)
 
         needs_str_ops = bool(status.string_ops.registered_names())
+        needs_date_ops = bool(status.dates) or ("date" in basic_signatures)
         classes = model.classes_sorted_by_inheritance()
         associations_by_class = {c.name: [] for c in classes}
         for assoc in model.associations:
@@ -102,7 +103,6 @@ class AlloyGenerator(GeneratorInterface):
             basic_signatures=basic_signatures,
             enum_types=enum_types,
             has_date_values=bool(status.dates) or ("date" in basic_signatures),
-            date_block=date_block,
             classes=classes,
             associations_by_class=associations_by_class,
             constraints=model.constraints,
@@ -110,6 +110,7 @@ class AlloyGenerator(GeneratorInterface):
             scope=self.scope,
             facts_rules=facts_rules,
             string_ops=needs_str_ops,
+            date_ops=needs_date_ops,
         )
 
         with open(file_path, mode="w", encoding="utf-8") as f:
@@ -118,3 +119,8 @@ class AlloyGenerator(GeneratorInterface):
 
         if needs_str_ops:
             status.string_ops.generate_str_ops_model(os.path.dirname(file_path))
+
+        if needs_date_ops:
+            status.date_ops.generate_date_ops_model(
+                os.path.dirname(file_path), date_block
+            )

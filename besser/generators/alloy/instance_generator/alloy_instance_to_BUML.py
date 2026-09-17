@@ -126,7 +126,7 @@ class AlloyToBUML:
         """
         Determines if an atom represents a date value.
         """
-        base = atom_label.split("$")[0]
+        base = get_class_name(atom_label.split("$")[0])
         if base in DATES_DICT or DATE_SIG_PATTERN.match(base):
             return True
         date_sig_label = self._date_sig_label()
@@ -523,7 +523,7 @@ def get_date_value(atom_label: str) -> str:
     Returns:
         Date value as an ISO-8601 string with quotes (e.g., '"2000-01-01"')
     """
-    base = atom_label.split("$")[0]
+    base = get_class_name(atom_label.split("$")[0])
     if base in DATES_DICT:
         sig_id = DATES_DICT[base]
         return f'"{sig_id[5:9]}-{sig_id[1:3]}-{sig_id[3:5]}"'
