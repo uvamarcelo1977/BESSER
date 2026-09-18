@@ -62,15 +62,12 @@ library_model: DomainModel = DomainModel(name="Library_model", types={library, b
                                          constraints={book_has_title, library_named, author_named})
 
 
-os.environ['JAVA_HOME'] = '/opt/homebrew/Cellar/openjdk@21/21.0.11/libexec/openjdk.jdk/Contents/Home'
-os.environ['BESSER_ALLOY_JAR'] = '/Users/pponzio/code/besser/releases/BESSER/besser/BUML/notations/ocl/consistency/alloy.jar'
-
 # Semantic consistency check
 solver = AlloySolver(library_model, output_dir="outdir", scope=3)
 result = solver.check_consistency()
 assert result == AlloyResult.SAT, "The model is not consistent."
 
-# Generate two BUML object diagram using Alloy
+# Generate four BUML object diagrams using Alloy
 solver = AlloySolver(library_model, output_dir="outdir", scope=3)
 (res, instance_xml_files) = solver.generate_object_diagrams(num_instances=4)
 assert result == AlloyResult.SAT, "The model is not consistent."
