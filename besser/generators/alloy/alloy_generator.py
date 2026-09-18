@@ -56,10 +56,6 @@ class AlloyGenerator(GeneratorInterface):
         )
         self.template = self.env.get_template("alloy_spec.j2")
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def generate(self) -> None:
         """
         Generates an Alloy specification based on the provided B-UML model and saves it to
@@ -67,8 +63,7 @@ class AlloyGenerator(GeneratorInterface):
         If the output directory was not specified, the code generated will be stored in the
         <current directory>/output folder.
 
-        Returns:
-            None, but store the generated specification in a file named model.als
+        Stores the generated specification in a file named model.als
         """
         file_path = self.build_generation_path(file_name="model.als")
 
