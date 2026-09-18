@@ -52,7 +52,7 @@ from besser.generators.alloy.date_ops import (
 from besser.generators.alloy.instance_generator.alloy_instance_to_BUML import (
     get_date_value,
 )
-from besser.generators.alloy.string_ops import StringOpsRegistry
+from besser.generators.alloy.string_ops import StringOpsRegistry, build_string_sigs
 from besser.generators.alloy.translate_ocl_alloy import (
     EnumReferenceError,
     TranslatorState,
@@ -1214,13 +1214,22 @@ def _string_person_model(expressions) -> DomainModel:
     )
 
 
-def _generate_string_spec(model, tmpdir, scope=5) -> str:
-    """Run AlloyGenerator on a string model and return the model.als text."""
+def _generate_string_spec(model, tmpdir, scope=5) -> tuple[str, str]:
+    """Run AlloyGenerator on a string model.
+
+    Returns ``(model.als text, strings.als text)``; the latter is the empty
+    string when no ``strings.als`` module file was produced.
+    """
     output_dir = tmpdir.mkdir("output")
     generator = AlloyGenerator(model=model, output_dir=str(output_dir), scope=scope)
     generator.generate()
     with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
-        return f.read()
+        spec = f.read()
+    strings_path = os.path.join(str(output_dir), "strings.als")
+    if os.path.isfile(strings_path):
+        with open(strings_path, "r", encoding="utf-8") as f:
+            return spec, f.read()
+    return spec, ""
 
 
 def test_string_ops_registry_binary_defaults():
@@ -1250,31 +1259,56 @@ def test_string_ops_module_emits_equality_preds(tmpdir):
     assert "one sig john extends Str" not in content
 
 
+def test_string_ops_module_accepts_per_model_sig_block(tmpdir):
+    """generate_str_ops_model must append the per-model string literal sigs
+    (``one sig StrN extends Str``) after the ``Str`` signature, so the block
+    stays in strings.als instead of being repeated per constraint."""
+    registry = StringOpsRegistry()
+    block = build_string_sigs(["John"])
+    assert block == "one sig Str0 extends Str {}{\n    data[0] = J\n    data[1] = o\n    data[2] = h\n    data[3] = n\n}"
+    path = registry.generate_str_ops_model(str(tmpdir), block)
+    content = path.read_text(encoding="utf-8")
+    assert "one sig Str0 extends Str" in content
+    assert "data[0] = J" in content
+
+
+def test_build_string_sigs_names_are_valid_identifiers():
+    """build_string_sigs must always emit a valid Alloy sig name, even for
+    the empty string and literals that are not Alloy identifiers."""
+    out = build_string_sigs(["", "good morning", "john"])
+    assert "one sig Str0 extends Str {}{\n    no data\n}" in out
+    assert "one sig Str1 extends Str" in out
+    assert "one sig Str2 extends Str" in out
+    assert "data[0] = g" in out
+
+
 def test_string_ocl_equality_uses_content_pred(tmpdir):
     """``self.name = 'John'`` must translate to the content-equality predicate
     ``strEq`` (not inert atom ``=``) and emit a ``one sig`` for the literal."""
-    spec = _generate_string_spec(
+    spec, strings_als = _generate_string_spec(
         _string_person_model(["self.name = 'John'"]),
         tmpdir,
     )
     assert "open strings" in spec
-    assert "one sig john extends Str" in spec
-    assert "(strEq[self.Person_name,john])" in spec
+    assert "one sig Str0 extends Str" in strings_als
+    assert "one sig john extends Str" not in strings_als
+    assert "(strEq[self.Person_name,Str0])" in spec
+    assert "one sig" not in spec
 
 
 def test_string_ocl_inequality_uses_content_pred(tmpdir):
     """``self.name <> 'John'`` normalizes to ``!=`` and must translate to ``strNe``."""
-    spec = _generate_string_spec(
+    spec, _ = _generate_string_spec(
         _string_person_model(["self.name <> 'John'"]),
         tmpdir,
     )
-    assert "(strNe[self.Person_name,john])" in spec
+    assert "(strNe[self.Person_name,Str0])" in spec
     assert "strEq" not in spec
 
 
 def test_string_attribute_vs_attribute_uses_content_pred(tmpdir):
     """Comparing two str-typed attributes uses strEq on the ``data`` payloads."""
-    spec = _generate_string_spec(
+    spec, _ = _generate_string_spec(
         _string_person_model(["self.name = self.nickname"]),
         tmpdir,
     )
@@ -1284,7 +1318,7 @@ def test_string_attribute_vs_attribute_uses_content_pred(tmpdir):
 def test_string_comparison_does_not_intercept_int(tmpdir):
     """Integer equality must keep the generic Alloy ``=`` translation and not
     be routed through strEq/strNe."""
-    spec = _generate_string_spec(
+    spec, _ = _generate_string_spec(
         _string_person_model(["self.age = 0"]),
         tmpdir,
     )
@@ -1295,7 +1329,7 @@ def test_string_comparison_does_not_intercept_int(tmpdir):
 def test_maxseq_defaults_to_scope_when_no_long_string_literal(tmpdir):
     """Without any string literal, the ``seq`` scope must fall back to the
     default (5): ``... Str, 5 seq``."""
-    spec = _generate_string_spec(
+    spec, _ = _generate_string_spec(
         _string_person_model(["self.age = 0"]),
         tmpdir,
     )
@@ -1305,13 +1339,15 @@ def test_maxseq_defaults_to_scope_when_no_long_string_literal(tmpdir):
 def test_maxseq_reflects_longest_string_literal(tmpdir):
     """The longest string literal in a constraint must bound the ``seq``
     scope: a 12-char literal yields ``... Str, 12 seq``."""
-    spec = _generate_string_spec(
+    spec, strings_als = _generate_string_spec(
         _string_person_model(["self.name = 'good morning'"]),
         tmpdir,
     )
     normalized = re.sub(r"\s+", " ", spec).strip()
     assert "5 Str, 12 seq" in normalized
-    assert "one sig good morning extends Str" in spec
+    assert "one sig Str0 extends Str" in strings_als
+    assert "data[0] = g" in strings_als
+    assert "one sig good morning extends Str" not in strings_als
 
 
 def test_maxseq_is_model_wide_max_across_constraints(tmpdir):
@@ -1335,6 +1371,72 @@ def test_maxseq_is_model_wide_max_across_constraints(tmpdir):
         enums={},
     )
     assert state.maxseq == 11
+
+
+def test_string_literal_shared_across_constraints_single_sig(tmpdir):
+    """The same string literal in two different constraints must be declared
+    once model-wide and referenced by the same ``StrN`` sig name in both
+    facts (no duplicate ``one sig`` -> no Alloy redeclaration error)."""
+    spec, strings_als = _generate_string_spec(
+        _string_person_model(["self.name = 'John'", "self.nickname = 'John'"]),
+        tmpdir,
+    )
+    assert strings_als.count("one sig Str0 extends Str") == 1
+    assert "Str1" not in strings_als
+    assert spec.count("(strEq[self.Person_name,Str0])") == 1
+    assert spec.count("(strEq[self.Person_nickname,Str0])") == 1
+
+
+def test_distinct_string_literals_get_distinct_sigs(tmpdir):
+    """Different literals must map to different ``StrN`` sigs, in first-seen
+    order."""
+    spec, strings_als = _generate_string_spec(
+        _string_person_model(["self.name = 'John'", "self.nickname = 'Jane'"]),
+        tmpdir,
+    )
+    assert "one sig Str0 extends Str" in strings_als
+    assert "one sig Str1 extends Str" in strings_als
+    assert "(strEq[self.Person_name,Str0])" in spec
+    assert "(strEq[self.Person_nickname,Str1])" in spec
+
+
+def test_empty_string_literal_emits_valid_named_sig(tmpdir):
+    """``self.name = ''`` must produce a *named* ``one sig`` (``StrN``, not
+    ``one sig  extends Str``) so the generated Alloy is valid, and the fact
+    must reference that sig."""
+    spec, strings_als = _generate_string_spec(
+        _string_person_model(["self.name = ''"]),
+        tmpdir,
+    )
+    assert "one sig Str0 extends Str" in strings_als
+    assert "no data" in strings_als
+    assert "one sig  extends Str" not in strings_als
+    assert "(strEq[self.Person_name,Str0])" in spec
+
+
+def test_string_sigs_are_model_wide_unique_via_shared_state():
+    """process_string_types registers literals on the shared TranslatorState,
+    so the same literal reused in a later constraint is not re-registered."""
+    state = TranslatorState()
+    first = ocl_to_alloy(
+        {"Person": ["_"]},
+        {"Person": ["name:str"]},
+        "self.name = 'John'",
+        context_name="Person",
+        state=state,
+        enums={},
+    )
+    second = ocl_to_alloy(
+        {"Person": ["_"]},
+        {"Person": ["nickname:str"]},
+        "self.nickname = 'John'",
+        context_name="Person",
+        state=state,
+        enums={},
+    )
+    assert state.strings == ["john"]  # literals are lowercased by the tokenizer
+    assert "strEq[self.Person_name,Str0]" in first
+    assert "strEq[self.Person_nickname,Str0]" in second
 
 
 # ---------------------------------------------------------------------------

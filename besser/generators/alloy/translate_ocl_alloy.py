@@ -55,6 +55,12 @@ class TranslatorState:
         cont_select:     Counter for generating unique select/reject function names.
         dates:          ``dMMDDYYYY`` sig ids already emitted, so identical
                          date literals are only declared once across the model.
+        strings:        Unique string literals found so far, in first-seen
+                         order.  Mirrors ``dates``: every literal is declared
+                         only once across the whole model (see
+                         :meth:`register_string` and
+                         :func:`build_string_sigs`).  ``''`` (the empty
+                         string) is a valid entry and gets its own sig.
         buffer_pred_aux: Auxiliary predicates (select, reject) accumulated so far.
         is_set_origin:   True when the current collection is a flat set (not a relation).
         enums:           ``{EnumName: {Literal, ...}}`` catalog for the current model,
@@ -76,6 +82,7 @@ class TranslatorState:
     cont_select: int = 0
     maxseq: int = 5
     dates: list = field(default_factory=list)
+    strings: list = field(default_factory=list)
     buffer_pred_aux: list = field(default_factory=list)
     is_set_origin: bool = True
     enums: dict[str, set[str]] = field(default_factory=dict)
@@ -83,12 +90,14 @@ class TranslatorState:
     string_ops: StringOpsRegistry = field(default_factory=StringOpsRegistry)
     date_ops: DateOpsRegistry = field(default_factory=DateOpsRegistry)
     _enum_token_index: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
+    _string_name_index: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
 
     def init_constraint(self) -> None:
         """Reset mutable state before processing a new constraint.
 
-        Deliberately does NOT touch ``enums``/the enum index: those are
-        model-wide and set once via :meth:`set_enums`, not per-constraint.
+        Deliberately does NOT touch ``enums`` and ``strings`` (+ their
+        indexes): those are model-wide and set/accumulated once, not
+        per-constraint.
         """
         self.is_set_origin = True
         self.buffer_pred_aux.clear()
@@ -131,6 +140,28 @@ class TranslatorState:
         Returns the owning enum name for a normalized ``ENUM_...`` token, or ``None``.
         """
         return self._enum_token_index.get(token_value)
+
+    def register_string(self, literal: str) -> str:
+        """Registers a string *literal* on the model-wide catalog and returns its
+        Alloy sig name.
+
+        Identical literals — including the empty string ``''`` — are only
+        registered once across the whole model (first-seen order), so they
+        map to a single ``one sig StrN`` declaration shared by every
+        constraint (see :func:`build_string_sigs`).  The generated ``StrN``
+        name is always a valid Alloy identifier, unlike the raw literal
+        (e.g. ``''``, ``'good morning'``).
+
+        Also raises ``state.maxseq`` to the literal length when it is the
+        longest seen so far.
+        """
+        name = self._string_name_index.get(literal)
+        if name is None:
+            name = f"Str{len(self.strings)}"
+            self._string_name_index[literal] = name
+            self.strings.append(literal)
+            self.maxseq = max(self.maxseq, len(literal))
+        return name
 
 
 class EnumReferenceError(ValueError):
@@ -1062,31 +1093,28 @@ def _is_string_operand(subject: str, state: TranslatorState) -> bool:
     return False
 
 
-import re
-
 def process_string_types(input_string: str, state: TranslatorState | None = None) -> str:
-    """Extracts single-quoted string literals, removes duplicates, and generates a detailed
-    'one sig' for each. Returns the signatures followed by the input string without quotes.
+    """Replaces quoted string literals in the assembled Alloy fact with their
+    model-wide sig names and registers them on *state*.
+
+    Every ``'literal'`` occurrence is substituted by the ``StrN`` sig name
+    assigned via :meth:`TranslatorState.register_string`, so identical
+    literals — including the empty string ``''`` — always reference the same
+    single ``one sig``.  The sig declarations themselves are emitted once per
+    model by :func:`build_string_sigs` (in ``strings.als``), not inline here.
 
     Also records on *state* the maximum length of the extracted sequences
     (``state.maxseq``), used later to bound the Alloy ``seq`` scope.
     """
-    values = list(dict.fromkeys(re.findall(r"'([^']*)'", input_string)))
-    if state is not None and values:
-        state.maxseq = max(state.maxseq, max(len(v) for v in values))
-    sigs_list = []
-    for v in values:
-        if not v:
-            sig_code = "one sig  extends Str {}{\n    no data\n}"
-        else:
-            lines_data = [f"    data[{i}] = {char}" for i, char in enumerate(v)]
-            body = "\n".join(lines_data)
-            sig_code = f"one sig {v} extends Str {{}}{{\n{body}\n}}"
-        sigs_list.append(sig_code)
-    sigs = "\n\n".join(sigs_list)
-    if sigs:
-        sigs += "\n\n"
-    return sigs + input_string.replace("'", "")
+    if state is None:
+        state = TranslatorState()
+    literals = dict.fromkeys(re.findall(r"'([^']*)'", input_string))
+    name_by_literal = {lit: state.register_string(lit) for lit in literals}
+    return re.sub(
+        r"'([^']*)'",
+        lambda m: name_by_literal[m.group(1)],
+        input_string,
+    )
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 7. INHERITANCE HIERARCHY UTILITIES

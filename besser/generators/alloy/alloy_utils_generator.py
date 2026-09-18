@@ -224,7 +224,7 @@ def translate_constraints(
         literals discovered during translation).
     """
     state = TranslatorState()
-    for constraint in model.constraints:
+    for constraint in sorted(model.constraints, key=lambda c: c.name):
         context = constraint.context.name
         ocl_str = constraint.expression.split(":", 1)[1]
         constraint.expression = ocl_to_alloy(

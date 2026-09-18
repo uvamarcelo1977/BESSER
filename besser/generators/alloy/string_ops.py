@@ -11,6 +11,29 @@ from pathlib import Path
 StringOp = tuple[str, str, str]
 
 
+def build_string_sigs(literals: list[str]) -> str:
+    """Returns the ``one sig StrN extends Str`` declarations for *literals*.
+
+    *literals* is expected to be ``TranslatorState.strings`` — the unique
+    string literals of the whole model, in first-seen order — so index
+    ``i`` always maps to the same name (``Str{i}``) that
+    :meth:`TranslatorState.register_string` assigned during translation.
+
+    Every literal gets a valid Alloy identifier even when its content is not
+    one (e.g. the empty string ``''`` or ``'good morning'``): the content only
+    appears on the ``data`` sequence.
+    """
+    blocks: list[str] = []
+    for i, literal in enumerate(literals):
+        name = f"Str{i}"
+        if not literal:
+            blocks.append(f"one sig {name} extends Str {{}}{{\n    no data\n}}")
+        else:
+            body = "\n".join(f"    data[{j}] = {char}" for j, char in enumerate(literal))
+            blocks.append(f"one sig {name} extends Str {{}}{{\n{body}\n}}")
+    return "\n\n".join(blocks)
+
+
 class StringOpError(ValueError):
     """Raised when an OCL String operation is not recognised."""
 
@@ -75,8 +98,14 @@ class StringOpsRegistry:
         _, alloy_name, _ = entry
         return f"({alloy_name}[{left},{right}])"
 
-    def generate_str_ops_model(self, output_dir: str | Path) -> Path:
-        """Writes ``str_ops.als`` in *output_dir* with every registered snippet."""
+    def generate_str_ops_model(self, output_dir: str | Path, string_block: str = "") -> Path:
+        """Writes ``strings.als`` in *output_dir* with every registered snippet and,
+        when provided, the per-model *string_block* (``one sig StrN`` declarations
+        for the model's string literals, see :func:`build_string_sigs`).
+
+        ``model.als`` opens this module via ``open strings``, so it must live in
+        the same directory as the generated specification.
+        """
         snippets = "\n\n".join(entry[2] for entry in self._ops.values())
         content = (
             "module string\n"
@@ -87,6 +116,8 @@ class StringOpsRegistry:
             + "}\n"
             + snippets
         )
+        if string_block:
+            content += "\n\n" + string_block
         path = Path(output_dir) / "strings.als"
         path.write_text(content, encoding="utf-8")
         return path

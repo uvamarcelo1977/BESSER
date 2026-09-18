@@ -17,6 +17,7 @@ from besser.generators.alloy.alloy_utils_generator import (
     sanitize_model_names,
     translate_constraints,
 )
+from besser.generators.alloy.string_ops import build_string_sigs
 from besser.generators.alloy.translate_ocl_alloy import (
     DATES_DICT,
     resolve_ocl_date_literals,
@@ -84,7 +85,11 @@ class AlloyGenerator(GeneratorInterface):
         if status.dates and DATES_DICT:
             resolve_ocl_date_literals(model.constraints)
 
-        needs_str_ops = bool(status.string_ops.registered_names())
+        has_string_sigs = bool(status.strings)
+        needs_str_ops = (
+            bool(status.string_ops.registered_names()) or has_string_sigs
+        )
+        string_block = build_string_sigs(status.strings) if has_string_sigs else ""
         needs_date_ops = bool(status.dates) or ("date" in basic_signatures)
         classes = model.classes_sorted_by_inheritance()
         associations_by_class = {c.name: [] for c in classes}
@@ -114,7 +119,9 @@ class AlloyGenerator(GeneratorInterface):
         generate_utils_module(os.path.dirname(file_path))
 
         if needs_str_ops:
-            status.string_ops.generate_str_ops_model(os.path.dirname(file_path))
+            status.string_ops.generate_str_ops_model(
+                os.path.dirname(file_path), string_block
+            )
 
         if needs_date_ops:
             status.date_ops.generate_date_ops_model(

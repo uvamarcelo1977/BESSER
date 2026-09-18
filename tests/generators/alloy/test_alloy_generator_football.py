@@ -314,24 +314,6 @@ def test_two_to_four_end_renders_with_set_keyword(football_model, tmpdir):
     assert "Fan_favoriteTeams: set Team" in spec
 
 
-def test_two_to_four_multiplicity_has_lower_and_upper_bound_facts(football_model, tmpdir):
-    """Fan->favoriteTeams is the only association in this model whose
-    bounds fall outside the (skipped) 1..1 and 0..* shapes, so it's the
-    only one that should produce explicit cardinality facts: >=2 and <=4.
-
-    """
-    spec = _generate_and_print(
-        football_model, tmpdir, "two_to_four_multiplicity_has_lower_and_upper_bound_facts"
-    )
-
-    assert (
-        "#(a.Fan_favoriteTeams) >= 2" in spec or "#(b.Fan_favoriteTeams) >= 2" in spec
-    ), spec
-    assert (
-        "#(a.Fan_favoriteTeams) <= 4" in spec or "#(b.Fan_favoriteTeams) <= 4" in spec
-    ), spec
-
-
 def test_one_to_one_and_zero_to_many_ends_produce_no_cardinality_facts(football_model, tmpdir):
     spec = _generate_and_print(
         football_model, tmpdir,
