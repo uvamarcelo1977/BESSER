@@ -6,6 +6,7 @@ from besser.BUML.metamodel.structural import DomainModel
 from besser.generators.alloy.alloy_generator import AlloyGenerator
 from besser.generators.alloy.instance_generator.alloy_analyzer_executor import AlloyAnalyzerExecutor, AlloyResult
 from besser.generators.alloy.instance_generator.alloy_instance_to_BUML import AlloyToBUML
+from besser.utilities.buml_code_builder.domain_model_builder import domain_model_to_code
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +25,9 @@ class AlloySolver:
         # Es cierto que cada vez que se crea un AlloySolver se genera invoca al generador. Una
         # alternativa seria la de pasarle el modelo alloy ya creado , no se? me cerraba que 
         #  AlloySolver se encargue de generar el alloy y de generar los diagramas de objetos.
-        generator = AlloyGenerator(model=self.model, output_dir=output_dir, scope=scope)
+        generator = AlloyGenerator(model=self.model, output_dir=self.output_dir, scope=self.scope)
         generator.generate()
-        self.specification = os.path.join(output_dir, "model.als")
+        self.specification = os.path.join(self.output_dir, "model.als")
         self.executor = AlloyAnalyzerExecutor()
 
     def check_consistency(self) -> AlloyResult:
@@ -38,15 +39,11 @@ class AlloySolver:
         return result
 
     def generate_object_diagrams(self, num_instances: int = 1):
-        """Generates BUML object diagrams from satisfying Alloy instances.
+        """Generates BUML object diagrams using Alloy.
         Returns an AlloyResult indicating the result of the analysis and a list of 
         BUML instances. The list is empty if no satisfying instances were found or if 
         the analysis timed out.
-        BUML instances are also persisted in files ``output_dir/buml_object_instance0.py``, 
-        ``output_dir/buml_object_instance1.py``, etc. 
         """
-        # TODO PABLO: I don't like the repeated output of this method. I think we should
-        # either return the list of instances or write them to files, but not both.
         (res, instance_xml_files) = self.executor.generate_instances(self.specification, 
                                             self.alloy_output_dir, num_instances=num_instances)
         buml_instances = []
@@ -54,42 +51,51 @@ class AlloySolver:
             converter = AlloyToBUML(xml_path)
             buml_instances.append(converter.generate_object_diagram())
 
-        os.makedirs(self.output_dir, exist_ok=True)
-        #Clean up any previous instance files before writing new ones
-        for file in Path(self.output_dir).glob("buml_object_instance*.py"):
-            file.unlink()
-
-        # Write the generated BUML instances to files    
-        for i, instance in enumerate(buml_instances, start=0):
-            instance_path = os.path.join(self.output_dir, f"buml_object_instance{i}.py")
-            with open(instance_path, "w", encoding="utf-8") as f:
-                f.write(instance)
         return (res, buml_instances)
 
-# TODO PABLO: Needs revision. Implement this later!
-#    def generate_integrated_buml_model(
-#        self,
-#        xml_instance_path: str | None = None,
-#    ) -> str | None:
-#        """Generates a BUML script combining the original class diagram with the
-#        object diagram derived from a satisfying Alloy instance."""
-#        if xml_instance_path is None:
-#            xml_instance_path = self.generate_instance_xml()
-#            if not xml_instance_path:
-#                return None
-#        tmp_buml = os.path.join(self.output_dir, "_tmp_buml_content.py")
-#        domain_model_to_code(model=self.model, file_path=tmp_buml)
-#        try:
-#            with open(tmp_buml, "r", encoding="utf-8") as f:
-#                original_buml_content = f.read()
-#        finally:
-#            if os.path.exists(tmp_buml):
-#                os.unlink(tmp_buml)
-#        integrator = BUMLModelIntegrator(original_buml_content, xml_instance_path)
-#        integrated_code = integrator.generate_integrated_model()
-#        if integrated_code is None:
-#            return None
-#        integrated_path = os.path.join(self.output_dir, "buml_integrated_model.py")
-#        with open(integrated_path, "w", encoding="utf-8") as f:
-#            f.write(integrated_code)
-#        return integrated_code
+    def generate_class_and_object_model(self):
+        """Generates an object diagrams from the Alloy specification and combines it with 
+        the class diagram to produce a complete BUML model code. 
+        Returns the generated BUML model code in file ``output_dir/buml_class_object_model.py``.
+        """
+
+
+        (res, buml_instances) = self.generate_object_diagrams(num_instances=1)
+        if res == AlloyResult.UNSAT:
+            return AlloyResult.UNSAT
+
+
+        outfile = os.path.join(self.output_dir, "buml_class_object_model.py")
+        # Clean up previous file before writing a new one
+        os.makedirs(self.output_dir, exist_ok=True)
+        if os.path.exists(outfile):
+            os.remove(outfile)
+
+        # Write generated BUML model code to outfile
+        domain_model_to_code(self.model, file_path=outfile)
+
+        # Write generated BUML object model to outfile
+        with open(outfile, "a", encoding="utf-8") as f:
+            f.write("\n")
+            f.write("\n################\n")
+            f.write("# OBJECT MODEL #\n")
+            f.write("################\n")
+            f.write("\n")
+            f.write(buml_instances[0])
+            f.write("\n")
+
+            # Write a generic project to outfile
+            f.write("\n######################\n")
+            f.write("# PROJECT DEFINITION #\n")
+            f.write("######################\n")
+            f.write("\n")
+            f.write("from besser.BUML.metamodel.structural import Project\n")
+            f.write("from besser.BUML.metamodel.structural.structural import Project\n")
+            f.write("\n")
+            f.write("project = Project(\n")
+            f.write("\tname=\"Project automatically generated using Alloy\", \n")
+            f.write("\tmodels=[domain_model, object_model]\n")
+            f.write(")\n")
+
+        return AlloyResult.SAT 
+

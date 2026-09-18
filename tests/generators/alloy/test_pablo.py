@@ -1,6 +1,8 @@
 import os
+
 from besser.BUML.metamodel.structural import DomainModel, Class, Property, \
     Multiplicity, BinaryAssociation, StringType, IntegerType, DateType
+from besser.BUML.metamodel.structural.structural import Constraint
 from besser.generators.alloy.instance_generator.alloy_analyzer_executor import AlloyResult
 from besser.generators.alloy.instance_generator import AlloySolver
 
@@ -34,41 +36,48 @@ publishes: Property = Property(name="publishes", type=book, multiplicity=Multipl
 written_by: Property = Property(name="writtenBy", type=author, multiplicity=Multiplicity(1, "*"))
 book_author_association: BinaryAssociation = BinaryAssociation(name="book_author_assoc", ends={written_by, publishes})
 
+
+book_has_title: Constraint = Constraint(
+    name="book_has_title",
+    context=book,
+    expression="context Book inv book_has_title: self.title.size() > 0",
+    language="OCL"
+)
+library_named: Constraint = Constraint(
+    name="library_named",
+    context=library,
+    expression="context Library inv library_named: self.name.size() > 0",
+    language="OCL"
+)
+author_named: Constraint = Constraint(
+    name="author_named",
+    context=author,
+    expression="context Author inv author_named: self.name.size() > 0",
+    language="OCL"
+)
+
 # Domain model definition
 library_model: DomainModel = DomainModel(name="Library_model", types={library, book, author},
-                                         associations={lib_book_association, book_author_association})
+                                         associations={lib_book_association, book_author_association},
+                                         constraints={book_has_title, library_named, author_named})
 
 
 os.environ['JAVA_HOME'] = '/opt/homebrew/Cellar/openjdk@21/21.0.11/libexec/openjdk.jdk/Contents/Home'
 os.environ['BESSER_ALLOY_JAR'] = '/Users/pponzio/code/besser/releases/BESSER/besser/BUML/notations/ocl/consistency/alloy.jar'
+
 # Semantic consistency check
-solver = AlloySolver(library_model, output_dir="otdir")
+solver = AlloySolver(library_model, output_dir="outdir", scope=3)
 result = solver.check_consistency()
 assert result == AlloyResult.SAT, "The model is not consistent."
 
 # Generate two BUML object diagram using Alloy
-solver = AlloySolver(library_model, output_dir="otdir")
-(res, instance_xml_files) = solver.generate_object_diagrams(num_instances=2)
+solver = AlloySolver(library_model, output_dir="outdir", scope=3)
+(res, instance_xml_files) = solver.generate_object_diagrams(num_instances=4)
 assert result == AlloyResult.SAT, "The model is not consistent."
-assert len(instance_xml_files) == 2, "The number of generated instances is not correct."
+assert len(instance_xml_files) == 4, "The number of generated instances is not correct."
 
-# Genera el código completo del modelo BUML integrado a partir de la instancia generada.
-# Diagrama BUML completo (clases + objetos).
-#solver = AlloySolver(library_model, output_dir="clsobjdir")
-#buml_diagram_code = solver.generate_integrated_buml_model()
-#assert buml_diagram_code is not None, "The integrated BUML model code generation failed."
-
-
-# Limpieza: elimina los archivos y directorios creados por la ejecución del test.
-# comentar las lineas siguientes para mantener los archivos generados.
-#for artifact_dir in (outputdir,):
-#    if os.path.isdir(artifact_dir):
-#        for file_name in os.listdir(artifact_dir):
-#            file_path = os.path.join(artifact_dir, file_name)
-#            if os.path.isfile(file_path):
-#                os.unlink(file_path)
-#        os.rmdir(artifact_dir)
-
-
-
-
+# Generates a complete BUML project code including: The class diagram in BUML, and an instance 
+# automatically generated using Alloy.
+solver = AlloySolver(library_model, output_dir="outdir", scope=3)
+solver.generate_class_and_object_model()
+assert result == AlloyResult.SAT, "The model is not consistent."
