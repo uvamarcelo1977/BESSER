@@ -52,6 +52,7 @@ from besser.generators.alloy.date_ops import (
 from besser.generators.alloy.instance_generator.alloy_instance_to_BUML import (
     get_date_value,
 )
+from besser.generators.alloy.string_ops import StringOpsRegistry
 from besser.generators.alloy.translate_ocl_alloy import (
     EnumReferenceError,
     TranslatorState,
@@ -1179,6 +1180,161 @@ def test_generate_dates_and_order():
     for i in range(len(ordered) - 1):
         assert f"{ordered[i]}.next = {ordered[i + 1]}" in result
     assert f"{ordered[-1]} = last" in result
+
+
+# ---------------------------------------------------------------------------
+# String literals and string attributes (OCL constraints)
+# ---------------------------------------------------------------------------
+
+def _string_person_model(expressions) -> DomainModel:
+    """Build a Person model whose OCL constraint uses string comparisons.
+
+    Person gains both a ``nickname`` (str) and an ``age`` (int) attribute so
+    the same fixture can cover str-int and int-only comparisons.
+    """
+    Person = Class(name="Person")
+    Person.attributes = {
+        Property(name="name", type=StringType),
+        Property(name="nickname", type=StringType),
+        Property(name="age", type=IntegerType),
+    }
+    constraints = {
+        Constraint(
+            name=f"StrConstraint{i}",
+            context=Person,
+            expression=f"context Person inv StrConstraint{i}: {expr}",
+            language="OCL",
+        )
+        for i, expr in enumerate(expressions)
+    }
+    return DomainModel(
+        name="StringPersonModel",
+        types={Person},
+        constraints=constraints,
+    )
+
+
+def _generate_string_spec(model, tmpdir, scope=5) -> str:
+    """Run AlloyGenerator on a string model and return the model.als text."""
+    output_dir = tmpdir.mkdir("output")
+    generator = AlloyGenerator(model=model, output_dir=str(output_dir), scope=scope)
+    generator.generate()
+    with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def test_string_ops_registry_binary_defaults():
+    """StringOpsRegistry must ship the content-equality predicates: ``=``
+    dispatches to ``strEq`` and ``<>`` (OCL inequality, normalized to ``!=``
+    by the tokenizer) to ``strNe``."""
+    registry = StringOpsRegistry()
+    assert registry.translate_binary("=", "a", "b") == "(strEq[a,b])"
+    assert registry.translate_binary("<>", "a", "b") == "(strNe[a,b])"
+    assert registry.translate_binary("!=", "a", "b") is None
+    assert registry.translate_binary("<", "a", "b") is None
+
+
+def test_string_ops_module_emits_equality_preds(tmpdir):
+    """strings.als must carry pred strEq / strNe (plus Char sigs) so the
+    translated facts compile."""
+    registry = StringOpsRegistry()
+    path = registry.generate_str_ops_model(str(tmpdir))
+    content = path.read_text(encoding="utf-8")
+    assert "pred strEq[a, b: Str] {" in content
+    assert "eq[len[a], len[b]]" in content
+    assert "all i: a.data.inds | a.data[i] = b.data[i]" in content
+    assert "pred strNe[a, b: Str] {" in content
+    assert "not strEq[a,b]" in content
+    assert len(re.findall(r"one sig .* extends Char", content)) == 1, content
+    assert "one sig a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z extends Char {}" in content
+    assert "one sig john extends Str" not in content
+
+
+def test_string_ocl_equality_uses_content_pred(tmpdir):
+    """``self.name = 'John'`` must translate to the content-equality predicate
+    ``strEq`` (not inert atom ``=``) and emit a ``one sig`` for the literal."""
+    spec = _generate_string_spec(
+        _string_person_model(["self.name = 'John'"]),
+        tmpdir,
+    )
+    assert "open strings" in spec
+    assert "one sig john extends Str" in spec
+    assert "(strEq[self.Person_name,john])" in spec
+
+
+def test_string_ocl_inequality_uses_content_pred(tmpdir):
+    """``self.name <> 'John'`` normalizes to ``!=`` and must translate to ``strNe``."""
+    spec = _generate_string_spec(
+        _string_person_model(["self.name <> 'John'"]),
+        tmpdir,
+    )
+    assert "(strNe[self.Person_name,john])" in spec
+    assert "strEq" not in spec
+
+
+def test_string_attribute_vs_attribute_uses_content_pred(tmpdir):
+    """Comparing two str-typed attributes uses strEq on the ``data`` payloads."""
+    spec = _generate_string_spec(
+        _string_person_model(["self.name = self.nickname"]),
+        tmpdir,
+    )
+    assert "(strEq[self.Person_name,self.Person_nickname])" in spec
+
+
+def test_string_comparison_does_not_intercept_int(tmpdir):
+    """Integer equality must keep the generic Alloy ``=`` translation and not
+    be routed through strEq/strNe."""
+    spec = _generate_string_spec(
+        _string_person_model(["self.age = 0"]),
+        tmpdir,
+    )
+    assert "(self.Person_age = 0)" in spec
+    assert "strEq" not in spec
+
+
+def test_maxseq_defaults_to_scope_when_no_long_string_literal(tmpdir):
+    """Without any string literal, the ``seq`` scope must fall back to the
+    default (5): ``... Str, 5 seq``."""
+    spec = _generate_string_spec(
+        _string_person_model(["self.age = 0"]),
+        tmpdir,
+    )
+    assert "5 Str, 5 seq" in re.sub(r"\s+", " ", spec).strip()
+
+
+def test_maxseq_reflects_longest_string_literal(tmpdir):
+    """The longest string literal in a constraint must bound the ``seq``
+    scope: a 12-char literal yields ``... Str, 12 seq``."""
+    spec = _generate_string_spec(
+        _string_person_model(["self.name = 'good morning'"]),
+        tmpdir,
+    )
+    normalized = re.sub(r"\s+", " ", spec).strip()
+    assert "5 Str, 12 seq" in normalized
+    assert "one sig good morning extends Str" in spec
+
+
+def test_maxseq_is_model_wide_max_across_constraints(tmpdir):
+    """maxseq must be the maximum across all constraints, not the last one."""
+    state = TranslatorState()
+    ocl_to_alloy(
+        {"Person": ["_"]},
+        {"Person": ["name:str"]},
+        "self.name = 'ab'",
+        context_name="Person",
+        state=state,
+        enums={},
+    )
+    assert state.maxseq == 5  # shorter literal does not lower the default
+    ocl_to_alloy(
+        {"Person": ["_"]},
+        {"Person": ["name:str"]},
+        "self.name = 'long enough'",
+        context_name="Person",
+        state=state,
+        enums={},
+    )
+    assert state.maxseq == 11
 
 
 # ---------------------------------------------------------------------------

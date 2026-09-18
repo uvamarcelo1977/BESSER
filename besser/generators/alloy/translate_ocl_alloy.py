@@ -66,9 +66,15 @@ class TranslatorState:
         date_ops:        OCL Date comparison operation registry used to
                          translate ordered date comparisons and to emit
                          ``date.als``.
+        maxseq:          Maximum length of the string sequences found when
+                         processing string literals (see
+                         :func:`process_string_types`).  Defaults to the
+                         generator scope (5) and is only raised when a
+                         longer string literal appears in a constraint.
     """
 
     cont_select: int = 0
+    maxseq: int = 5
     dates: list = field(default_factory=list)
     buffer_pred_aux: list = field(default_factory=list)
     is_set_origin: bool = True
@@ -1039,15 +1045,48 @@ def _field_type_of(subject_field: str, data: dict) -> str:
     return ""
 
 
-def process_string_types(input_string: str) -> str:
-    """Extracts string literals from *input_string* and generates a ``one sig`` per unique value.
+def _is_string_operand(subject: str, state: TranslatorState) -> bool:
+    """Returns ``True`` when *subject* is a String operand: a ``str``-typed
+    attribute or a quoted string literal that is not a date literal.
 
-    Removes surrounding single-quotes from the generated code.
+    Date literals are deliberately excluded because the date block in
+    :func:`_translate_binaryop` runs before the string block and owns them.
+    """
+    if _field_type_of(subject, state.data) == "str":
+        return True
+    stripped = subject.strip()
+    if (stripped.startswith("'") and stripped.endswith("'")) or (
+        stripped.startswith('"') and stripped.endswith('"')
+    ):
+        return is_date(stripped) is None
+    return False
+
+
+import re
+
+def process_string_types(input_string: str, state: TranslatorState | None = None) -> str:
+    """Extracts single-quoted string literals, removes duplicates, and generates a detailed
+    'one sig' for each. Returns the signatures followed by the input string without quotes.
+
+    Also records on *state* the maximum length of the extracted sequences
+    (``state.maxseq``), used later to bound the Alloy ``seq`` scope.
     """
     values = list(dict.fromkeys(re.findall(r"'([^']*)'", input_string)))
-    sigs = "".join(f"one sig {v} extends Str{{}}\n" for v in values)
+    if state is not None and values:
+        state.maxseq = max(state.maxseq, max(len(v) for v in values))
+    sigs_list = []
+    for v in values:
+        if not v:
+            sig_code = "one sig  extends Str {}{\n    no data\n}"
+        else:
+            lines_data = [f"    data[{i}] = {char}" for i, char in enumerate(v)]
+            body = "\n".join(lines_data)
+            sig_code = f"one sig {v} extends Str {{}}{{\n{body}\n}}"
+        sigs_list.append(sig_code)
+    sigs = "\n\n".join(sigs_list)
+    if sigs:
+        sigs += "\n\n"
     return sigs + input_string.replace("'", "")
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 7. INHERITANCE HIERARCHY UTILITIES
@@ -1155,10 +1194,24 @@ def _translate_binaryop(node: BinaryOp, inherits_from: dict, state: TranslatorSt
 
     if (
         op in (">", ">=", "<", "<=", "=", "!=")
-        and (is_left_date or is_right_date)
+        and (is_left_date and is_right_date)
         and "null" not in (left, right)
     ):
         return _translate_binaryop_date(op, left, right, bool(left_lit), bool(right_lit), state)
+
+    is_left_str = _is_string_operand(left, state)
+    is_right_str = _is_string_operand(right, state)
+
+    if (
+        op in ("=", "!=")
+        and (is_left_str and is_right_str)
+        and "null" not in (left, right)
+    ):
+        str_result = state.string_ops.translate_binary(op, left, right)
+        if str_result is None and op == "!=":
+            str_result = state.string_ops.translate_binary("<>", left, right)
+        if str_result is not None:
+            return str_result
 
     if op == "-":
         return left if right.lower() == "null" else f"minus[{left}, {right}]"
@@ -1444,4 +1497,4 @@ def ocl_to_alloy(
     invariante = predicate_tokens_to_str(toks, inherits_from, state)
     pred_aux = state.read_aux_pred()
     result = pred_aux + f"fact{{ all self:this/{context_name}|{invariante}}}"
-    return process_string_types(result)
+    return process_string_types(result, state)

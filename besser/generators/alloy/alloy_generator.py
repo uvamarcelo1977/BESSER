@@ -103,6 +103,7 @@ class AlloyGenerator(GeneratorInterface):
             constraints=model.constraints,
             sigsnv=sigs_nv,
             scope=self.scope,
+            maxseq=status.maxseq,
             facts_rules=facts_rules,
             string_ops=needs_str_ops,
             date_ops=needs_date_ops,
