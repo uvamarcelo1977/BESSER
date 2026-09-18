@@ -42,9 +42,9 @@ class StringOpsRegistry:
     """Registry of OCL String operations (3-tuples) and ``str_ops.als`` generator."""
 
     _DEFAULT_OPERATIONS = (
-        ("size", "len", "fun len[s: Str ] : Int { #(s.data)}"),
-        ("concat", "concat", "fun concat[s,m: Str] : Str { { res: Str | res.data = s.data.append[m.data]}}"),
-        ("substring", "substring", "fun substring[s: Str, i,j: Int] : Str { { res: Str | res.data = s.data.subseq[i,j]}}"),
+        ("size", "len", "fun len[s: Str ]: Int { #(s.data) }"),
+        ("concat", "concat", "fun concat[s, m: Str]: Str { { res: Str | res.data = s.data.append[m.data] } }"),
+        ("substring", "substring", "fun substring[s: Str, i, j: Int]: Str { { res: Str | res.data = s.data.subseq[i,j] } }"),
     )
 
     _DEFAULT_BINARY_OPERATIONS = (
@@ -108,12 +108,12 @@ class StringOpsRegistry:
         """
         snippets = "\n\n".join(entry[2] for entry in self._ops.values())
         content = (
-            "module string\n"
-            + "abstract sig Char {}\n"
-            + "one sig a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z extends Char {}\n"
-            + "sig   Str{\n"
+            "module string\n\n"
+            + "abstract sig Char {}\n\n"
+            + "one sig a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z extends Char {}\n\n"
+            + "sig Str {\n"
             + "    data: seq Char\n"
-            + "}\n"
+            + "}\n\n"
             + snippets
         )
         if string_block:

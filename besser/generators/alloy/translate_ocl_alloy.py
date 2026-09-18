@@ -80,7 +80,7 @@ class TranslatorState:
     """
 
     cont_select: int = 0
-    maxseq: int = 5
+    maxseq: int = 0
     dates: list = field(default_factory=list)
     strings: list = field(default_factory=list)
     buffer_pred_aux: list = field(default_factory=list)

@@ -208,7 +208,7 @@ def process_associations(model: DomainModel, data: dict) -> list[str]:
 
         if arrow_a_b and arrow_b_a:
             facts_rules.append(
-                f"fact{{{d.type.name}_{h.name} = ~{h.type.name}_{d.name}}}"
+                f"fact{{ {d.type.name}_{h.name} = ~{h.type.name}_{d.name} }}"
             )
 
     return facts_rules

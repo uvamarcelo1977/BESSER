@@ -14,7 +14,7 @@ open date
 open utils
 {% if string_ops or use_str -%}
 open strings
-{% endif %}
+{% endif -%}
 
 {% for tipo in basic_signatures -%}
 {% if tipo not in ['str','bool', 'int', 'float', 'date'] -%}
@@ -87,13 +87,6 @@ one sig {{ literals | join(',\n') | indent(8) }} extends {{ e.name }} {}
 {{ alloy_model(class_obj, associations_by_class.get(class_obj.name, [])) }}
 
 {% endfor %}
-{% if constraints -%}
-
-{% for c in constraints %}
-{{ c.expression }}
-{% endfor %}
-
-{% endif -%}
 {% set valid_sigsnv = [] -%}
 {% for sig in sigsnv | unique -%}
 {% if sig not in ['bool', 'int', 'float', 'Integer'] -%}
@@ -103,7 +96,14 @@ one sig {{ literals | join(',\n') | indent(8) }} extends {{ e.name }} {}
 {% if facts_rules %}
 {% for f in facts_rules if f | trim %}
 {{ f | trim }}
+
 {% endfor %}
+{% if constraints -%}
+{% for c in constraints %}
+{{ c.expression }}
+
+{% endfor %}
+{% endif -%}
 
 {% endif -%}
 pred instance_model {
