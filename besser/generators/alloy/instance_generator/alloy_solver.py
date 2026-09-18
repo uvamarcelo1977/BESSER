@@ -20,11 +20,6 @@ class AlloySolver:
         self.model = model
         self.output_dir = output_dir
         self.alloy_output_dir = os.path.join(self.output_dir, "alloy_output")
-        # TODO PABLO: I don't like that we need to create an AlloyGenerator object
-        # each time we want to generate instances. Needs refactor!
-        # Es cierto que cada vez que se crea un AlloySolver se genera invoca al generador. Una
-        # alternativa seria la de pasarle el modelo alloy ya creado , no se? me cerraba que 
-        #  AlloySolver se encargue de generar el alloy y de generar los diagramas de objetos.
         generator = AlloyGenerator(model=self.model, output_dir=self.output_dir, scope=self.scope)
         generator.generate()
         self.specification = os.path.join(self.output_dir, "model.als")
@@ -58,12 +53,9 @@ class AlloySolver:
         the class diagram to produce a complete BUML model code. 
         Returns the generated BUML model code in file ``output_dir/buml_class_object_model.py``.
         """
-
-
         (res, buml_instances) = self.generate_object_diagrams(num_instances=1)
         if res == AlloyResult.UNSAT:
             return AlloyResult.UNSAT
-
 
         outfile = os.path.join(self.output_dir, "buml_class_object_model.py")
         # Clean up previous file before writing a new one
