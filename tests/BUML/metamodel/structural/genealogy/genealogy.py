@@ -55,13 +55,7 @@ gen_Woman_Person = Generalization(general=Person, specific=Woman)
 Adam_inv_1_1: Constraint = Constraint(
     name="Adam_inv_1_1",
     context=Adam,
-    expression="context Adam inv Adam_inv_1_1 :  Adam.allInstances()->size() = 1",
-    language="OCL"
-)
-Adam_inv_4_1: Constraint = Constraint(
-    name="Adam_inv_4_1",
-    context=Adam,
-    expression="context Adam inv Adam_inv_4_1 : self.spouse.oclIsTypeOf(Eve) and self.spouse->size()=1",
+    expression="context Adam inv Adam_inv_1_1 :  Adam::allInstances()->size() = 1",
     language="OCL"
 )
 Adam_inv_8_1: Constraint = Constraint(
@@ -70,16 +64,22 @@ Adam_inv_8_1: Constraint = Constraint(
     expression="context Adam inv Adam_inv_8_1 : self.parents->isEmpty()",
     language="OCL"
 )
-Eve_inv_2_1: Constraint = Constraint(
-    name="Eve_inv_2_1",
-    context=Eve,
-    expression="context Eve inv Eve_inv_2_1 :  Eve.allInstances()->size() = 1",
+Adam_inv_4_1: Constraint = Constraint(
+    name="Adam_inv_4_1",
+    context=Adam,
+    expression="context Adam inv Adam_inv_4_1 : self.spouse.oclIsTypeOf(Eve) and self.spouse->size()=1",
     language="OCL"
 )
 Eve_inv_6_1: Constraint = Constraint(
     name="Eve_inv_6_1",
     context=Eve,
     expression="context Eve inv Eve_inv_6_1 : self.spouse.oclIsTypeOf(Adam) and self.spouse->size()=1",
+    language="OCL"
+)
+Eve_inv_2_1: Constraint = Constraint(
+    name="Eve_inv_2_1",
+    context=Eve,
+    expression="context Eve inv Eve_inv_2_1 :  Eve::allInstances()->size() = 1",
     language="OCL"
 )
 Eve_inv_7_1: Constraint = Constraint(
@@ -100,16 +100,16 @@ Person_inv_10_1: Constraint = Constraint(
     expression="context Person inv Person_inv_10_1 : self.parents->size()=2   implies self.parents->exists(p,q: Person | p.oclIsKindOf(Woman) and q.oclIsKindOf(Man))",
     language="OCL"
 )
-Person_inv_13_1: Constraint = Constraint(
-    name="Person_inv_13_1",
-    context=Person,
-    expression="context Person inv Person_inv_13_1 : self.spouse.parents->intersection(self.parents)->isEmpty()",
-    language="OCL"
-)
 Person_inv_14_1: Constraint = Constraint(
     name="Person_inv_14_1",
     context=Person,
     expression="context Person inv Person_inv_14_1  : self.parents->intersection(self.spouse)->isEmpty()",
+    language="OCL"
+)
+Person_inv_13_1: Constraint = Constraint(
+    name="Person_inv_13_1",
+    context=Person,
+    expression="context Person inv Person_inv_13_1 : self.spouse.parents->intersection(self.parents)->isEmpty()",
     language="OCL"
 )
 Person_inv_3_1: Constraint = Constraint(
@@ -124,16 +124,16 @@ Person_inv_5_1: Constraint = Constraint(
     expression="context Person inv Person_inv_5_1 : (self.spouse<>null) implies (self= self.spouse.spouse)",
     language="OCL"
 )
-Woman_inv_12_1: Constraint = Constraint(
-    name="Woman_inv_12_1",
-    context=Woman,
-    expression="context Woman inv Woman_inv_12_1 : self.spouse.oclIsKindOf(Man)",
-    language="OCL"
-)
 Person_inv_9_1: Constraint = Constraint(
     name="Person_inv_9_1",
     context=Person,
     expression="context Person inv Person_inv_9_1 :  not (self.oclIsTypeOf(Adam) or self.oclIsTypeOf(Eve)) implies (self.parents->size()=2)",
+    language="OCL"
+)
+Woman_inv_12_1: Constraint = Constraint(
+    name="Woman_inv_12_1",
+    context=Woman,
+    expression="context Woman inv Woman_inv_12_1 : self.spouse.oclIsKindOf(Man)",
     language="OCL"
 )
 
@@ -142,7 +142,7 @@ domain_model = DomainModel(
     name="Class_Diagram",
     types={Adam, Eve, Man, Person, Woman},
     associations={is_child_of, is_coupled_with},
-    constraints={Adam_inv_1_1, Adam_inv_4_1, Adam_inv_8_1, Eve_inv_2_1, Eve_inv_6_1, Eve_inv_7_1, Man_inv_11_1, Person_inv_10_1, Person_inv_13_1, Person_inv_14_1, Person_inv_3_1, Person_inv_5_1, Woman_inv_12_1, Person_inv_9_1},
+    constraints={Adam_inv_1_1, Adam_inv_8_1, Adam_inv_4_1, Eve_inv_6_1, Eve_inv_2_1, Eve_inv_7_1, Man_inv_11_1, Person_inv_10_1, Person_inv_14_1, Person_inv_13_1, Person_inv_3_1, Person_inv_5_1, Person_inv_9_1, Woman_inv_12_1},
     generalizations={gen_Adam_Man, gen_Eve_Woman, gen_Man_Person, gen_Woman_Person},
     metadata=None
 )

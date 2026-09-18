@@ -107,33 +107,21 @@ Patient_Doctor: BinaryAssociation = BinaryAssociation(
 )
 
 # Generalizations
-gen_Patient_Person = Generalization(general=Person, specific=Patient)
 gen_Doctor_Person = Generalization(general=Person, specific=Doctor)
+gen_Patient_Person = Generalization(general=Person, specific=Patient)
 
 
 # OCL Constraints
-MedicalRecord_inv_1_1: Constraint = Constraint(
-    name="MedicalRecord_inv_1_1",
-    context=MedicalRecord,
-    expression="context MedicalRecord inv MedicalRecord_inv_1_1 : self.createdDate > self.appointment.appointmentDate",
-    language="OCL"
-)
 Doctor_inv_2_1: Constraint = Constraint(
     name="Doctor_inv_2_1",
     context=Doctor,
     expression="context Doctor inv Doctor_inv_2_1 : self.scheduledAppointments ->size()>2",
     language="OCL"
 )
-Patient_inv_3_1: Constraint = Constraint(
-    name="Patient_inv_3_1",
-    context=Patient,
-    expression="context Patient inv Patient_inv_3_1 : self.bloodGroup=BloodType::AB_NEGATIVE",
-    language="OCL"
-)
-Patient_inv_4_1: Constraint = Constraint(
-    name="Patient_inv_4_1",
-    context=Patient,
-    expression="context Patient inv Patient_inv_4_1 : Patient.allInstances()->forAll(p| p.bloodGroup=BloodType::AB_NEGATIVE)",
+MedicalRecord_inv_1_1: Constraint = Constraint(
+    name="MedicalRecord_inv_1_1",
+    context=MedicalRecord,
+    expression="context MedicalRecord inv MedicalRecord_inv_1_1 : self.createdDate > self.appointment.appointmentDate",
     language="OCL"
 )
 Patient_inv_5_1: Constraint = Constraint(
@@ -142,20 +130,14 @@ Patient_inv_5_1: Constraint = Constraint(
     expression="context Patient inv Patient_inv_5_1 : (self.primaryDoctor<>null) implies (self.id<>self.primaryDoctor.id)",
     language="OCL"
 )
-Person_inv_6_1: Constraint = Constraint(
-    name="Person_inv_6_1",
-    context=Person,
-    expression="context Person inv Person_inv_6_1 : Person.allInstances()->forAll(c,p:Person | c.id=p.id   implies c=p)",
-    language="OCL"
-)
 
 # Domain Model
 domain_model = DomainModel(
     name="Class_Diagram",
     types={Doctor, MedicalAppointment, MedicalRecord, Patient, Person, AppointmentStatus, BloodType},
     associations={AppointmentRecord, DoctorAppointments, PatientAppointments, Patient_Doctor},
-    constraints={MedicalRecord_inv_1_1, Doctor_inv_2_1, Patient_inv_3_1, Patient_inv_4_1, Patient_inv_5_1, Person_inv_6_1},
-    generalizations={gen_Patient_Person, gen_Doctor_Person},
+    constraints={Doctor_inv_2_1, MedicalRecord_inv_1_1, Patient_inv_5_1},
+    generalizations={gen_Doctor_Person, gen_Patient_Person},
     metadata=None
 )
 

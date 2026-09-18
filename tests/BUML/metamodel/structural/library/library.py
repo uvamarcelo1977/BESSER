@@ -1,65 +1,204 @@
-from besser.BUML.metamodel.structural import DomainModel, Class, Property, \
-    Multiplicity, BinaryAssociation, StringType, IntegerType, DateType
-from besser.generators.python_classes import PythonGenerator
-from besser.generators.sql_alchemy import SQLAlchemyGenerator
-from besser.generators.sql import SQLGenerator
-from besser.generators.rest_api import RESTAPIGenerator
-from besser.generators.rdf import RDFGenerator
-from besser.generators.backend import BackendGenerator
+####################
+# STRUCTURAL MODEL #
+####################
 
-# Library attributes definition
-library_name: Property = Property(name="name", type=StringType)
-address: Property = Property(name="address", type=StringType)
-# Library class definition
-library: Class = Class(name="Library", attributes={library_name, address})
+from besser.BUML.metamodel.structural import (
+    Class, Property, Method, Parameter,
+    BinaryAssociation, Generalization, DomainModel,
+    Enumeration, EnumerationLiteral, Multiplicity,
+    StringType, IntegerType, FloatType, BooleanType,
+    TimeType, DateType, DateTimeType, TimeDeltaType,
+    AnyType, Constraint, AssociationClass, Metadata, MethodImplementationType
+)
+from besser.BUML.metamodel.object import ObjectModel
+import datetime
 
-# Book attributes definition
-title: Property = Property(name="title", type=StringType)
-pages: Property = Property(name="pages", type=IntegerType)
-release: Property = Property(name="release", type=DateType)
-# Book class definition
-book: Class = Class(name="Book", attributes={title, pages, release})
+# Enumerations
+Genre: Enumeration = Enumeration(
+    name="Genre",
+    literals={
+            EnumerationLiteral(name="Poetry"),
+			EnumerationLiteral(name="Thriller"),
+			EnumerationLiteral(name="History"),
+			EnumerationLiteral(name="Technology"),
+			EnumerationLiteral(name="Romance"),
+			EnumerationLiteral(name="Horror"),
+			EnumerationLiteral(name="Adventure"),
+			EnumerationLiteral(name="Philosophy"),
+			EnumerationLiteral(name="Cookbooks"),
+			EnumerationLiteral(name="Fantasy")
+    }
+)
 
-# Author attributes definition
-author_name: Property = Property(name="name", type=StringType)
-email: Property = Property(name="email", type=StringType)
-# Author class definition
-author: Class = Class(name="Author", attributes={author_name, email})
+# Classes
+Book = Class(name="Book")
+Library = Class(name="Library")
+Author = Class(name="Author")
 
-# Library-Book association definition
-located_in: Property = Property(name="locatedIn", type=library, multiplicity=Multiplicity(1, 1))
-has: Property = Property(name="has", type=book, multiplicity=Multiplicity(0, "*"))
-lib_book_association: BinaryAssociation = BinaryAssociation(name="lib_book_assoc", ends={located_in, has})
+# Book class attributes and methods
+Book_title: Property = Property(name="title", type=StringType)
+Book_pages: Property = Property(name="pages", type=IntegerType)
+Book_stock: Property = Property(name="stock", type=IntegerType)
+Book_price: Property = Property(name="price", type=FloatType)
+Book_release: Property = Property(name="release", type=DateType)
+Book_genre: Property = Property(name="genre", type=Genre)
+Book_m_decrease_stock: Method = Method(name="decrease_stock", parameters={Parameter(name='qty', type=IntegerType)}, implementation_type=MethodImplementationType.NONE)
+Book.attributes={Book_genre, Book_pages, Book_price, Book_release, Book_stock, Book_title}
+Book.methods={Book_m_decrease_stock}
 
-# Book-Author association definition
-publishes: Property = Property(name="publishes", type=book, multiplicity=Multiplicity(0, "*"))
-written_by: Property = Property(name="writtenBy", type=author, multiplicity=Multiplicity(1, "*"))
-book_author_association: BinaryAssociation = BinaryAssociation(name="book_author_assoc", ends={written_by, publishes})
+# Library class attributes and methods
+Library_name: Property = Property(name="name", type=StringType)
+Library_web_page: Property = Property(name="web_page", type=StringType)
+Library_address: Property = Property(name="address", type=StringType)
+Library_telephone: Property = Property(name="telephone", type=StringType)
+Library_m_cheapest_book_by: Method = Method(name="cheapest_book_by", parameters={Parameter(name='author', type=Author)}, type=StringType, implementation_type=MethodImplementationType.BAL)
+Library_m_cheapest_book_by.code = """def cheapest_book_by(author:Author) -> str {
+    cheapest:Book = null;
+	price = 1000000000.0;
+	for(book in this.books){
+        if(book.authors.contains(author)
+			&& book.price <= price){
+            cheapest = book;
+			price = book.price;
+		}
+    }
+	return cheapest.title;
+}"""
+Library.attributes={Library_address, Library_name, Library_telephone, Library_web_page}
+Library.methods={Library_m_cheapest_book_by}
 
-# Domain model definition
-library_model: DomainModel = DomainModel(name="Library_model", types={library, book, author},
-                                         associations={lib_book_association, book_author_association})
+# Author class attributes and methods
+Author_name: Property = Property(name="name", type=StringType)
+Author_birth: Property = Property(name="birth", type=DateType)
+Author.attributes={Author_birth, Author_name}
 
-# Getting the attributes of the Book class
-for attribute in book.attributes:
-    print(attribute.name)
+# Relationships
+books: BinaryAssociation = BinaryAssociation(
+    name="books",
+    ends={
+        Property(name="library", type=Library, multiplicity=Multiplicity(1, 9999)),
+        Property(name="books", type=Book, multiplicity=Multiplicity(0, 9999))
+    }
+)
+books_1: BinaryAssociation = BinaryAssociation(
+    name="books_1",
+    ends={
+        Property(name="authors", type=Author, multiplicity=Multiplicity(1, 9999)),
+        Property(name="books", type=Book, multiplicity=Multiplicity(0, 9999))
+    }
+)
 
-# Code Generation
 
-python_model = PythonGenerator(model=library_model)
-python_model.generate()
+# OCL Constraints
+book_positive_pages: Constraint = Constraint(
+    name="book_positive_pages",
+    context=Book,
+    expression="context Book inv book_positive_pages: self.pages > 0",
+    language="OCL"
+)
+book_nonneg_stock: Constraint = Constraint(
+    name="book_nonneg_stock",
+    context=Book,
+    expression="context Book inv book_nonneg_stock: self.stock >= 0",
+    language="OCL"
+)
+book_nonneg_price: Constraint = Constraint(
+    name="book_nonneg_price",
+    context=Book,
+    expression="context Book inv book_nonneg_price: self.price >= 0",
+    language="OCL"
+)
+library_named: Constraint = Constraint(
+    name="library_named",
+    context=Library,
+    expression="context Library inv library_named: self.name.size() > 0",
+    language="OCL"
+)
+book_has_title: Constraint = Constraint(
+    name="book_has_title",
+    context=Book,
+    expression="context Book inv book_has_title: self.title.size() > 0",
+    language="OCL"
+)
+library_has_books: Constraint = Constraint(
+    name="library_has_books",
+    context=Library,
+    expression="context Library inv library_has_books: self.books->size() > 0",
+    language="OCL"
+)
+author_named: Constraint = Constraint(
+    name="author_named",
+    context=Author,
+    expression="context Author inv author_named: self.name.size() > 0",
+    language="OCL"
+)
+decrease_stock_post_10_1: Constraint = Constraint(
+    name="decrease_stock_post_10_1",
+    context=Book,
+    expression="context Book::decrease_stock(qty: int) post: self.stock >= 0",
+    language="OCL"
+)
+Book_m_decrease_stock.add_post(decrease_stock_post_10_1)
+decrease_stock_pre_8_1: Constraint = Constraint(
+    name="decrease_stock_pre_8_1",
+    context=Book,
+    expression="context Book::decrease_stock(qty: int) pre: qty > 0",
+    language="OCL"
+)
+Book_m_decrease_stock.add_pre(decrease_stock_pre_8_1)
+decrease_stock_pre_9_1: Constraint = Constraint(
+    name="decrease_stock_pre_9_1",
+    context=Book,
+    expression="context Book::decrease_stock(qty: int) pre: self.stock >= qty",
+    language="OCL"
+)
+Book_m_decrease_stock.add_pre(decrease_stock_pre_9_1)
+cheapest_book_by_pre_11_1: Constraint = Constraint(
+    name="cheapest_book_by_pre_11_1",
+    context=Library,
+    expression="context Library::cheapest_book_by(author: Author) pre: self.books->size() > 0",
+    language="OCL"
+)
+Library_m_cheapest_book_by.add_pre(cheapest_book_by_pre_11_1)
 
-sql_alchemy = SQLAlchemyGenerator(model=library_model)
-sql_alchemy.generate()
+# Domain Model
+domain_model = DomainModel(
+    name="Library_with_OCL",
+    types={Book, Library, Author, Genre},
+    associations={books, books_1},
+    constraints={book_positive_pages, book_nonneg_stock, book_nonneg_price, library_named, book_has_title, library_has_books, author_named},
+    generalizations={},
+    metadata=None
+)
 
-sql = SQLGenerator(model=library_model)
-sql.generate()
+################
+# OBJECT MODEL #
+################
+author_0_obj = Author("Author_0").attributes(birth=datetime.datetime.fromisoformat("2025-03-04"), name="qpwz").build()
+book_0_obj = Book("Book_0").attributes(title="q", genre=Genre.Horror, pages=2, release=datetime.datetime.fromisoformat("2030-05-10"), stock=0, price=12.0).build()
+library_0_obj = Library("Library_0").attributes(web_page="qpwz", name="q", telephone="qpwz", address="q").build()
 
-rest_api = RESTAPIGenerator(model=library_model)
-rest_api.generate()
+book_0_obj.authors = author_0_obj
+library_0_obj.books = book_0_obj
 
-backend = BackendGenerator(model=library_model, http_methods=["GET", "POST", "PUT", "DELETE"], nested_creations=False)
-backend.generate()
+# Object Model instance
+object_model: ObjectModel = ObjectModel(
+    name="Object_Diagram",
+    objects={author_0_obj, book_0_obj, library_0_obj}
+)
 
-rdf = RDFGenerator(model=library_model)
-rdf.generate()
+
+######################
+# PROJECT DEFINITION #
+######################
+
+from besser.BUML.metamodel.project import Project
+from besser.BUML.metamodel.structural.structural import Metadata
+
+metadata = Metadata(description="")
+project = Project(
+    name="Genealogy_besser",
+    models=[domain_model, object_model],
+    owner="BESSER User",
+    metadata=metadata
+)

@@ -1272,6 +1272,35 @@ def test_string_ops_module_accepts_per_model_sig_block(tmpdir):
     assert "data[0] = J" in content
 
 
+def test_generator_omits_strings_module_without_str_fields(tmpdir):
+    """A model without str/string/Str fields must NOT open ``strings``.
+
+    The run command assigns no scope to ``Str``/``seq`` for such models, so
+    opening the strings module would leave the ``Str`` signature unbounded
+    and Alloy would fail.
+    """
+    Person = Class(name="Person")
+    Person.attributes = {
+        Property(name="age", type=IntegerType),
+        Property(name="hired", type=DateType),
+    }
+    model = DomainModel(name="NoStringsModel", types={Person})
+    spec, strings_als = _generate_string_spec(model, tmpdir)
+    assert "open strings" not in spec
+    assert strings_als == ""
+
+
+def test_generator_emits_strings_module_with_str_field(tmpdir):
+    """A model with a str-typed attribute opens ``strings`` and writes the
+    module, because the run command scopes ``Str``/``seq`` for it."""
+    spec, strings_als = _generate_string_spec(
+        _string_person_model([]), tmpdir
+    )
+    assert "open strings" in spec
+    assert "abstract sig Char" in strings_als
+    assert "sig   Str{" in strings_als
+
+
 def test_build_string_sigs_names_are_valid_identifiers():
     """build_string_sigs must always emit a valid Alloy sig name, even for
     the empty string and literals that are not Alloy identifiers."""

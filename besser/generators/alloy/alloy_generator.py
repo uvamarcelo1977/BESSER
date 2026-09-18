@@ -86,9 +86,8 @@ class AlloyGenerator(GeneratorInterface):
             resolve_ocl_date_literals(model.constraints)
 
         has_string_sigs = bool(status.strings)
-        needs_str_ops = (
-            bool(status.string_ops.registered_names()) or has_string_sigs
-        )
+        has_str_types = any(t in {"str", "string", "Str"} for t in basic_signatures)
+        needs_str_ops = has_str_types
         string_block = build_string_sigs(status.strings) if has_string_sigs else ""
         needs_date_ops = bool(status.dates) or ("date" in basic_signatures)
         classes = model.classes_sorted_by_inheritance()

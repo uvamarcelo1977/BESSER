@@ -12,7 +12,7 @@ open util/ordering[Date]
 open date
 {% endif -%}
 open utils
-{% if string_ops -%}
+{% if string_ops or use_str -%}
 open strings
 {% endif %}
 

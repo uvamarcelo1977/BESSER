@@ -3,80 +3,43 @@
 ####################
 
 from besser.BUML.metamodel.structural import (
-    Class, Property, BinaryAssociation, DomainModel,
-    Multiplicity,
-    IntegerType, Constraint, Metadata
+    Class, Property, Method, Parameter,
+    BinaryAssociation, Generalization, DomainModel,
+    Enumeration, EnumerationLiteral, Multiplicity,
+    StringType, IntegerType, FloatType, BooleanType,
+    TimeType, DateType, DateTimeType, TimeDeltaType,
+    AnyType, Constraint, AssociationClass, Metadata, MethodImplementationType
 )
 
 # Classes
-NodeCachingLinkedList = Class(name="NodeCachingLinkedList")
 LinkedListNode = Class(name="LinkedListNode")
-Integer = Class(name="Integer")
-
-
-# NodeCachingLinkedList class attributes and methods
-NodeCachingLinkedList_listSize: Property = Property(name="size", type=IntegerType)
-NodeCachingLinkedList_cacheSize: Property = Property(name="cacheSize", type=IntegerType)
-NodeCachingLinkedList_modCount: Property = Property(name="modCount", type=IntegerType)
-
-NodeCachingLinkedList_maximumCacheSize: Property = Property(name="maximumCacheSize", type=IntegerType)
-
-NodeCachingLinkedList_DEFAULT_MAXIMUM_CACHE_SIZE: Property = Property(
-    name="DEFAULT_MAXIMUM_CACHE_SIZE", type=IntegerType
-)
-NodeCachingLinkedList.attributes = {
-    NodeCachingLinkedList_maximumCacheSize,
-    NodeCachingLinkedList_DEFAULT_MAXIMUM_CACHE_SIZE,
-    NodeCachingLinkedList_cacheSize,
-    NodeCachingLinkedList_listSize,
-    NodeCachingLinkedList_modCount
-}
+NodeCachingLinkedList = Class(name="NodeCachingLinkedList")
 
 # LinkedListNode class attributes and methods
-    #LinkedListNode_value: Property = Property(name="value", type=IntegerType)
-    #LinkedListNode.attributes={LinkedListNode_value}
+LinkedListNode_value: Property = Property(name="value", type=IntegerType)
+LinkedListNode.attributes={LinkedListNode_value}
 
-#LinkedListNode_Object: BinaryAssociation = BinaryAssociation(
-#    name="LinkedListNode_Object",
-#    ends={
-#        Property(name="linkedlistnode", type=LinkedListNode, multiplicity=Multiplicity(0, 9999), is_navigable=False),
-#        Property(name="value", type=Object, multiplicity=Multiplicity(0, 1))
-#    }
-#)
-
-
-
-
-
-
+# NodeCachingLinkedList class attributes and methods
+NodeCachingLinkedList_DEFAULT_MAXIMUM_CACHE_SIZE: Property = Property(name="DEFAULT_MAXIMUM_CACHE_SIZE", type=IntegerType)
+NodeCachingLinkedList_cacheSize: Property = Property(name="cacheSize", type=IntegerType)
+NodeCachingLinkedList_maximumCacheSize: Property = Property(name="maximumCacheSize", type=IntegerType)
+NodeCachingLinkedList_modCount: Property = Property(name="modCount", type=IntegerType)
+NodeCachingLinkedList_size: Property = Property(name="size", type=IntegerType)
+NodeCachingLinkedList.attributes={NodeCachingLinkedList_DEFAULT_MAXIMUM_CACHE_SIZE, NodeCachingLinkedList_cacheSize, NodeCachingLinkedList_maximumCacheSize, NodeCachingLinkedList_modCount, NodeCachingLinkedList_size}
 
 # Relationships
-
-LL_1: BinaryAssociation = BinaryAssociation(
-    name="LL_1",
-    ends={
-        Property(name="rol_3", type=LinkedListNode, multiplicity=Multiplicity(0, 1), is_navigable=False),
-        Property(name="value", type=Integer, multiplicity=Multiplicity(0, 1))
-    }
-)
-
-
-
-
-NodeCachingLL_NodeLL_1: BinaryAssociation = BinaryAssociation(
-    name="NodeCachingLL_NodeLL_1",
-    ends={
-        Property(name="rol_2", type=NodeCachingLinkedList, multiplicity=Multiplicity(0, 1), is_navigable=False),
-        Property(name="firstCachedNode", type=LinkedListNode, multiplicity=Multiplicity(0, 1))
-    }
-)
-
-
 NodeCachingLL_NodeLL: BinaryAssociation = BinaryAssociation(
     name="NodeCachingLL_NodeLL",
     ends={
         Property(name="rol_1", type=NodeCachingLinkedList, multiplicity=Multiplicity(0, 1), is_navigable=False),
         Property(name="header", type=LinkedListNode, multiplicity=Multiplicity(1, 1))
+    }
+)
+NodeCachingLL_NodeLL_1: BinaryAssociation = BinaryAssociation(
+    name="NodeCachingLL_NodeLL_1",
+    ends={
+        Property(name="rol_2", type=NodeCachingLinkedList, multiplicity=Multiplicity(0, 1), is_navigable=False),
+        Property(name="firstCachedNode", type=LinkedListNode, multiplicity=Multiplicity(0, 1))
     }
 )
 NodeLL_NodeLL: BinaryAssociation = BinaryAssociation(
@@ -86,7 +49,6 @@ NodeLL_NodeLL: BinaryAssociation = BinaryAssociation(
         Property(name="next", type=LinkedListNode, multiplicity=Multiplicity(0, 1))
     }
 )
-
 NodeLL_NodeLL_3: BinaryAssociation = BinaryAssociation(
     name="NodeLL_NodeLL_3",
     ends={
@@ -96,159 +58,83 @@ NodeLL_NodeLL_3: BinaryAssociation = BinaryAssociation(
 )
 
 
-
-
-
 # OCL Constraints
-#    @Invariant 
-#		( this.header!=null ) &&
-inv_1: Constraint = Constraint(
-    name="inv_1",
+NodeCachingLinkedList_inv_1_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_1_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : self.header<>null",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_1_1 : self.header<>null",
     language="OCL"
 )
-
-inv_1_1: Constraint = Constraint(
-    name="inv_1_1",
+NodeCachingLinkedList_inv_3_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_3_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : self.header.value=null",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_3_1 : (self.size) >=0",
     language="OCL"
 )
-
-# 		( this.header.next!=null ) &&
-#		( this.header.previous!=null ) &&
-
-inv_2: Constraint = Constraint(
-    name="inv_2",
+NodeCachingLinkedList_inv_2_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_2_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : (self.header.next<>null) and (self.header.previous<>null))",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_2_1 : (self.header.next<>null) and (self.header.previous<>null)",
     language="OCL"
 )
-
-# 		( this.size>=0 ) &&
-
-inv_3: Constraint = Constraint(
-    name="inv_3",
+NodeCachingLinkedList_inv_4_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_4_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : (self.size) >=0",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_4_1 :  self.cacheSize <= self.maximumCacheSize",
     language="OCL"
 )
-
-# 		( this.cacheSize <= this.maximumCacheSize ) &&
-
-inv_4: Constraint = Constraint(
-    name="inv_4",
+NodeCachingLinkedList_inv_5_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_5_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv :  self.cacheSize <= self.maximumCacheSize",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_5_1 : self.DEFAULT_MAXIMUM_CACHE_SIZE=6",
     language="OCL"
 )
-
-# 		( this.DEFAULT_MAXIMUM_CACHE_SIZE == 6 ) &&
-
-inv_5: Constraint = Constraint(
-    name="inv_5",
+NodeCachingLinkedList_inv_6_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_6_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : self.DEFAULT_MAXIMUM_CACHE_SIZE=6",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_6_1 : (self.size) = self.header->closure(next)->excluding(null) -> size()-1",
     language="OCL"
 )
-
-
-# 		( this.size==#(this.header.*next @- null)-1 ) &&
-
-
-inv_6: Constraint = Constraint(
-    name="inv_6",
+NodeCachingLinkedList_inv_7_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_7_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : "
-               "(self.size) = self.header->closure(next)->excluding(null) -> size()-1",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_7_1 : self.cacheSize = self.firstCachedNode->closure(next)->excluding(null) -> size()",
     language="OCL"
 )
-
-# 		( this.cacheSize == #(this.firstCachedNode.*next @- null) ) &&
-
-inv_7: Constraint = Constraint(
-    name="inv_7",
+NodeCachingLinkedList_inv_8_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_8_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : "
-               "self.cacheSize = self.firstCachedNode->closure(next)->excluding(null) -> size()",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_8_1 : self.firstCachedNode->closure(next)->excluding(null)->forAll(n:LinkedListNode| (n.previous=null) and  (n.next->closure(next)->excludes(n)))",
     language="OCL"
 )
-
-# 		(all m: LinkedListNode | ( m in this.firstCachedNode.*next @- null ) => (
-# 				  m !in m.next.*next @- null &&
-# 				  m.previous==null &&
-# 				  m.value==null )) &&
-
-inv_8: Constraint = Constraint(
-    name="inv_8",
+NodeCachingLinkedList_inv_9_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_9_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : self.firstCachedNode->closure(next)->excluding(null)->" \
-    "forAll(n:LinkedListNode| (n.previous=null) and  (n.next->closure(next)->excludes(n)))",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_9_1 : self.firstCachedNode->closure(next)->excluding(null)->forAll(n:LinkedListNode|  n.value=null)",
     language="OCL"
 )
-
-
-
-inv_83: Constraint = Constraint(
-    name="inv_83",
+NodeCachingLinkedList_inv_10_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_10_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : "
-               "self.firstCachedNode->closure(next)->excluding(null)"
-               "->forAll(n:LinkedListNode|  n.value=null)",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_10_1 : self.firstCachedNode->closure(next)->excluding(null)->forAll(n:LinkedListNode| (n.next->closure(next)->excludes(n)))",
     language="OCL"
 )
-
-
-
-
-#Este invariante no obliga a que los nodos de la lista cache tengan el next y previous null, 
-inv_8_1: Constraint = Constraint(
-    name="inv_8_1",
+NodeCachingLinkedList_inv_11_1: Constraint = Constraint(
+    name="NodeCachingLinkedList_inv_11_1",
     context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : self.firstCachedNode->closure(next)->excluding(null)->" \
-    "forAll(n:LinkedListNode| (n.next->closure(next)->excludes(n)))",
+    expression="context NodeCachingLinkedList inv NodeCachingLinkedList_inv_11_1 : self.header->closure(next)->excluding(null)->forAll(n:LinkedListNode |((n<>null and n.next<>null) and (n.previous<>null and n.next.previous=n)) and (n.previous.next=n))",
     language="OCL"
 )
-
-
-
-
-
-# 		(all n: LinkedListNode | ( n in this.header.*next @- null ) => (
-# 				  n!=null &&
-# 				  n.previous!=null &&
-# 				  n.previous.next==n &&
-# 				  n.next!=null &&
-# 				  n.next.previous==n )) ; 
-
-
-inv_9: Constraint = Constraint(
-    name="inv_9",
-    context=NodeCachingLinkedList,
-    expression="context NodeCachingLinkedList inv : self.header->closure(next)"
-               "->excluding(null)->forAll(n:LinkedListNode |"
-               "((n<>null and n.next<>null) and (n.previous<>null and n.next.previous=n)) "
-               "and (n.previous.next=n))",
-    language="OCL"
-)
-
-
-
-
-
 
 # Domain Model
 domain_model = DomainModel(
     name="Class_Diagram",
-    types={NodeCachingLinkedList, LinkedListNode,Integer},
-    associations={LL_1,NodeLL_NodeLL_3, NodeLL_NodeLL, NodeCachingLL_NodeLL, NodeCachingLL_NodeLL_1},
-    #constraints={inv_1, inv_2, inv_3, inv_4, inv_5, inv_6, inv_7, inv_8, inv_9},
-    constraints={inv_1, inv_1_1, inv_2, inv_3, inv_4,inv_5,inv_6,inv_7,inv_8,inv_9,inv_83},
+    types={LinkedListNode, NodeCachingLinkedList},
+    associations={NodeCachingLL_NodeLL, NodeCachingLL_NodeLL_1, NodeLL_NodeLL, NodeLL_NodeLL_3},
+    constraints={NodeCachingLinkedList_inv_1_1, NodeCachingLinkedList_inv_3_1, NodeCachingLinkedList_inv_2_1, NodeCachingLinkedList_inv_4_1, NodeCachingLinkedList_inv_5_1, NodeCachingLinkedList_inv_6_1, NodeCachingLinkedList_inv_7_1, NodeCachingLinkedList_inv_8_1, NodeCachingLinkedList_inv_9_1, NodeCachingLinkedList_inv_10_1, NodeCachingLinkedList_inv_11_1},
     generalizations={},
     metadata=None
 )
-
 
 
 ######################
@@ -256,6 +142,7 @@ domain_model = DomainModel(
 ######################
 
 from besser.BUML.metamodel.project import Project
+from besser.BUML.metamodel.structural.structural import Metadata
 
 metadata = Metadata(description="The OCL invariant may be redundant.")
 project = Project(
@@ -264,11 +151,3 @@ project = Project(
     owner="nnn",
     metadata=metadata
 )
-
-import os
-from besser.generators.alloy import AlloyGenerator
-
-
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
-alloy_model = AlloyGenerator(model=domain_model, output_dir=OUTPUT_DIR)
-alloy_model.generate()
