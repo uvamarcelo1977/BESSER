@@ -69,12 +69,12 @@ assert result == AlloyResult.SAT, "The model is not consistent."
 
 # Generate four BUML object diagrams using Alloy
 solver = AlloySolver(library_model, output_dir="outdir", scope=3)
-(res, instance_xml_files) = solver.generate_object_diagrams(num_instances=4)
-assert result == AlloyResult.SAT, "The model is not consistent."
-assert len(instance_xml_files) == 4, "The number of generated instances is not correct."
+(res, buml_instances) = solver.generate_object_diagrams(num_instances=4)
+assert res == AlloyResult.SAT, "The model is not consistent."
+assert len(buml_instances) == 4, "The number of generated instances is not correct."
 
 # Generates a complete BUML project code including: The class diagram in BUML, and an instance 
 # automatically generated using Alloy.
-solver = AlloySolver(library_model, output_dir="outdir", scope=3)
+solver = AlloySolver(library_model, output_dir="ouotro_dir", scope=3)
 solver.generate_class_and_object_model()
 assert result == AlloyResult.SAT, "The model is not consistent."

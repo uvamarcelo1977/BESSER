@@ -35,13 +35,15 @@ from besser.generators.alloy.alloy_utils_generator import (
     process_associations,
     translate_constraints,
 )
+from besser.generators.alloy.instance_generator.alloy_analyzer_executor import (
+    AlloyAnalyzerExecutor,
+    AlloyResult,
+)
 from besser.generators.alloy.instance_generator.alloy_solver import (
     AlloySolver,
 )
-from besser.generators.alloy.instance_generator.alloy_analyzer_executor import (
-    parse_receipt,
-    resolve_alloy_jar_path,
-    resolve_java_path,
+from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json.object_diagram_converter import (
+    object_buml_to_json,
 )
 
 # ---------------------------------------------------------------------------
@@ -84,7 +86,14 @@ def _alloy_real():
     actual ``java -jar alloy.jar`` call; if the jar or a JRE is missing they are
     skipped rather than failing.
     """
-    return resolve_alloy_jar_path() is not None and resolve_java_path() is not None
+    try:
+        executor = AlloyAnalyzerExecutor()
+    except RuntimeError:
+        return False
+    return bool(
+        getattr(executor, "alloy_jar_path", None)
+        and getattr(executor, "java_path", None)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -189,36 +198,42 @@ class TestAlloySolverConstruction:
         assert {a.name for a in original.attributes} == {"1attr"}
 
 
-class TestAlloySolverJarResolution:
+class TestAlloyAnalyzerExecutorResolution:
 
     def test_uses_besser_alloy_jar_env_var(self, tmp_path, monkeypatch):
         fake_jar = tmp_path / "alloy.jar"
         fake_jar.write_text("", encoding="utf-8")
         monkeypatch.setenv("BESSER_ALLOY_JAR", str(fake_jar))
 
-        assert resolve_alloy_jar_path() == str(fake_jar)
+        assert AlloyAnalyzerExecutor().alloy_jar_path == str(fake_jar)
 
-    def test_falls_back_to_default_location_when_env_var_invalid(self, monkeypatch):
-        # An invalid BESSER_ALLOY_JAR must not crash; it falls back to the
-        # bundled jar shipped under besser/BUML/notations/ocl/consistency/.
+    def test_raises_when_env_var_invalid(self, monkeypatch):
+        # An invalid BESSER_ALLOY_JAR must not silently fall back: the executor
+        # cannot run without the analyzer jar.
         monkeypatch.setenv("BESSER_ALLOY_JAR", "/nonexistent/alloy.jar")
 
-        jar_path = resolve_alloy_jar_path()
+        with pytest.raises(RuntimeError):
+            AlloyAnalyzerExecutor()
 
-        assert jar_path is None or jar_path.endswith("alloy.jar")
 
+class TestAlloySolverReceiptParsing:
 
-class TestAlloySolverExecuteAndParse:
-
-    def test_parse_receipt_reports_error_when_missing(self, tmp_path):
+    def test_receipt_missing_reports_error(self, tmp_path):
         exec_output_dir = tmp_path / "exec_out"
         exec_output_dir.mkdir()
-        fake_result = subprocess.CompletedProcess(args=["java"], returncode=0, stdout="boom", stderr="")
+        fake_result = subprocess.CompletedProcess(
+            args=["java"], returncode=0, stdout="boom", stderr=""
+        )
 
-        parsed, error = parse_receipt(str(exec_output_dir), fake_result)
+        executor = AlloyAnalyzerExecutor.__new__(AlloyAnalyzerExecutor)
+        executor.output_dir = str(exec_output_dir)
 
-        assert parsed is None
-        assert error["isValid"] is False
+        with pytest.raises(RuntimeError) as exc_info:
+            executor._check_satisfiability_in_alloy_receipt_json(fake_result)
+        # The real Alloy output must be surfaced so upstream failures are
+        # diagnosable instead of showing a generic "no receipt.json" message.
+        assert "no receipt.json" in str(exc_info.value)
+        assert "boom" in str(exc_info.value)
 
 
 class TestAlloySolverPipelineWithoutEndpoint:
@@ -233,63 +248,8 @@ class TestAlloySolverPipelineWithoutEndpoint:
         if not _alloy_real():
             pytest.skip("Real Alloy Analyzer (alloy.jar + java) not available")
 
-    def test_check_consistency(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-
-        satisfiable = solver.check_consistency()
-        assert satisfiable is True
-
-    def test_generate_instance_xml(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-
-        xml_path = solver.generate_instance_xml()
-
-        assert xml_path is not None
-        assert os.path.isfile(xml_path)
-        assert Path(xml_path).suffix == ".xml"
-
-    def test_generate_object_diagrams(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
-
-        assert codes is not None
-        assert isinstance(codes, list)
-        assert 'Person("Person_' in codes[0]
-        assert "ObjectModel(" in codes[0]
-
-    def test_generate_object_diagrams_writes_file(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-
-        codes = solver.generate_object_diagrams()
-
-        assert codes is not None
-        assert isinstance(codes, list)
-        assert len(codes) == 1
-        assert "ObjectModel(" in codes[0]
-        instance_file = Path(solver.output_dir) / "buml_object_instance1.py"
-        assert instance_file.is_file()
-        assert "ObjectModel(" in instance_file.read_text(encoding="utf-8")
-
-    def test_generate_object_diagrams_multiple_instances(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-
-        codes = solver.generate_object_diagrams(num_instances=3)
-
-        assert isinstance(codes, list)
-        assert len(codes) >= 1
-        assert all("ObjectModel(" in code for code in codes)
-        written = sorted(Path(solver.output_dir).glob("buml_object_instance*.py"))
-        assert len(written) == len(codes)
-        expected_names = [f"buml_object_instance{i}.py" for i in range(1, len(codes) + 1)]
-        assert [p.name for p in written] == expected_names
-
-    def test_generate_object_diagram_json(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        reference_model = {
+    def _reference_model(self):
+        return {
             "elements": {
                 "elem_1": {
                     "name": "Person",
@@ -299,22 +259,92 @@ class TestAlloySolverPipelineWithoutEndpoint:
             },
             "relationships": {},
         }
-        obj_json = solver.generate_object_diagram_json(reference_model, xml_instance_path=xml_path)
+
+    def test_check_consistency(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+
+        result = solver.check_consistency()
+
+        assert result == AlloyResult.SAT
+
+    def test_object_diagrams_string_only_model_scope_8(self, tmpdir):
+        """Regression: a str-only model (no Int attributes) at scope >= 8 used to
+        fail because Alloy's default integer bitwidth (4) caps sequence length
+        at 7, while the generated run command requested an 8-element seq."""
+        person = Class(name="Person")
+        person.attributes = {Property(name="name", type=StringType)}
+        model = DomainModel(name="StrOnlyModel", types={person})
+
+        solver = AlloySolver(model=model, output_dir=str(tmpdir.mkdir("out")), scope=8)
+
+        result, codes = solver.generate_object_diagrams()
+
+        assert result == AlloyResult.SAT
+        assert codes
+        assert 'Person("Person_' in codes[0]
+
+    def test_check_consistency_scope_8_string_model(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=8)
+
+        result = solver.check_consistency()
+
+        assert result == AlloyResult.SAT
+
+    def test_generate_object_diagrams(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+
+        result, codes = solver.generate_object_diagrams()
+
+        assert result == AlloyResult.SAT
+        assert isinstance(codes, list)
+        assert len(codes) >= 1
+        assert 'Person("Person_' in codes[0]
+        assert "ObjectModel(" in codes[0]
+
+    def test_generate_class_and_object_model_writes_file(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+
+        result = solver.generate_class_and_object_model()
+
+        assert result == AlloyResult.SAT
+        outfile = Path(solver.output_dir) / "buml_class_object_model.py"
+        assert outfile.is_file()
+        content = outfile.read_text(encoding="utf-8")
+        assert "# OBJECT MODEL #" in content
+        assert 'Person("Person_' in content
+
+    def test_generate_object_diagrams_multiple_instances(self, person_model, tmpdir):
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+
+        result, codes = solver.generate_object_diagrams(num_instances=3)
+
+        assert result == AlloyResult.SAT
+        assert isinstance(codes, list)
+        assert 1 <= len(codes) <= 3
+        assert "ObjectModel(" in codes[0]
+
+    def test_generate_object_diagram_json(self, person_model, tmpdir):
+        """The default dialect is the "editor" dialect, which must yield a
+        parsable ObjectDiagram JSON when fed to the web editor converter."""
+        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
+
+        reference_model = self._reference_model()
+        result, codes = solver.generate_object_diagrams()
+
+        assert result == AlloyResult.SAT
+        assert codes
+        obj_json = object_buml_to_json(codes[0], reference_model)
 
         assert obj_json is not None
         assert "elements" in obj_json
+        object_names = {
+            elem["name"]
+            for elem in obj_json["elements"].values()
+            if elem.get("type") == "ObjectName"
+        }
+        assert any(name.startswith("Person_") for name in object_names)
 
-    def test_generate_integrated_buml_model(self, person_model, tmpdir):
-        solver = AlloySolver(model=person_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
-
-        integrated_code = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
-
-        assert integrated_code is not None
-        assert "# OBJECT MODEL #" in integrated_code
-        assert 'Person("Person_' in integrated_code
-
-    def test_generate_object_diagrams_returns_none_when_unsat(self, person_model, tmpdir):
+    def test_generate_object_diagrams_returns_empty_when_unsat(self, person_model, tmpdir):
         # A model is guaranteed to be unsatisfiable by adding two contradictory
         # OCL invariants, which are translated to mutually exclusive Alloy facts.
         from besser.BUML.metamodel.structural import Constraint
@@ -342,7 +372,10 @@ class TestAlloySolverPipelineWithoutEndpoint:
 
         solver = AlloySolver(model=unsat_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        assert solver.generate_object_diagrams() is None
+        result, codes = solver.generate_object_diagrams()
+
+        assert result == AlloyResult.UNSAT
+        assert codes == []
 
 
 # ---------------------------------------------------------------------------
@@ -364,30 +397,31 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
 
-        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
+        result, codes = solver.generate_object_diagrams()
 
-        assert codes is not None
+        assert result == AlloyResult.SAT
         assert isinstance(codes, list)
+        assert len(codes) >= 1
         assert re.search(r'^\w+_obj = Team\("Team_', codes[0], re.MULTILINE)
         assert re.search(r'^\w+_obj = Player\("Player_', codes[0], re.MULTILINE)
 
     def test_generate_object_diagrams_includes_attributes(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
 
-        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
+        result, codes = solver.generate_object_diagrams(for_editor=False)
 
+        assert result == AlloyResult.SAT
         assert "'name':" in codes[0]
         assert "'age':" in codes[0]
 
     def test_generate_object_diagrams_includes_association(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
 
-        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
+        result, codes = solver.generate_object_diagrams(for_editor=False)
 
+        assert result == AlloyResult.SAT
+        # The executable dialect preserves many-valued links through setattr.
         assert "setattr(" in codes[0]
         # The association should connect team to players or vice versa
         assert "team" in codes[0]
@@ -395,34 +429,38 @@ class TestAlloySolverInstanceGenerationRichModel:
 
     def test_generate_object_diagrams_object_model_contains_all(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
 
-        codes = solver.generate_object_diagrams(xml_instance_path=xml_path)
+        result, codes = solver.generate_object_diagrams()
 
+        assert result == AlloyResult.SAT
         assert "ObjectModel(" in codes[0]
         # Team and Player objects must appear in the ObjectModel constructor
         assert "Team(" in codes[0]
         assert "Player(" in codes[0]
 
-    def test_generate_integrated_buml_model_team_player(self, team_player_model, tmpdir):
+    def test_generate_class_and_object_model_team_player(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
 
-        integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
+        result = solver.generate_class_and_object_model()
 
-        assert integrated is not None
+        assert result == AlloyResult.SAT
+        outfile = Path(solver.output_dir) / "buml_class_object_model.py"
+        integrated = outfile.read_text(encoding="utf-8")
         assert "# OBJECT MODEL #" in integrated
         assert 'Team("Team_' in integrated
         assert 'Player("Player_' in integrated
 
-    def test_generate_integrated_buml_model_executes(self, team_player_model, tmpdir):
+    def test_generate_class_and_object_model_executes(self, team_player_model, tmpdir):
         # The integrated model is a valid .py script: it can be exec'd to
         # reconstruct the class diagram + object model from the real Alloy
         # instance.
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
 
-        integrated = solver.generate_integrated_buml_model(xml_instance_path=xml_path)
+        result = solver.generate_class_and_object_model()
+
+        assert result == AlloyResult.SAT
+        outfile = Path(solver.output_dir) / "buml_class_object_model.py"
+        integrated = outfile.read_text(encoding="utf-8")
 
         namespace = {}
         exec(compile(integrated, "<integrated>", "exec"), namespace)  # noqa: S102
@@ -435,9 +473,50 @@ class TestAlloySolverInstanceGenerationRichModel:
         assert "Team" in class_names
         assert "Player" in class_names
 
-    def test_generate_object_diagram_json_team_player(self, team_player_model, tmpdir):
+    def test_generate_class_and_object_model_object_links(self, team_player_model, tmpdir):
+        """The integrated file's OBJECT MODEL section must re-import into the
+        editor keeping the object relationships (ObjectLinks).
+
+        Regression test: ``generate_class_and_object_model`` used to emit the
+        object model in the executable dialect (``setattr`` calls), which the
+        web editor's ``object_buml_to_json`` only parses into ObjectLink
+        relationships when the assignment is a plain ``obj.role = target``."""
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
-        xml_path = solver.generate_instance_xml()
+
+        result = solver.generate_class_and_object_model()
+
+        assert result == AlloyResult.SAT
+        outfile = Path(solver.output_dir) / "buml_class_object_model.py"
+        integrated = outfile.read_text(encoding="utf-8")
+        obj_section = integrated.split("# OBJECT MODEL #", 1)[1].split("######################", 1)[0]
+
+        reference_model = {
+            "elements": {
+                "e_team": {"name": "Team", "type": "Class", "attributes": {}},
+                "e_player": {"name": "Player", "type": "Class", "attributes": {}},
+            },
+            "relationships": {
+                "r_plays_for": {
+                    "type": "ClassBidirectional",
+                    "source": {"role": "players"},
+                    "target": {"role": "team"},
+                },
+            },
+        }
+
+        obj_json = object_buml_to_json(obj_section, reference_model)
+
+        assert obj_json is not None
+        links = [
+            rel for rel in obj_json["relationships"].values()
+            if rel.get("type") == "ObjectLink"
+        ]
+        assert links, "the imported object diagram must contain ObjectLink relationships"
+
+    def test_generate_object_diagram_json_team_player(self, team_player_model, tmpdir):
+        """Editor-dialect code must convert to an ObjectDiagram JSON that keeps
+        the objects and their attributes."""
+        solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
         reference_model = {
             "elements": {
@@ -457,14 +536,29 @@ class TestAlloySolverInstanceGenerationRichModel:
             },
             "relationships": {},
         }
-        obj_json = solver.generate_object_diagram_json(reference_model, xml_instance_path=xml_path)
+        result, codes = solver.generate_object_diagrams()
+
+        assert result == AlloyResult.SAT
+        assert codes
+        obj_json = object_buml_to_json(codes[0], reference_model)
 
         assert obj_json is not None
         assert "elements" in obj_json
+        object_names = {
+            elem["name"]
+            for elem in obj_json["elements"].values()
+            if elem.get("type") == "ObjectName"
+        }
+        assert any(name.startswith("Team_") for name in object_names)
+        assert any(name.startswith("Player_") for name in object_names)
+        assert any(
+            elem.get("type") == "ObjectAttribute"
+            for elem in obj_json["elements"].values()
+        )
 
     def test_check_consistency(self, team_player_model, tmpdir):
         solver = AlloySolver(model=team_player_model, output_dir=str(tmpdir.mkdir("out")), scope=self.scope)
 
-        satisfiable = solver.check_consistency()
+        result = solver.check_consistency()
 
-        assert satisfiable is True
+        assert result == AlloyResult.SAT

@@ -170,6 +170,15 @@ async def check_alloy_consistency_stream(input_data: DiagramInput) -> AsyncGener
                     warnings=all_warnings,
                 )
                 return
+            except Exception as exc:
+                logger.exception("Unexpected error during Alloy SAT check (scope %s)", scope)
+                yield _event_failure(
+                    f" Semantic check failed with an unexpected error at scope {scope}.",
+                    sat=False,
+                    errors=[str(exc)] if str(exc).strip() else [],
+                    warnings=all_warnings,
+                )
+                return
 
             if check["error"]:
                 yield _sse({**check["error"], "done": True})
@@ -253,6 +262,15 @@ async def generate_alloy_do_stream(input_data: DiagramInput) -> AsyncGenerator[s
                 yield _event_failure(
                     f"⏱️ Timeout after {TIMEOUT_SECONDS}s with scope {scope} — model may be unsatisfiable.",
                     sat=False,
+                    warnings=all_warnings,
+                )
+                return
+            except Exception as exc:
+                logger.exception("Unexpected error during Alloy SAT check (scope %s)", scope)
+                yield _event_failure(
+                    f" Semantic check failed with an unexpected error at scope {scope}.",
+                    sat=False,
+                    errors=[str(exc)] if str(exc).strip() else [],
                     warnings=all_warnings,
                 )
                 return
@@ -360,8 +378,11 @@ def run_alloy_sat_validation(
             ),
         }
 
-    # Execute the generated specification, producing BUML object instances
-    result, buml_instances = solver.generate_object_diagrams(num_instances=1)
+    # Execute the generated specification, producing BUML object instances.
+    # for_editor=True emits the code in the dialect the (development) web-editor
+    # object_buml_to_json converter can parse (plain attribute assignments and
+    # literal attribute values) instead of the executable setattr/datetime form.
+    result, buml_instances = solver.generate_object_diagrams(num_instances=1, for_editor=True)
 
     if result == AlloyResult.TIMEOUT:
         return {

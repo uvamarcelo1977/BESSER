@@ -18,6 +18,8 @@ class AlloyAnalyzerExecutor():
     GLOBAL_TIMEOUT = 40  # seconds
 
     def __init__(self):
+        self.java_path = None
+        self.alloy_jar_path = None
         self._resolve_java_path()
         self._resolve_alloy_jar_path()
 
@@ -61,9 +63,12 @@ class AlloyAnalyzerExecutor():
         """
         receipt_path = os.path.join(self.output_dir, "receipt.json")
         if not os.path.exists(receipt_path):
-            output = result.stdout + result.stderr
+            output = (result.stdout or "") + (result.stderr or "")
             logger.warning("Alloy exec produced no receipt.json. Output: %s", output[:500])
-            raise RuntimeError("Alloy execution produced no receipt.json. Check Alloy output for errors.")
+            raise RuntimeError(
+                "Alloy execution produced no receipt.json. "
+                "Check Alloy output for errors: " + output.strip()[:1000]
+            )
 
         with open(receipt_path, "r", encoding="utf-8") as f:
             receipt = json.load(f)

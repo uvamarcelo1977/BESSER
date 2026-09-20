@@ -10,6 +10,21 @@ from pathlib import Path
 
 StringOp = tuple[str, str, str]
 
+_LOWERCASE_ATOMS = "abcdefghijklmnopqrstuvwxyz"
+
+
+def _char_atom(char: str) -> str:
+    """Returns the Alloy Char atom name for *char*.
+
+    The ``strings`` module pre-declares one sig per lowercase letter
+    (``one sig a,b,...,z extends Char``); any other character (space, digit,
+    punctuation, uppercase, non-ASCII) maps to a generated ``c<ascii>`` sig
+    that :func:`build_string_sigs` declares alongside the literal sigs.
+    """
+    if char in _LOWERCASE_ATOMS:
+        return char
+    return f"c{ord(char)}"
+
 
 def build_string_sigs(literals: list[str]) -> str:
     """Returns the ``one sig StrN extends Str`` declarations for *literals*.
@@ -21,17 +36,34 @@ def build_string_sigs(literals: list[str]) -> str:
 
     Every literal gets a valid Alloy identifier even when its content is not
     one (e.g. the empty string ``''`` or ``'good morning'``): the content only
-    appears on the ``data`` sequence.
+    appears on the ``data`` sequence. Characters outside the lowercase
+    ``a-z`` atoms get an extra ``one sig c<ascii> extends Char`` declaration
+    (see :func:`_char_atom`), so literals with spaces, digits or uppercase
+    letters still compile.
     """
     blocks: list[str] = []
+    extra_atoms: dict[int, str] = {}
     for i, literal in enumerate(literals):
         name = f"Str{i}"
         if not literal:
             blocks.append(f"one sig {name} extends Str {{}}{{\n    no data\n}}")
         else:
-            body = "\n".join(f"    data[{j}] = {char}" for j, char in enumerate(literal))
+            body = "\n".join(
+                f"    data[{j}] = {_char_atom(char)}"
+                for j, char in enumerate(literal)
+            )
             blocks.append(f"one sig {name} extends Str {{}}{{\n{body}\n}}")
-    return "\n\n".join(blocks)
+            for char in literal:
+                if char not in _LOWERCASE_ATOMS:
+                    extra_atoms[ord(char)] = _char_atom(char)
+    atom_block = ""
+    if extra_atoms:
+        atom_block = (
+            "one sig "
+            + ", ".join(extra_atoms[code] for code in sorted(extra_atoms))
+            + " extends Char {}\n\n"
+        )
+    return atom_block + "\n\n".join(blocks)
 
 
 class StringOpError(ValueError):

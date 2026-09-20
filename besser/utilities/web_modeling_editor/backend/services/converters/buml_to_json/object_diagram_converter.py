@@ -6,63 +6,17 @@ Handles object diagram processing and attribute mapping.
 import ast
 import logging
 import uuid
-from datetime import date, datetime, time, timedelta
-from typing import Any
-
-from besser.utilities.web_modeling_editor.backend.services.utils import (
-    calculate_connection_points,
-    calculate_path_points,
-    calculate_relationship_bounds,
-    determine_connection_direction,
-)
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-
-def _eval_datetime_literal(node: ast.AST) -> str | None:
-    """Evaluate a date/datetime/time/timedelta constructor call to an ISO-8601 string.
-
-    Handles the literal forms emitted for ``DateType``/``DateTimeType``/``TimeType``/
-    ``TimeDeltaType`` attribute values, e.g. ``datetime.date(2024, 1, 1)`` or
-    ``datetime.datetime.fromisoformat("2024-01-01T00:00:00")``. Returns ``None``
-    when *node* isn't a recognized constructor call (``ast.literal_eval`` cannot
-    evaluate these, so they would otherwise be silently dropped).
-    """
-    if not isinstance(node, ast.Call):
-        return None
-
-    dotted_parts = []
-    func = node.func
-    while isinstance(func, ast.Attribute):
-        dotted_parts.append(func.attr)
-        func = func.value
-    if not isinstance(func, ast.Name):
-        return None
-    dotted_parts.append(func.id)
-    dotted = ".".join(reversed(dotted_parts))
-
-    try:
-        args = [ast.literal_eval(arg) for arg in node.args]
-    except (ValueError, SyntaxError):
-        return None
-
-    try:
-        if dotted in ("datetime.date", "date"):
-            return date(*args).isoformat()
-        if dotted in ("datetime.datetime", "datetime"):
-            return datetime(*args).isoformat()
-        if dotted in ("datetime.datetime.fromisoformat", "datetime.fromisoformat"):
-            return str(args[0])
-        if dotted in ("datetime.time", "time"):
-            return time(*args).isoformat()
-        if dotted in ("datetime.timedelta", "timedelta"):
-            return str(timedelta(*args))
-    except (TypeError, ValueError, IndexError):
-        return None
-    return None
+from besser.utilities.web_modeling_editor.backend.services.utils import (
+    determine_connection_direction, calculate_connection_points,
+    calculate_path_points, calculate_relationship_bounds
+)
 
 
-def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, Any]:
+def object_buml_to_json(content: str, domain_json: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert an object model Python file content to JSON format matching the frontend structure.
 
@@ -89,92 +43,7 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
     current_column = 0
     current_row = 0
 
-    def extract_attributes_from_call(attr_call: ast.Call) -> dict[str, Any]:
-        """Extract attribute name/value pairs from an ``attributes(...)`` fluent call."""
-        attributes: dict[str, Any] = {}
-
-        for kw in attr_call.keywords:
-            if kw.arg is not None:
-                if isinstance(kw.value, ast.Constant):
-                    attributes[kw.arg] = kw.value.value
-                    continue
-                datetime_value = _eval_datetime_literal(kw.value)
-                if datetime_value is not None:
-                    attributes[kw.arg] = datetime_value
-                continue
-
-            if kw.arg is None and isinstance(kw.value, ast.Dict):
-                for key_node, value_node in zip(kw.value.keys, kw.value.values):
-                    if key_node is None:
-                        continue
-                    try:
-                        key = ast.literal_eval(key_node)
-                    except (ValueError, SyntaxError):
-                        continue
-                    if not isinstance(key, str):
-                        continue
-
-                    datetime_value = _eval_datetime_literal(value_node)
-                    if datetime_value is not None:
-                        attributes[key] = datetime_value
-                        continue
-
-                    try:
-                        attributes[key] = ast.literal_eval(value_node)
-                    except (ValueError, SyntaxError):
-                        continue
-
-        return attributes
-
-    def extract_relationship_assignment(node: ast.AST) -> list[tuple[str, str, str]]:
-        """Extract (source_var, relation_name, target_var) triples.
-
-        Supports both single-target assignments (``setattr(obj, 'rel', t)``
-        and ``obj.rel = t``) and the set/list literal form emitted for
-        many-valued roles (``setattr(obj, 'rel', {t1, t2})``), which yields
-        one triple per target so every link survives the JSON conversion.
-        """
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if not isinstance(target, ast.Attribute):
-                    continue
-                if not isinstance(target.value, ast.Name):
-                    continue
-                if not isinstance(node.value, ast.Name):
-                    continue
-                return [(target.value.id, target.attr, node.value.id)]
-
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
-            call = node.value
-            if not isinstance(call.func, ast.Name) or call.func.id != "setattr":
-                return []
-            if len(call.args) != 3:
-                return []
-
-            source_node, relation_node, target_node = call.args
-            if not isinstance(source_node, ast.Name):
-                return []
-            try:
-                relation_name = ast.literal_eval(relation_node)
-            except (ValueError, SyntaxError):
-                return []
-            if not isinstance(relation_name, str):
-                return []
-
-            if isinstance(target_node, ast.Name):
-                return [(source_node.id, relation_name, target_node.id)]
-
-            if isinstance(target_node, (ast.Set, ast.List, ast.Tuple)):
-                return [
-                    (source_node.id, relation_name, elt.id)
-                    for elt in target_node.elts
-                    if isinstance(elt, ast.Name)
-                ]
-
-        return []
-
-    def get_position() -> tuple[int, int]:
-        """Return the (x, y) coordinates for the next object following the grid layout."""
+    def get_position():
         nonlocal current_column, current_row
         x = -460 + (current_column * grid_size["x_spacing"])
         y = -300 + (current_row * grid_size["y_spacing"])
@@ -260,10 +129,8 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
                             # Reverse to get the correct order
                             call_chain.reverse()
 
-                            # Accept both patterns:
-                            # 1) ClassName(...).attributes(...).build()
-                            # 2) ClassName(...).build()
-                            if len(call_chain) >= 2 and call_chain[-1] == "build":
+                            # Check if this matches the fluent pattern
+                            if len(call_chain) >= 3 and call_chain[-1] == "build":
                                 class_name = call_chain[0]
                                 if class_name in class_name_to_id:
                                     # Extract object name and attributes
@@ -276,21 +143,20 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
                                     while isinstance(init_call, ast.Call) and isinstance(init_call.func, ast.Attribute):
                                         init_call = init_call.func.value
 
-                                    if (
-                                        isinstance(init_call, ast.Call)
-                                        and init_call.args
-                                        and isinstance(init_call.args[0], ast.Constant)
-                                    ):
-                                        object_instance_name = init_call.args[0].value
+                                    if isinstance(init_call, ast.Call) and len(init_call.args) > 0:
+                                        if isinstance(init_call.args[0], ast.Constant):
+                                            object_instance_name = init_call.args[0].value
 
                                     # Find attributes call in the chain
                                     attr_call = node.value
                                     while isinstance(attr_call, ast.Call):
-                                        func = attr_call.func
-                                        if isinstance(func, ast.Attribute) and func.attr == "attributes":
-                                            attributes = extract_attributes_from_call(attr_call)
+                                        if isinstance(attr_call.func, ast.Attribute) and attr_call.func.attr == "attributes":
+                                            # Extract attributes from keyword arguments
+                                            for kw in attr_call.keywords:
+                                                if isinstance(kw.value, ast.Constant):
+                                                    attributes[kw.arg] = kw.value.value
                                             break
-                                        attr_call = func.value if isinstance(func, ast.Attribute) else None
+                                        attr_call = attr_call.func.value if isinstance(attr_call.func, ast.Attribute) else None
                                         if not attr_call:
                                             break
 
@@ -306,36 +172,33 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
                             elif call_chain and call_chain[0] == "ObjectModel":
                                 # Extract ObjectModel metadata
                                 for kw in node.value.keywords:
-                                    if kw.arg == "metadata" and isinstance(kw.value, ast.Call):
-                                        for meta_kw in kw.value.keywords:
-                                            if meta_kw.arg == "description":
-                                                try:
-                                                    om_comment = ast.literal_eval(meta_kw.value)
-                                                except (ValueError, TypeError) as e:
-                                                    logger.warning(
-                                                        "Could not evaluate ObjectModel metadata description: %s", e
-                                                    )
+                                    if kw.arg == "metadata":
+                                        if isinstance(kw.value, ast.Call):
+                                            for meta_kw in kw.value.keywords:
+                                                if meta_kw.arg == "description":
+                                                    try:
+                                                        om_comment = ast.literal_eval(meta_kw.value)
+                                                    except (ValueError, TypeError) as e:
+                                                        logger.warning(
+                                                            "Could not evaluate ObjectModel metadata description: %s", e
+                                                        )
 
                 # Check for object.classifier.metadata = Metadata(...) patterns
                 target = node.targets[0]
-                if (
-                    isinstance(target, ast.Attribute)
-                    and target.attr == "metadata"
+                if isinstance(target, ast.Attribute) and target.attr == "metadata":
                     # This could be: obj.classifier.metadata = ...
-                    and isinstance(target.value, ast.Attribute)
-                    and target.value.attr == "classifier"
-                ):
-                    obj_var = target.value.value.id if isinstance(target.value.value, ast.Name) else None
-                    if obj_var and isinstance(node.value, ast.Call):
-                        for kw in node.value.keywords:
-                            if kw.arg == "description":
-                                try:
-                                    object_comments[obj_var] = ast.literal_eval(kw.value)
-                                except (ValueError, TypeError) as e:
-                                    logger.warning(
-                                        "Could not evaluate object metadata description for '%s': %s",
-                                        obj_var, e
-                                    )
+                    if isinstance(target.value, ast.Attribute) and target.value.attr == "classifier":
+                        obj_var = target.value.value.id if isinstance(target.value.value, ast.Name) else None
+                        if obj_var and isinstance(node.value, ast.Call):
+                            for kw in node.value.keywords:
+                                if kw.arg == "description":
+                                    try:
+                                        object_comments[obj_var] = ast.literal_eval(kw.value)
+                                    except (ValueError, TypeError) as e:
+                                        logger.warning(
+                                            "Could not evaluate object metadata description for '%s': %s",
+                                            obj_var, e
+                                        )
 
         # Create object elements in JSON format
         for obj_name, obj_info in objects_by_name.items():
@@ -402,150 +265,77 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
             }
 
         # Look for object links/relationships
-        # Map each association end (class + role) to its (relationship id, orientation)
-        # using exact matches. Class-based keys avoid substring collisions between
-        # roles shared by several associations (e.g. role "subject" in two
-        # different relationships). A link generated from an Alloy field
-        # ``<Class>_<role>`` starts at an object of class *Class* using the role
-        # of the *other* end, so (source class, target role) navigates to the target end,
-        # and (target class, source role) navigates to the source end.
-        association_end_map: dict[tuple, tuple[str | None, str | None]] = {}
+        association_id_map = {}
         for rel_id, rel in reference_diagram_json["relationships"].items():
-            if rel["type"] not in ("ClassBidirectional", "ClassUnidirectional"):
-                continue
-            src_elem_id = rel.get("source", {}).get("element")
-            tgt_elem_id = rel.get("target", {}).get("element")
-            src_class = (
-                reference_diagram_json["elements"].get(src_elem_id, {}).get("name")
-                if src_elem_id else None
-            )
-            tgt_class = (
-                reference_diagram_json["elements"].get(tgt_elem_id, {}).get("name")
-                if tgt_elem_id else None
-            )
-            src_role = rel.get("source", {}).get("role", "")
-            tgt_role = rel.get("target", {}).get("role", "")
-
-            if src_class and tgt_role:
-                key = (src_class, tgt_role)
-                if key in association_end_map and association_end_map[key][0] != rel_id:
-                    association_end_map[key] = (None, None)
-                else:
-                    association_end_map[key] = (rel_id, "target")
-
-            if tgt_class and src_role:
-                key = (tgt_class, src_role)
-                if key in association_end_map and association_end_map[key][0] != rel_id:
-                    association_end_map[key] = (None, None)
-                else:
-                    association_end_map[key] = (rel_id, "source")
-
-        # Map each class to its direct parent via ClassInheritance (source is
-        # the subclass, target the superclass).  Links produced from an
-        # inherited association field are emitted against the leaf class, so
-        # association-id resolution below walks up this chain to find the
-        # declaring ancestor.
-        class_parents: dict[str, str] = {}
-        for rel in reference_diagram_json["relationships"].values():
-            if rel.get("type") != "ClassInheritance":
-                continue
-            child_id = rel.get("source", {}).get("element")
-            parent_id = rel.get("target", {}).get("element")
-            child_name = (
-                reference_diagram_json["elements"].get(child_id, {}).get("name")
-                if child_id else None
-            )
-            parent_name = (
-                reference_diagram_json["elements"].get(parent_id, {}).get("name")
-                if parent_id else None
-            )
-            if child_name and parent_name:
-                class_parents[child_name] = parent_name
-
-        # Deduplicate object links.  A bidirectional association appears in the
-        # Alloy XML as two fields (one per role), which the step-3 converter
-        # turns into two setattr lines for the same association.  Collapse them
-        # by (association, ordered link endpoints) so each link is emitted once,
-        # while opposing links of a reflexive association or multiple links keep
-        # their distinct identity.
-        link_keys: set[tuple] = set()
+            if rel["type"] in ["ClassBidirectional", "ClassUnidirectional"]:
+                source_role = rel.get("source", {}).get("role", "")
+                target_role = rel.get("target", {}).get("role", "")
+                if source_role or target_role:
+                    association_id_map[f"{source_role}-{target_role}"] = rel_id
 
         for node in ast.walk(tree):
-            for obj_name, relationship_name, target_obj in extract_relationship_assignment(node):
-                if obj_name not in objects_by_name or target_obj not in objects_by_name:
-                    continue
+            if isinstance(node, ast.Assign):
+                # Look for assignments like: obj1.relationship = obj2
+                for target in node.targets:
+                    if isinstance(target, ast.Attribute):
+                        obj_name = target.value.id if isinstance(target.value, ast.Name) else None
+                        relationship_name = target.attr
 
-                rel_id = str(uuid.uuid4())
+                        if obj_name in objects_by_name:
+                            # Get the target object
+                            if isinstance(node.value, ast.Name) and node.value.id in objects_by_name:
+                                target_obj = node.value.id
 
-                source_id = None
-                target_id = None
+                                # Create a link relationship
+                                rel_id = str(uuid.uuid4())
 
-                for elem_id, elem in elements.items():
-                    if elem["type"] == "ObjectName" and elem["name"] == objects_by_name[obj_name]["instance_name"]:
-                        source_id = elem_id
-                    if elem["type"] == "ObjectName" and elem["name"] == objects_by_name[target_obj]["instance_name"]:
-                        target_id = elem_id
+                                # Find the object IDs
+                                source_id = None
+                                target_id = None
 
-                if source_id and target_id:
-                    source_class = object_class_mapping.get(obj_name)
-                    assoc_info = association_end_map.get((source_class, relationship_name))
-                    if assoc_info is None or assoc_info[0] is None:
-                        # The field is declared on an ancestor class; follow the
-                        # inheritance chain to resolve its association id.
-                        ancestor = class_parents.get(source_class) if source_class else None
-                        while ancestor:
-                            assoc_info = association_end_map.get((ancestor, relationship_name))
-                            if assoc_info is not None and assoc_info[0] is not None:
-                                break
-                            ancestor = class_parents.get(ancestor)
+                                for elem_id, elem in elements.items():
+                                    if elem["type"] == "ObjectName" and elem["name"] == objects_by_name[obj_name]["instance_name"]:
+                                        source_id = elem_id
+                                    if elem["type"] == "ObjectName" and elem["name"] == objects_by_name[target_obj]["instance_name"]:
+                                        target_id = elem_id
 
-                    assoc_id, orientation = assoc_info if assoc_info else (None, None)
+                                if source_id and target_id:
+                                    # Find corresponding association ID
+                                    assoc_id = None
+                                    for key, aid in association_id_map.items():
+                                        if relationship_name in key:
+                                            assoc_id = aid
+                                            break
 
-                    # Canonical key: association (when known) + ordered object pair
-                    if assoc_id is not None:
-                        if orientation == "target":
-                            ordered_pair = (source_id, target_id)
-                        elif orientation == "source":
-                            ordered_pair = (target_id, source_id)
-                        else:
-                            ordered_pair = (source_id, target_id)
-                        canonical = (assoc_id, ordered_pair)
-                    else:
-                        canonical = (relationship_name, (source_id, target_id))
-
-                    if canonical in link_keys:
-                        continue
-                    link_keys.add(canonical)
-
-                    relationships[rel_id] = {
-                        "id": rel_id,
-                        "name": f"{relationship_name}",
-                        "type": "ObjectLink",
-                        "owner": None,
-                        "bounds": {
-                            "x": -260,
-                            "y": -315,
-                            "width": 300,
-                            "height": 80
-                        },
-                        "path": [
-                            {"x": 0, "y": 80},
-                            {"x": 40, "y": 80},
-                            {"x": 40, "y": 0},
-                            {"x": 300, "y": 0},
-                            {"x": 300, "y": 65}
-                        ],
-                        "source": {
-                            "direction": "Right",
-                            "element": source_id
-                        },
-                        "target": {
-                            "direction": "Topleft",
-                            "element": target_id
-                        },
-                        "isManuallyLayouted": False,
-                        "associationId": assoc_id
-                    }
+                                    relationships[rel_id] = {
+                                        "id": rel_id,
+                                        "name": f"{relationship_name}",
+                                        "type": "ObjectLink",
+                                        "owner": None,
+                                        "bounds": {
+                                            "x": -260,
+                                            "y": -315,
+                                            "width": 300,
+                                            "height": 80
+                                        },
+                                        "path": [
+                                            {"x": 0, "y": 80},
+                                            {"x": 40, "y": 80},
+                                            {"x": 40, "y": 0},
+                                            {"x": 300, "y": 0},
+                                            {"x": 300, "y": 65}
+                                        ],
+                                        "source": {
+                                            "direction": "Right",
+                                            "element": source_id
+                                        },
+                                        "target": {
+                                            "direction": "Topleft",
+                                            "element": target_id
+                                        },
+                                        "isManuallyLayouted": False,
+                                        "associationId": assoc_id
+                                    }
 
         # Position for comments
         comment_x = -970
@@ -661,5 +451,5 @@ def object_buml_to_json(content: str, domain_json: dict[str, Any]) -> dict[str, 
         }
 
     except Exception as e:
-        logger.exception("Error parsing object BUML content")
-        raise ValueError(f"Failed to convert object BUML to JSON: {e!s}") from e
+        logger.error("Error parsing object BUML content: %s", e, exc_info=True)
+        raise ValueError(f"Failed to convert object BUML to JSON: {str(e)}") from e

@@ -1262,14 +1262,26 @@ def test_string_ops_module_emits_equality_preds(tmpdir):
 def test_string_ops_module_accepts_per_model_sig_block(tmpdir):
     """generate_str_ops_model must append the per-model string literal sigs
     (``one sig StrN extends Str``) after the ``Str`` signature, so the block
-    stays in strings.als instead of being repeated per constraint."""
+    stays in strings.als instead of being repeated per constraint.
+
+    Uppercase letters (not part of the fixed ``a..z`` Char atoms) must be
+    declared as generated ``c<ascii>`` atoms so the block compiles."""
     registry = StringOpsRegistry()
     block = build_string_sigs(["John"])
-    assert block == "one sig Str0 extends Str {}{\n    data[0] = J\n    data[1] = o\n    data[2] = h\n    data[3] = n\n}"
+    assert block == (
+        "one sig c74 extends Char {}\n\n"
+        "one sig Str0 extends Str {}{\n"
+        "    data[0] = c74\n"
+        "    data[1] = o\n"
+        "    data[2] = h\n"
+        "    data[3] = n\n"
+        "}"
+    )
     path = registry.generate_str_ops_model(str(tmpdir), block)
     content = path.read_text(encoding="utf-8")
+    assert "one sig c74 extends Char {}" in content
     assert "one sig Str0 extends Str" in content
-    assert "data[0] = J" in content
+    assert "data[0] = c74" in content
 
 
 def test_generator_omits_strings_module_without_str_fields(tmpdir):
@@ -1309,6 +1321,9 @@ def test_build_string_sigs_names_are_valid_identifiers():
     assert "one sig Str1 extends Str" in out
     assert "one sig Str2 extends Str" in out
     assert "data[0] = g" in out
+    # The space in 'good morning' (ASCII 32, index 4) needs a declared Char atom.
+    assert "one sig c32 extends Char {}" in out
+    assert "data[4] = c32" in out
 
 
 def test_string_ocl_equality_uses_content_pred(tmpdir):
@@ -1377,6 +1392,35 @@ def test_maxseq_reflects_longest_string_literal(tmpdir):
     assert "one sig Str0 extends Str" in strings_als
     assert "data[0] = g" in strings_als
     assert "one sig good morning extends Str" not in strings_als
+
+
+def test_run_command_int_scope_covers_seq_without_int_attributes(tmpdir):
+    """A str-only model (no Int attributes) must still declare an explicit
+    ``Int`` bitwidth: Alloy's default bitwidth of 4 limits sequences to 7
+    elements, so any ``seq`` scope >= 8 would be rejected with
+    ``... sequence length longer than 7``."""
+    person = Class(name="Person")
+    person.attributes = {Property(name="name", type=StringType)}
+    model = DomainModel(
+        name="Names",
+        types={person},
+        constraints={
+            Constraint(
+                name="HasName",
+                context=person,
+                expression="context Person inv HasName: self.name = 'good morning'",
+                language="OCL",
+            )
+        },
+    )
+    spec, _ = _generate_string_spec(model, tmpdir, scope=8)
+    normalized = re.sub(r"\s+", " ", spec).strip()
+    match = re.search(r"for 8 Person, 8 Str, (\d+) Int, 8 Str, 12 seq", normalized)
+    assert match, normalized
+    bitwidth = int(match.group(1))
+    # maxseq = max(8, len('good morning') = 12) = 12
+    assert 2 ** (bitwidth - 1) - 1 >= 12
+    assert bitwidth >= 5
 
 
 def test_maxseq_is_model_wide_max_across_constraints(tmpdir):

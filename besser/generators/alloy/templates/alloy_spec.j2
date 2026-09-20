@@ -98,13 +98,12 @@ one sig {{ literals | join(',\n') | indent(8) }} extends {{ e.name }} {}
 {{ f | trim }}
 
 {% endfor %}
+{% endif -%}
 {% if constraints -%}
 {% for c in constraints %}
 {{ c.expression }}
 
 {% endfor %}
-{% endif -%}
-
 {% endif -%}
 pred instance_model {
 {% for sig in valid_sigsnv %}
@@ -114,4 +113,4 @@ pred instance_model {
 
 {% set use_int = "int" in basic_signatures or "float" in basic_signatures or "integer" in basic_signatures -%}
 {% set use_str = "str" in basic_signatures or "string" in basic_signatures or "Str" in basic_signatures -%}
-run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{% if not loop.last %}, {% elif use_int or use_str %}, {% endif %}{% endfor %}{% if use_int %}{{ scope }} Int{% if use_str %}, {% endif %}{% endif %}{% if use_str %}{{ scope }} Str, {{ maxseq }} seq{% endif %}{{ "\n" }}
+run instance_model for {% for sig in valid_sigsnv %}{{ scope }} {{ strname(sig) }}{% if not loop.last %}, {% elif use_int or use_str %}, {% endif %}{% endfor %}{% if use_int or use_str %}{{ int_bitwidth }} Int{% if use_str %}, {% endif %}{% endif %}{% if use_str %}{{ scope }} Str, {{ maxseq }} seq{% endif %}{{ "\n" }}

@@ -33,18 +33,27 @@ class AlloySolver:
         (result, instance_xml_files) = self.executor.generate_instances(self.specification, self.alloy_output_dir)
         return result
 
-    def generate_object_diagrams(self, num_instances: int = 1):
+    def generate_object_diagrams(self, num_instances: int = 1, for_editor: bool = True):
         """Generates BUML object diagrams using Alloy.
         Returns an AlloyResult indicating the result of the analysis and a list of 
         BUML instances. The list is empty if no satisfying instances were found or if 
         the analysis timed out.
+
+        Args:
+            num_instances: Number of satisfying instances to request from the Alloy
+                Analyzer.
+            for_editor: When ``True`` (default), generate the object-diagram code in the
+                "editor" dialect consumed by ``object_buml_to_json`` (the web
+                editor converter), so the objects' relationships survive a
+                re-import. Set to ``False`` to get the executable dialect
+                instead.
         """
         (res, instance_xml_files) = self.executor.generate_instances(self.specification, 
                                             self.alloy_output_dir, num_instances=num_instances)
         buml_instances = []
         for xml_path in instance_xml_files:
             converter = AlloyToBUML(xml_path)
-            buml_instances.append(converter.generate_object_diagram())
+            buml_instances.append(converter.generate_object_diagram(for_editor=for_editor))
 
         return (res, buml_instances)
 
@@ -52,8 +61,12 @@ class AlloySolver:
         """Generates an object diagrams from the Alloy specification and combines it with 
         the class diagram to produce a complete BUML model code. 
         Returns the generated BUML model code in file ``output_dir/buml_class_object_model.py``.
+
+        The object model section is emitted in the "editor" dialect
+        (``for_editor=True``) so the generated file can be re-imported into the
+        web editor with the objects' relationships (ObjectLinks) intact.
         """
-        (res, buml_instances) = self.generate_object_diagrams(num_instances=1)
+        (res, buml_instances) = self.generate_object_diagrams(num_instances=1, for_editor=True)
         if res == AlloyResult.UNSAT:
             return AlloyResult.UNSAT
 
@@ -81,11 +94,10 @@ class AlloySolver:
             f.write("# PROJECT DEFINITION #\n")
             f.write("######################\n")
             f.write("\n")
-            f.write("from besser.BUML.metamodel.structural import Project\n")
-            f.write("from besser.BUML.metamodel.structural.structural import Project\n")
+            f.write("from besser.BUML.metamodel.project import Project\n")
             f.write("\n")
             f.write("project = Project(\n")
-            f.write("\tname=\"Project automatically generated using Alloy\", \n")
+            f.write('\tname="Alloy_Instance_Project", \n')
             f.write("\tmodels=[domain_model, object_model]\n")
             f.write(")\n")
 

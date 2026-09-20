@@ -98,6 +98,10 @@ class AlloyGenerator(GeneratorInterface):
                     if assoc not in associations_by_class[end.type.name]:
                         associations_by_class[end.type.name].append(assoc)
 
+        maxseq = max(self.scope, status.maxseq)
+        use_str = has_str_types
+        int_bitwidth = max(self.scope, maxseq.bit_length() + 1) if use_str else self.scope
+
         spec = self.template.render(
             basic_signatures=basic_signatures,
             enum_types=enum_types,
@@ -107,7 +111,8 @@ class AlloyGenerator(GeneratorInterface):
             constraints=model.constraints,
             sigsnv=sigs_nv,
             scope=self.scope,
-            maxseq=max(self.scope, status.maxseq),
+            maxseq=maxseq,
+            int_bitwidth=int_bitwidth,
             facts_rules=facts_rules,
             string_ops=needs_str_ops,
             date_ops=needs_date_ops,

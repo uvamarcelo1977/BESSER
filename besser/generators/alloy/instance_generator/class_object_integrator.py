@@ -126,7 +126,9 @@ class BUMLModelIntegrator:
         structural_section = self.extract_structural_model_section()
 
         converter = AlloyToBUML(self.xml_instance_file)
-        object_diagram_code = converter.generate_object_diagram(date_as_datetime=True)
+        object_diagram_code = converter.generate_object_diagram(
+            date_as_datetime=True, for_editor=False
+        )
 
         project_section = self.extract_project_section()
         if not project_section:

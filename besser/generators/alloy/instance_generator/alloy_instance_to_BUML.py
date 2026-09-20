@@ -1,3 +1,4 @@
+import keyword
 import logging
 import re
 from typing import Any
@@ -259,7 +260,9 @@ class AlloyToBUML:
         )
         return leaf_sig['class_name']
 
-    def generate_object_diagram(self, date_as_datetime: bool = True) -> str:
+    def generate_object_diagram(
+        self, date_as_datetime: bool = True, for_editor: bool = True
+    ) -> str:
         """
         Generates BUML code for the object diagram derived from the XML.
 
@@ -268,13 +271,23 @@ class AlloyToBUML:
         between the same classes or objects are preserved.
 
         Args:
-            date_as_datetime: When ``True`` (default), date-typed attribute
-                values are emitted as real ``datetime.date(...)`` constants,
-                matching the convention used by
-                ``BUMLModelIntegrator.generate_integrated_model`` so the
-                generated code is directly executable/importable on its own.
-                When ``False``, they are emitted as ISO-8601 strings instead;
-                ``object_buml_to_json`` accepts both forms.
+            date_as_datetime: Only used when *for_editor* is ``False``. When
+                ``True`` (default), date-typed attribute values are emitted as
+                real ``datetime.date(...)`` constants, matching the convention
+                used by ``BUMLModelIntegrator.generate_integrated_model`` so
+                the generated code is directly executable/importable on its
+                own. When ``False``, they are emitted as ISO-8601 strings
+                instead; ``object_buml_to_json`` accepts both forms.
+            for_editor: When ``True`` (default), emit the code in the "editor"
+                dialect consumed by the web editor's ``object_buml_to_json``
+                converter (development version). Objects are always built
+                through ``Class("name").attributes(...).build()``, attribute
+                values are emitted as literal constants (dates as ISO-8601
+                strings), and links are emitted as one ``obj.role = target``
+                assignment per target. This dialect is NOT meant to be executed
+                (repeated assignments for many-valued ends collapse at
+                runtime); it is only used to feed ``object_buml_to_json``. When
+                ``False``, the executable dialect is emitted instead.
         """
         code_lines = [
             "from besser.BUML.metamodel.object import ObjectModel",
@@ -341,7 +354,10 @@ class AlloyToBUML:
                             continue
 
                         if self.is_date_value(tuple_to):
-                            attributes[attr_name] = self._date_value_expression(tuple_to, date_as_datetime)
+                            if for_editor:
+                                attributes[attr_name] = self._date_value_expression(tuple_to, False)
+                            else:
+                                attributes[attr_name] = self._date_value_expression(tuple_to, date_as_datetime)
                         elif self.is_object_reference(tuple_to):
                             relations.append((obj_var, attr_name, tuple_to, field_name))
                         elif is_enum_value(tuple_to):
@@ -356,7 +372,26 @@ class AlloyToBUML:
                 for attr_name, attr_value in attributes.items():
                     attribute_mapping_parts.append(f"{attr_name!r}: {attr_value}")
 
-                if attribute_mapping_parts:
+                if for_editor:
+                    kwargs_parts = []
+                    for attr_name, attr_value in attributes.items():
+                        if not attr_name.isidentifier() or keyword.iskeyword(attr_name):
+                            logger.warning(
+                                "Skipping attribute '%s' of object '%s' (editor mode): "
+                                "not usable as a Python keyword argument",
+                                attr_name, obj_name,
+                            )
+                            continue
+                        kwargs_parts.append(f"{attr_name}={attr_value}")
+                    if kwargs_parts:
+                        code_lines.append(
+                            f'{obj_var} = {class_name}("{obj_name}").attributes({", ".join(kwargs_parts)}).build()'
+                        )
+                    else:
+                        code_lines.append(
+                            f'{obj_var} = {class_name}("{obj_name}").attributes().build()'
+                        )
+                elif attribute_mapping_parts:
                     code_lines.append(
                         f'{obj_var} = {class_name}("{obj_name}").attributes(**{{{", ".join(attribute_mapping_parts)}}}).build()'
                     )
@@ -397,7 +432,19 @@ class AlloyToBUML:
 
         for (from_var, relation_name), to_vars in grouped_relations.items():
             unique_targets = sorted(set(to_vars))
-            if len(unique_targets) == 1:
+            if for_editor:
+                if not relation_name.isidentifier() or keyword.iskeyword(relation_name):
+                    logger.warning(
+                        "Skipping link '%s' from object '%s' (editor mode): "
+                        "not usable as a Python attribute name",
+                        relation_name, from_var,
+                    )
+                    continue
+                for target in unique_targets:
+                    code_lines.append(
+                        f"{from_var}.{relation_name} = {target}"
+                    )
+            elif len(unique_targets) == 1:
                 code_lines.append(
                     f"setattr({from_var}, {relation_name!r}, {unique_targets[0]})"
                 )
