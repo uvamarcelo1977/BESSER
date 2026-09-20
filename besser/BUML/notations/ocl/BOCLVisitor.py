@@ -1,4 +1,4 @@
-# Generated from BOCL.g4 by ANTLR 4.13.2
+# Generated from BUML/notations/ocl/BOCL.g4 by ANTLR 4.13.1
 from antlr4 import *
 if "." in __name__:
     from .BOCLParser import BOCLParser
@@ -104,6 +104,11 @@ class BOCLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by BOCLParser#arrowAsSet.
+    def visitArrowAsSet(self, ctx:BOCLParser.ArrowAsSetContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by BOCLParser#ifThenElseExpr.
     def visitIfThenElseExpr(self, ctx:BOCLParser.IfThenElseExprContext):
         return self.visitChildren(ctx)
@@ -154,6 +159,11 @@ class BOCLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by BOCLParser#arrowIncluding.
+    def visitArrowIncluding(self, ctx:BOCLParser.ArrowIncludingContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by BOCLParser#arrowIteratorShort.
     def visitArrowIteratorShort(self, ctx:BOCLParser.ArrowIteratorShortContext):
         return self.visitChildren(ctx)
@@ -201,6 +211,16 @@ class BOCLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by BOCLParser#arrowIsEmpty.
     def visitArrowIsEmpty(self, ctx:BOCLParser.ArrowIsEmptyContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by BOCLParser#arrowExcluding.
+    def visitArrowExcluding(self, ctx:BOCLParser.ArrowExcludingContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by BOCLParser#arrowIntersection.
+    def visitArrowIntersection(self, ctx:BOCLParser.ArrowIntersectionContext):
         return self.visitChildren(ctx)
 
 

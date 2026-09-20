@@ -275,6 +275,13 @@ class BOCLVisitorImpl(BOCLVisitor):
         oce.source = source
         return oce
 
+    def visitArrowIncluding(self, ctx: BOCLParser.ArrowIncludingContext):
+        source = self.visit(ctx.expression(0))
+        arg = self.visit(ctx.expression(1))
+        oce = OperationCallExpression(name="INCLUDING", operation="INCLUDING", arguments=[arg])
+        oce.source = source
+        return oce
+
     def visitArrowIncludes(self, ctx: BOCLParser.ArrowIncludesContext):
         source = self.visit(ctx.expression(0))
         arg = self.visit(ctx.expression(1))
@@ -289,10 +296,24 @@ class BOCLVisitorImpl(BOCLVisitor):
         oce.source = source
         return oce
 
+    def visitArrowExcluding(self, ctx: BOCLParser.ArrowExcludingContext):
+        source = self.visit(ctx.expression(0))
+        arg = self.visit(ctx.expression(1))
+        oce = OperationCallExpression(name="EXCLUDING", operation="EXCLUDING", arguments=[arg])
+        oce.source = source
+        return oce
+
     def visitArrowUnion(self, ctx: BOCLParser.ArrowUnionContext):
         source = self.visit(ctx.expression(0))
         arg = self.visit(ctx.expression(1))
         oce = OperationCallExpression(name="UNION", operation="UNION", arguments=[arg])
+        oce.source = source
+        return oce
+
+    def visitArrowIntersection(self, ctx: BOCLParser.ArrowIntersectionContext):
+        source = self.visit(ctx.expression(0))
+        arg = self.visit(ctx.expression(1))
+        oce = OperationCallExpression(name="INTERSECTION", operation="INTERSECTION", arguments=[arg])
         oce.source = source
         return oce
 
@@ -348,6 +369,12 @@ class BOCLVisitorImpl(BOCLVisitor):
         oce = OperationCallExpression(
             name="SUBORDEREDSET", operation="SUBORDEREDSET", arguments=[arg1, arg2]
         )
+        oce.source = source
+        return oce
+
+    def visitArrowAsSet(self, ctx: BOCLParser.ArrowAsSetContext):
+        source = self.visit(ctx.expression())
+        oce = OperationCallExpression(name="ASSET", operation="ASSET", arguments=[])
         oce.source = source
         return oce
 
