@@ -415,7 +415,8 @@ class TestGenerateOutput:
         with zipfile.ZipFile(io.BytesIO(body)) as zf:
             names = zf.namelist()
             assert "model.als" in names
-            assert "str_ops.als" in names
+            assert "strings.als" in names
+            assert "utils.als" in names
 
 
 # ---------------------------------------------------------------------------
