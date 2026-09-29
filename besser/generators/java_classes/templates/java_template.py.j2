@@ -30,6 +30,10 @@ import java.util.UUID;
 {% endif %}
 import java.util.List;
 import java.util.ArrayList;
+{% if needs_set_imports %}
+import java.util.Set;
+import java.util.HashSet;
+{% endif %}
 
 {% set assocs = [] %}
 {% set assocs_card_over_1 = [] %}
@@ -243,5 +247,13 @@ public class {{ class_obj.name }} {{ extends }}{
         throw new UnsupportedOperationException("{{ method.name }} is not implemented");
     }
     {% endif %}
+{% endfor %}
+{% for getter in abstraction_getters %}
+
+    @toModel(targetClass = "{{ getter.target_class }}", field = "{{ getter.field }}")
+    public {{ getter.return_type }} {{ getter.name }}() {
+        // complete get method
+        return {{ getter.return_expr }};
+    }
 {% endfor %}
 }
