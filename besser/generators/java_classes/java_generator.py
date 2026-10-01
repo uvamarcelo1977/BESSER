@@ -18,7 +18,7 @@ class JavaGenerator(GeneratorInterface):
             templates_path), trim_blocks=True, lstrip_blocks=True, extensions=['jinja2.ext.do'])
 
         package_name = self.package_name
-        mapping = JavaUmlMapping(self.model, env)
+        mapping = JavaUmlMapping(env)
 
         annotation_path = self.build_generation_path(file_name=ANNOTATION_NAME + ".java")
         with open(annotation_path, mode="w") as f:
@@ -42,6 +42,6 @@ class JavaGenerator(GeneratorInterface):
                                                  processed_associations=processed_associations,
                                                  package_name=package_name,
                                                  abstraction_getters=abstraction_getters,
-                                                 needs_set_imports=mapping.needs_set_imports(abstraction_getters))
+                                                 needs_set_imports=any(g.is_collection for g in abstraction_getters))
                 f.write(generated_code)
                 print("Code generated in the location: " + file_path)

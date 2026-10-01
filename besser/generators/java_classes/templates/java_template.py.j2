@@ -250,7 +250,7 @@ public class {{ class_obj.name }} {{ extends }}{
 {% endfor %}
 {% for getter in abstraction_getters %}
 
-    @toModel(targetClass = "{{ getter.target_class }}", field = "{{ getter.field }}")
+    @toModel(targetClass = "{{ getter.target_class }}", field = "{{ getter.field }}", kind = "{{ getter.kind }}", association = "{{ getter.association }}")
     public {{ getter.return_type }} {{ getter.name }}() {
         // complete get method
         return {{ getter.return_expr }};
