@@ -1,8 +1,12 @@
 {% if package_name %}
 package {{ package_name }};
 {% endif %}
+{{ trace.import_statement() }}
+
+{{ trace.enumeration_annotation(enum_obj) }}
 public enum {{ enum_obj.name }} {
-{% for literal in enum_obj.literals %}
+{% for literal in literals %}
+    {{ trace.literal_annotation(enum_obj, literal) }}
     {{ literal.name }}{% if not loop.last %},{% endif %}
 
 {% endfor %}
