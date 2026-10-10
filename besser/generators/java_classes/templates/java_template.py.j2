@@ -38,6 +38,7 @@ import java.util.ArrayList;
 {% set assocs = [] %}
 {% set assocs_card_over_1 = [] %}
 {% set self_assoc_names = [] %}
+{% set assoc_annots = [] %}
 {% set inheritance = generals.names | join(', ') %}
 {% if inheritance|length > 1 %}
     {% set extends = "extends " + inheritance %}
@@ -47,7 +48,6 @@ import java.util.ArrayList;
 {{ trace.class_annotation(class_obj) }}
 public class {{ class_obj.name }} {{ extends }}{
 {% for i in range(0, attribs|length, 2) %}
-    {{ trace.attribute_annotation(attr_objs[i // 2]) }}
     private {{ attribs[i] }} {{ attribs[i+1] }};
 {% endfor %}
 {% for association in class_obj.associations %}
@@ -57,7 +57,7 @@ public class {{ class_obj.name }} {{ extends }}{
         {% if is_self_assoc %}
             {% for end in ends_list %}
                 {% if end.multiplicity.max > 1 %}
-    {{ trace.association_end_annotation(end) }}
+                    {% do assoc_annots.append(trace.association_end_annotation(end)) %}
     private List<{{ end.type.name }}> {{ end.name }};
                     {% do assocs.append('List<'+end.type.name+'>') %}
                     {% do assocs.append(end.name) %}
@@ -65,7 +65,7 @@ public class {{ class_obj.name }} {{ extends }}{
                     {% do assocs_card_over_1.append(end.name) %}
                     {% do self_assoc_names.append(end.name) %}
                 {% else %}
-    {{ trace.association_end_annotation(end) }}
+                    {% do assoc_annots.append(trace.association_end_annotation(end)) %}
     private {{ end.type.name }} {{ end.name }};
                     {% do assocs.append(end.type.name) %}
                     {% do assocs.append(end.name) %}
@@ -84,7 +84,7 @@ public class {{ class_obj.name }} {{ extends }}{
                 {% if ns.end1.multiplicity.min != 1 and ns.end2.multiplicity.min == 1 or
                     ns.end1.multiplicity.min == 1 and ns.end2.multiplicity.min == 1 or
                     ns.end1.multiplicity.min != 1 and ns.end2.multiplicity.min != 1 %}
-    {{ trace.association_end_annotation(ns.end2) }}
+                {% do assoc_annots.append(trace.association_end_annotation(ns.end2)) %}
     private List<{{ class2_name }}> {{ class2_name.lower() }}s;
                     {% do assocs.append('List<'+class2_name+'>') %}
                     {% do assocs.append(class2_name.lower() + 's') %}
@@ -93,7 +93,7 @@ public class {{ class_obj.name }} {{ extends }}{
                     {% do processed_associations.append(association.name) %}
                 {% endif %}
             {% elif ns.end1.multiplicity.max == 1 and ns.end2.multiplicity.max > 1 %}
-    {{ trace.association_end_annotation(ns.end2) }}
+                {% do assoc_annots.append(trace.association_end_annotation(ns.end2)) %}
     private List<{{ class2_name }}> {{ class2_name.lower() }}s;
                 {% do assocs.append('List<'+class2_name+'>') %}
                 {% do assocs.append(class2_name.lower() + 's') %}
@@ -101,7 +101,7 @@ public class {{ class_obj.name }} {{ extends }}{
                 {% do assocs_card_over_1.append(class2_name.lower() + 's') %}
                 {% do processed_associations.append(association.name) %}
             {% elif ns.end1.multiplicity.max == 1 and ns.end2.multiplicity.max == 1 %}
-    {{ trace.association_end_annotation(ns.end2) }}
+                {% do assoc_annots.append(trace.association_end_annotation(ns.end2)) %}
     private {{ class2_name }} {{ class2_name.lower() }};
                 {% do assocs.append(class2_name) %}
                 {% do assocs.append(class2_name.lower()) %}
@@ -207,6 +207,7 @@ public class {{ class_obj.name }} {{ extends }}{
 
 {% for i in range(0, attribs|length, 2) %}
 
+    {{ trace.attribute_annotation(attr_objs[i // 2]) }}
     public {{ attribs[i] }} get{{ attribs[i+1].capitalize() }}() {
         return this.{{ attribs[i+1] }};
     }
@@ -217,6 +218,7 @@ public class {{ class_obj.name }} {{ extends }}{
 {% endfor %}
 {% for i in range(0, assocs|length, 2) %}
 
+    {{ assoc_annots[i // 2] }}
     {% if assocs[i][:4] == "List" %}
     {% set element_type = assocs[i][5:-1] %}
     public {{ assocs[i] }} get{{ assocs[i+1].capitalize() }}() {
