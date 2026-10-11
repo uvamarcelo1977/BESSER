@@ -5,6 +5,16 @@ from besser.BUML.metamodel.structural import DomainModel
 from besser.generators import GeneratorInterface
 from .java_trace import JavaTraceAnnotations
 
+try:
+    from besser.utilities import sort_by_timestamp
+except ImportError:  # older BESSER versions
+    def sort_by_timestamp(obj_set):
+        """Deterministic order for model sets: creation time, then name."""
+        return sorted(obj_set, key=lambda e: (
+            getattr(e, "timestamp", None) is None,
+            getattr(e, "timestamp", None) or 0,
+            getattr(e, "name", "")))
+
 class JavaGenerator(GeneratorInterface):
 
     def __init__(self, model: DomainModel, output_dir: str = None, package_name: str = None):
@@ -16,6 +26,8 @@ class JavaGenerator(GeneratorInterface):
             os.path.abspath(__file__)), "templates")
         env = Environment(loader=FileSystemLoader(
             templates_path), trim_blocks=True, lstrip_blocks=True, extensions=['jinja2.ext.do'])
+
+        env.globals["sort_by_timestamp"] = sort_by_timestamp
 
         trace = JavaTraceAnnotations(self.model)
         env.globals["trace"] = trace

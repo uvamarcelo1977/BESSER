@@ -39,7 +39,7 @@ import java.util.ArrayList;
 {% set self_assoc_names = [] %}
 {% set assoc_annots = [] %}
 {% set inheritance = generals.names | join(', ') %}
-{% if inheritance|length > 1 %}
+{% if inheritance|length > 0 %}
     {% set extends = "extends " + inheritance %}
 {% else %}
     {% set extends = "" %}
@@ -116,13 +116,13 @@ public class {{ class_obj.name }} {{ extends }}{
 {% for i in range(0, attribs|length, 2) %}
     {% do params.append(attribs[i] + ' ' + attribs[i+1]) %}
 {% endfor %}
-{% if inheritance|length > 1 %}
+{% if inheritance|length > 0 %}
     {% for i in range(0, parent_attribs|length, 2) %}
         {% do params.append(parent_attribs[i] + ' ' + parent_attribs[i+1]) %}
     {% endfor %}
 {% endif %}
     public {{ class_obj.name }} ({{ params | join(', ') }}) {
-{% if inheritance|length > 1 %}
+{% if inheritance|length > 0 %}
         super(
     {%- for i in range(parent_attribs|length) %}
         {%- if i == parent_attribs|length - 1 -%}
@@ -150,7 +150,7 @@ public class {{ class_obj.name }} {{ extends }}{
 {% for i in range(0, attribs|length, 2) %}
     {% do params2.append(attribs[i] + ' ' + attribs[i+1]) %}
 {% endfor %}
-{% if inheritance|length > 1 %}
+{% if inheritance|length > 0 %}
     {% for i in range(0, parent_attribs|length, 2) %}
         {% do params2.append(parent_attribs[i] + ' ' + parent_attribs[i+1]) %}
     {% endfor %}
@@ -159,7 +159,7 @@ public class {{ class_obj.name }} {{ extends }}{
     {% do params2.append('List<' + assocs_card_over_1[i] + '> ' + assocs_card_over_1[i+1]) %}
 {% endfor %}
     public {{ class_obj.name }} ({{ params2 | join(', ') }}) {
-{% if inheritance|length > 1 %}
+{% if inheritance|length > 0 %}
         super(
     {%- for i in range(parent_attribs|length) %}
         {%- if i == parent_attribs|length - 1 -%}
