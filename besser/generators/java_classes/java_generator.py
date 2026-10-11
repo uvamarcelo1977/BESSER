@@ -3,6 +3,7 @@ import os
 from jinja2 import Environment, FileSystemLoader
 from besser.BUML.metamodel.structural import DomainModel
 from besser.generators import GeneratorInterface
+from .java_trace import JavaTraceAnnotations
 
 class JavaGenerator(GeneratorInterface):
 
@@ -15,6 +16,10 @@ class JavaGenerator(GeneratorInterface):
             os.path.abspath(__file__)), "templates")
         env = Environment(loader=FileSystemLoader(
             templates_path), trim_blocks=True, lstrip_blocks=True, extensions=['jinja2.ext.do'])
+
+        trace = JavaTraceAnnotations(self.model)
+        env.globals["trace"] = trace
+        trace.copy_annotation_sources(self)
 
         package_name = self.package_name
 

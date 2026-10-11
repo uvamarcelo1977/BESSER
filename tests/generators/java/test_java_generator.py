@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -400,3 +401,75 @@ def test_generated_java_compiles(model_with_methods, tmpdir):
     sources = [str(p) for p in Path(str(output_dir)).glob("*.java")]
     result = subprocess.run([javac, *sources], capture_output=True, text=True, cwd=str(output_dir))
     assert result.returncode == 0, result.stderr
+
+
+def test_trace_import_emitted(library_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Library.java"))
+    assert "import besser.trace.*;" in code
+
+
+def test_trace_class_annotation_emitted(library_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Library.java"))
+    assert "@BClass(" in code
+
+
+def test_trace_attribute_annotation_emitted(library_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Library.java"))
+    assert "@BAttribute(" in code
+    assert 'name = "name"' in code
+
+
+def test_trace_attribute_annotation_precedes_getter(library_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Library.java"))
+    assert re.search(r"@BAttribute\([^)]*\)\s+public \w+ get\w+\(\)", code) or \
+        re.search(r"@BAttribute\(.*?\)\n\s+public \w+ get\w+\(\)", code, re.DOTALL)
+
+
+def test_trace_association_end_annotation_emitted(library_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Library.java"))
+    assert "@BAssociationEnd(" in code
+
+
+def test_trace_annotation_sources_copied(library_model, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model, output_dir=str(output_dir)).generate()
+
+    trace_dir = os.path.join(str(output_dir), "besser", "trace")
+    for name in ("BClass.java", "BAttribute.java", "BAssociationEnd.java",
+                 "BEnumeration.java", "BLiteral.java", "BTrace.java", "TraceDump.java"):
+        assert os.path.isfile(os.path.join(trace_dir, name)), name
+
+
+def test_trace_enum_annotations(library_model_with_enum, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=library_model_with_enum, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "MemberType.java"))
+    assert "@BEnumeration(" in code
+    assert "@BLiteral(" in code
+
+
+def test_local_behavior_preserved_alongside_trace(model_with_methods, tmpdir):
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=model_with_methods, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Book.java"))
+    assert "@BClass(" in code
+    assert "// TODO: implement getInfo" in code
+    assert 'throw new UnsupportedOperationException("getInfo is not implemented");' in code
+
