@@ -34,6 +34,7 @@ from besser.BUML.metamodel.structural import (
     TimeDeltaType,
     TimeType,
 )
+from besser.BUML.notations.ocl.error_handling import BOCLSyntaxError
 from besser.generators.alloy import (
     AlloyGenerator,
 )
@@ -54,8 +55,8 @@ from besser.generators.alloy.instance_generator.alloy_instance_to_BUML import (
 )
 from besser.generators.alloy.string_ops import StringOpsRegistry, build_string_sigs
 from besser.generators.alloy.translate_ocl_alloy import (
-    EnumReferenceError,
     TranslatorState,
+    UnsupportedOCLConstructError,
     is_date,
     ocl_to_alloy,
 )
@@ -129,6 +130,29 @@ def test_ocl_logical_operators_translate_boolean_attributes(operator, expected):
     assert alloy == f"fact{{ all self:this/B|{expected}}}"
 
 
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [
+        ("self.a", "isTrue[self.B_a]"),
+        ("not self.a", "not (isTrue[self.B_a])"),
+        (
+            "if self.a then self.b else false endif",
+            "((isTrue[self.B_a]) implies (isTrue[self.B_b])) and "
+            "((not (isTrue[self.B_a])) implies (not isTrue[True]))",
+        ),
+    ],
+)
+def test_boolean_attributes_are_predicates_in_all_boolean_contexts(expression, expected):
+    alloy = ocl_to_alloy(
+        {"B": ["_"]},
+        {"B": ["a:bool", "b:bool"]},
+        expression,
+        context_name="B",
+    )
+
+    assert alloy == f"fact{{ all self:this/B|{expected}}}"
+
+
 def test_ocl_logical_operators_follow_documented_precedence():
     alloy = ocl_to_alloy(
         {"B": ["_"]},
@@ -143,6 +167,16 @@ def test_ocl_logical_operators_follow_documented_precedence():
         "or (not (isTrue[self.B_b]) and ((isTrue[self.B_a] and isTrue[self.B_b]))))) "
         "=> isTrue[self.B_a])}"
     )
+
+
+def test_ocl_to_alloy_reports_unsupported_operation():
+    with pytest.raises(UnsupportedOCLConstructError, match="Unsupported OCL construct: operation"):
+        ocl_to_alloy(
+            {"Person": ["_"]},
+            {"Person": ["spouse:Person"]},
+            "self.spouse.customOperation()",
+            context_name="Person",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -816,86 +850,39 @@ def _enum_model(literal_name: str, ocl_literal: str, ocl_enum: str = "TCategory"
     )
 
 
-def test_valid_enum_literal_reference_generates_ok(tmpdir):
-    """An OCL constraint referencing an existing literal must generate
-    successfully and reference the matching Alloy enum signature."""
+@pytest.mark.parametrize(
+    ("declared_literal", "ocl_literal", "ocl_enum"),
+    [
+        ("JUNIOR", "JUNIOR", "TCategory"),
+        ("JUNIOR", "JUNIO", "TCategory"),
+        ("JUNIOR", "JUNIOR", "NoSuchEnum"),
+    ],
+)
+def test_enum_literal_reference_is_rejected_by_parse_ocl(
+    tmpdir, declared_literal, ocl_literal, ocl_enum
+):
+    """Enum literals remain unsupported until parse_ocl represents them."""
     output_dir = tmpdir.mkdir("output")
     generator = AlloyGenerator(
-        model=_enum_model("JUNIOR", "JUNIOR"),
+        model=_enum_model(declared_literal, ocl_literal, ocl_enum),
         output_dir=str(output_dir),
     )
-    generator.generate()
-
-    with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
-        spec = f.read()
-    assert "one sig ENUM_TCategory_JUNIOR extends TCategory {}" in spec
-    assert "ENUM_TCategory_JUNIOR" in spec
-
-
-def test_missing_enum_literal_reference_raises_clear_error(tmpdir):
-    """An OCL constraint referencing a literal that no longer exists in the
-    enumeration must raise a clear EnumReferenceError instead of silently
-    generating Alloy that references an undefined signature."""
-    output_dir = tmpdir.mkdir("output")
-    generator = AlloyGenerator(
-        model=_enum_model("JUNIOR", "JUNIO"),
-        output_dir=str(output_dir),
-    )
-
-    with pytest.raises(EnumReferenceError) as excinfo:
+    with pytest.raises(BOCLSyntaxError):
         generator.generate()
 
-    message = str(excinfo.value)
-    assert "TCategory" in message
-    assert "JUNIO" in message
-    assert "JUNIOR" in message
 
-
-def test_unknown_enum_type_reference_raises_clear_error(tmpdir):
-    """An OCL constraint referencing an enumeration type that does not exist
-    in the model must raise a clear EnumReferenceError."""
-    output_dir = tmpdir.mkdir("output")
-    generator = AlloyGenerator(
-        model=_enum_model("JUNIOR", "JUNIOR", ocl_enum="NoSuchEnum"),
-        output_dir=str(output_dir),
-    )
-
-    with pytest.raises(EnumReferenceError) as excinfo:
-        generator.generate()
-
-    assert "NoSuchEnum" in str(excinfo.value)
-
-
-def test_ocl_to_alloy_validates_enum_references():
-    """ocl_to_alloy rejects enum references that do not match the model."""
+def test_ocl_to_alloy_rejects_enum_literals_not_supported_by_parse_ocl():
     data = {"Person": ["name:str", "category:TCategory"]}
     inherits_from = {"Person": "_"}
     enums = {"TCategory": {"JUNIOR"}}
     estado = TranslatorState()
 
-    with pytest.raises(EnumReferenceError) as excinfo:
+    with pytest.raises(BOCLSyntaxError):
         ocl_to_alloy(
             inherits_from, data,
             "self.category = TCategory::JUNIO",
             "Person", estado, enums,
         )
-    assert "JUNIO" in str(excinfo.value)
-    assert "JUNIOR" in str(excinfo.value)
-
-
-def test_ocl_to_alloy_skips_validation_when_enums_is_none():
-    """Without an ``enums`` map the translation stays backward compatible
-    and does not raise."""
-    data = {"Person": ["name:str", "category:TCategory"]}
-    inherits_from = {"Person": "_"}
-    estado = TranslatorState()
-
-    result = ocl_to_alloy(
-        inherits_from, data,
-        "self.category = TCategory::JUNIO",
-        "Person", estado, None,
-    )
-    assert "ENUM_TCategory_JUNIO" in result
 
 
 def test_ocl_to_alloy_translates_set_union():
@@ -1596,7 +1583,7 @@ def test_string_sigs_are_model_wide_unique_via_shared_state():
         state=state,
         enums={},
     )
-    assert state.strings == ["john"]  # literals are lowercased by the tokenizer
+    assert state.strings == ["John"]  # OCL string literals preserve their value
     assert "strEq[self.Person_name,Str0]" in first
     assert "strEq[self.Person_nickname,Str0]" in second
 

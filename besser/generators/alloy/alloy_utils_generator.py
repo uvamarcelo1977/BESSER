@@ -408,9 +408,9 @@ def translate_constraints(
     state = TranslatorState()
     for constraint in sorted(model.constraints, key=lambda c: c.name):
         context = constraint.context.name
-        ocl_str = constraint.expression.split(":", 1)[1]
         constraint.expression = ocl_to_alloy(
-            inherits_from, data, ocl_str, context, state, enums
+            inherits_from, data, constraint.expression, context, state, enums,
+            model=model,
         )
     return state
 
