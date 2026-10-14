@@ -693,6 +693,29 @@ def _translate_ocl_node(
             )
         names = [iterator.name for iterator in node.iterator]
         source_type = _static_class_name(node.source, context_name, iterator_types, data)
+        if kind == "closure":
+            body = node.body[0]
+            if isinstance(body, Property):
+                relation_name = body.name
+            elif (
+                isinstance(body, PropertyCallExpression)
+                and isinstance(body.source, VariableExp)
+                and body.source.name in names
+            ):
+                relation_name = body.property.name
+            else:
+                raise UnsupportedOCLConstructError(
+                    "Unsupported OCL construct: closure body must navigate one relation"
+                )
+            relation_owner, _ = _resolve_field_with_inheritance(
+                source_type or context_name, relation_name, data, inherits_from
+            )
+            if not relation_owner:
+                raise UnsupportedOCLConstructError(
+                    f"Unsupported OCL construct: closure relation '{relation_name}'"
+                )
+            return f"{collection}.*{relation_owner}_{relation_name}"
+
         scoped_types = dict(iterator_types)
         for iterator in node.iterator:
             declared_type = getattr(iterator.type, "name", None)

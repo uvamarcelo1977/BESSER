@@ -496,6 +496,45 @@ def test_ocl_constraint_is_translated_to_alloy_fact(tmpdir):
     assert "fact{" in spec
 
 
+@pytest.mark.parametrize(
+    "closure_expression",
+    [
+        "self.parents->closure(parents)->excludes(self)",
+        "self.parents->closure(parent | parent.parents)->excludes(self)",
+    ],
+    ids=["short-form", "explicit-iterator"],
+)
+def test_ocl_closure_excludes_self_translates_parent_relation(closure_expression, tmpdir):
+    Person = Class(name="Person")
+    parent_association = BinaryAssociation(
+        name="ParentOf",
+        ends={
+            Property(name="parents", type=Person, multiplicity=Multiplicity(0, "*")),
+            Property(name="children", type=Person, multiplicity=Multiplicity(0, "*")),
+        },
+    )
+    invariant = Constraint(
+        name="NoAncestorCycle",
+        context=Person,
+        expression=f"context Person inv NoAncestorCycle: {closure_expression}",
+        language="OCL",
+    )
+    model = DomainModel(
+        name="People",
+        types={Person},
+        associations={parent_association},
+        constraints={invariant},
+    )
+
+    output_dir = tmpdir.mkdir("output")
+    AlloyGenerator(model=model, output_dir=str(output_dir)).generate()
+
+    with open(_generated_als_path(str(output_dir)), "r", encoding="utf-8") as f:
+        spec = f.read()
+
+    assert "not(self in self.Person_parents.*Person_parents)" in spec
+
+
 def test_generator_emits_abs_function_for_int_model(tmpdir):
     """An int-typed model with an ``.abs()`` constraint must emit the ``abs``
     helper in ``model.als`` and translate the call to ``abs[self.<Field>]``."""
