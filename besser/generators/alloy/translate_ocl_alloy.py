@@ -293,7 +293,7 @@ def tokenize_tree(tree, parser) -> list[Token]:
         "includesall", "includes", "excludes", "excludesall", "closure",
         "union", "intersection",
     }
-    _OPERATORS = {">", "<", ">=", "<=", "=", "+", "-", "*", "/", "and", "or", "not", "implies"}
+    _OPERATORS = {">", "<", ">=", "<=", "=", "+", "-", "*", "/", "and", "xor", "or", "not", "implies"}
     _PUNCTUATION = {"(", ")", "{", "}", ",", ":"}
 
     def _classify_terminal(txt: str) -> None:
@@ -921,7 +921,16 @@ def parse_predicate(tokens: list[Token]):
                     if depth == 0:
                         break
                 sub.append(t)
-            return parse_predicate(sub)
+            node = parse_predicate(sub)
+            while peek() and peek()[0] == "dot" and peek(1) and peek(1)[0] == "call":
+                consume("dot")
+                callname = consume("call")[1]
+                args = []
+                if peek() and peek()[1] == "(":
+                    consume("(")
+                    args = _collect_args()
+                node = Call(node, callname, args)
+            return node
 
         raise ValueError(f"Unexpected token in parse_primary: {tok}")
 
@@ -933,11 +942,18 @@ def parse_predicate(tokens: list[Token]):
             return UnaryOp(op, parse_unary())
         return parse_primary()
 
-    def parse_additive():
+    def parse_multiplicative():
         left = parse_unary()
-        while peek() and peek()[0] == "operator" and peek()[1] in ("+", "-"):
+        while peek() and peek()[0] == "operator" and peek()[1] in ("*", "/"):
             op = consume("operator")[1]
             left = BinaryOp(op, left, parse_unary())
+        return left
+
+    def parse_additive():
+        left = parse_multiplicative()
+        while peek() and peek()[0] == "operator" and peek()[1] in ("+", "-"):
+            op = consume("operator")[1]
+            left = BinaryOp(op, left, parse_multiplicative())
         return left
 
     def parse_compare():
@@ -954,14 +970,28 @@ def parse_predicate(tokens: list[Token]):
             left = BinaryOp(op, left, parse_compare())
         return left
 
-    def parse_or():
+    def parse_xor():
         left = parse_and()
-        while peek() and peek()[0] == "operator" and peek()[1] in ("or", "implies"):
+        while peek() and peek()[0] == "operator" and peek()[1] == "xor":
             op = consume("operator")[1]
             left = BinaryOp(op, left, parse_and())
         return left
 
-    return parse_or()
+    def parse_or():
+        left = parse_xor()
+        while peek() and peek()[0] == "operator" and peek()[1] == "or":
+            op = consume("operator")[1]
+            left = BinaryOp(op, left, parse_xor())
+        return left
+
+    def parse_implies():
+        left = parse_or()
+        if peek() and peek()[0] == "operator" and peek()[1] == "implies":
+            op = consume("operator")[1]
+            return BinaryOp(op, left, parse_implies())
+        return left
+
+    return parse_implies()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1142,7 +1172,7 @@ def subtypes(subject_class: str, inherits_from: dict) -> list[str]:
 
 def _translate_simple(node) -> str:
     if isinstance(node, BLiteral):
-        return "isTrue[True]" if node.val == "True" else "isFalse[False]"
+        return "isTrue[True]" if (node.val == "True" or node.val == "true" ) else "not isTrue[True]"
     if isinstance(node, Literal):
         return node.val
     if isinstance(node, Var):
@@ -1168,14 +1198,28 @@ def _translate_ifthenelse(node: IfThenElse, inherits_from: dict, state: Translat
 
 # ── 8c. Binary operator ───────────────────────────────────────────────────────
 
-_MAP_OPS: dict[str, str] = {"<>": "!=", "!=": "!=", "and": "&&", "or": "||", "implies": "=>"}
+_MAP_OPS: dict[str, str] = {
+    "<>": "!=", "!=": "!=", "and": "and", "xor": "xor", "or": "or", "implies": "=>"
+}
 
 
-def _normalize_boolean(val: str, op: str) -> str:
+def _is_boolean_field(val: str, data: dict) -> bool:
+    field_reference = val.rsplit(".", 1)[-1]
+    for class_name, fields in data.items():
+        for field in fields:
+            field_name, field_type = field.split(":", 1)
+            if field_type == "bool" and field_reference == f"{class_name}_{field_name}":
+                return True
+    return False
+
+
+def _normalize_boolean(val: str, op: str, data: dict) -> str:
     if op in {"=", "!="} and val == "isTrue[True]":
         return "True"
     if op in {"=", "!="} and val == "isFalse[False]":
         return "False"
+    if op in {"and", "xor", "or", "=>"} and _is_boolean_field(val, data):
+        return f"isTrue[{val}]"
     return val
 
 
@@ -1212,8 +1256,8 @@ def _translate_binaryop_date(
 
 def _translate_binaryop(node: BinaryOp, inherits_from: dict, state: TranslatorState) -> str:
     op = _MAP_OPS.get(node.op, node.op)
-    left = _normalize_boolean(ast_to_alloy(node.left, inherits_from, state), op)
-    right = _normalize_boolean(ast_to_alloy(node.right, inherits_from, state), op)
+    left = _normalize_boolean(ast_to_alloy(node.left, inherits_from, state), op, state.data)
+    right = _normalize_boolean(ast_to_alloy(node.right, inherits_from, state), op, state.data)
 
     left_lit = is_date(left)
     right_lit = is_date(right)
@@ -1240,12 +1284,18 @@ def _translate_binaryop(node: BinaryOp, inherits_from: dict, state: TranslatorSt
             str_result = state.string_ops.translate_binary("<>", left, right)
         if str_result is not None:
             return str_result
-
+    if op == "*":
+        return f"mul[{left}, {right}]"
+    if op == "/":
+        return f"div[{left}, {right}]"
     if op == "-":
         return left if right.lower() == "null" else f"minus[{left}, {right}]"
 
     if op == "+":
         return f"add[{left}, {right}]"
+
+    if op == "xor":
+        return f"((({left}) and not ({right})) or (not ({left}) and ({right})))"
 
     if op == "!=" and right == "null":
         return f"(! no({left}))"
@@ -1338,6 +1388,9 @@ def _translate_call(node: Call, inherits_from: dict, estado: TranslatorState) ->
 
     if name == "ocliskindof":
         return f"{expr} in {args[0]}"
+
+    if name == "abs":
+        return f"abs[{expr}]"
 
     if _field_type_of(expr, estado.data) == "str" or (
         isinstance(node.expr, Call)
