@@ -12,6 +12,14 @@ Each test also sets a plain ``age`` value as a control, so that a failure shows 
 only the special form is dropped.
 """
 
+import datetime
+
+from besser.BUML.metamodel.object import Link, LinkEnd, Object, ObjectModel
+from besser.BUML.metamodel.structural import (
+    BinaryAssociation, Class, DateType, Enumeration, EnumerationLiteral, IntegerType, Multiplicity, Property,
+    StringType,
+)
+from besser.utilities.buml_code_builder.domain_model_builder import object_model_to_code
 from besser.utilities.web_modeling_editor.backend.services.converters.buml_to_json.object_diagram_converter import (
     object_buml_to_json,
 )
@@ -80,3 +88,39 @@ def test_set_valued_link_creates_one_link_per_target():
     links = _links(object_buml_to_json(code, _reference_class_diagram()))
 
     assert len(links) == 2
+
+
+def test_exported_object_model_round_trips(tmp_path):
+    """Export an ObjectModel with the B-UML exporter, import the file, and check nothing is lost."""
+    gk = EnumerationLiteral("GK")
+    position = Enumeration("Position", literals={gk, EnumerationLiteral("FW")})
+    team = Class("Team", attributes={Property("tname", StringType)})
+    player = Class("Player", attributes={
+        Property("born", DateType), Property("pos", position), Property("age", IntegerType),
+    })
+    team_end = Property("team", team, multiplicity=Multiplicity(1, 1))
+    players_end = Property("players", player, multiplicity=Multiplicity(0, "*"))
+    team_players = BinaryAssociation("team_players", ends={team_end, players_end})
+
+    t0 = Object("t0", team)
+    t0.tname = "Lions"
+    p0 = Object("p0", player)
+    p0.born = datetime.date(2000, 1, 2)
+    p0.pos = gk
+    p0.age = 20
+    p1 = Object("p1", player)
+    p1.age = 30
+    for p in (p0, p1):
+        Link("team_players", team_players, [LinkEnd("team", team_end, t0), LinkEnd("players", players_end, p)])
+
+    code_file = tmp_path / "object_model.py"
+    object_model_to_code(ObjectModel("OM", objects={t0, p0, p1}), str(code_file))
+    result = object_buml_to_json(code_file.read_text(encoding="utf-8"), _reference_class_diagram())
+    names = _attribute_names(result)
+
+    assert "tname = Lions" in names
+    assert "age = 20" in names
+    assert "age = 30" in names
+    assert "pos = GK" in names
+    assert "born = 2000-01-02" in names
+    assert len(_links(result)) == 2
