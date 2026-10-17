@@ -10,6 +10,11 @@ from tests.generators.alloy.BUML_library_with_ocl_v2 import library_with_ocl_v2
     ("Library", "self.books->collect(b | b.authors)->size() > 5", "Bag"),
     ("Library", "self.books.authors->size() > 5", "Bag"),
     ("Library", "self.books.pages = self.books.pages", "Bag"),
+    # OCL 'collect' with a map expression in its body is not supported in Alloy translation.
+    ("Author", "self.books->collect(b : Book | b.price > 10)->size() > 0", "'collect' of boolean expressions"),
+    ("Author", "self.books->collect(b | b.price > 10)->size() > 0", "'collect' of boolean expressions"),
+    ("Author", "self.books->collect(b | b.price)->size()>0", "'collect' of float expressions"),
+    ("Author", "self.books->collect(b : Book | b.price)->size()>0", "'collect' of float expressions"),
     # OCL '/' is real division, Alloy 'div' integer division
     ("Book", "self.pages / 2 > 1", "Real division"),
     # arithmetic and orderings on collections or non-integers
