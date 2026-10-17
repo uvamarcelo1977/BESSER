@@ -15,6 +15,9 @@ from tests.generators.alloy.BUML_library_with_ocl_v2 import library_with_ocl_v2
     ("Author", "self.books->collect(b | b.price > 10)->size() > 0", "'collect' of boolean expressions"),
     ("Author", "self.books->collect(b | b.price)->size()>0", "'collect' of float expressions"),
     ("Author", "self.books->collect(b : Book | b.price)->size()>0", "'collect' of float expressions"),
+    #OCL sum() operator is not supported in the Alloy translation.
+    ("Author", "self.books->collect(b : Book | b.price)->sum()>0", "sum of 'collect' number expressions"),
+    ("Author", "self.books->collect(b : Book | b.price)->sum()>0", "sum of 'collect' number expressions"),
     # OCL '/' is real division, Alloy 'div' integer division
     ("Book", "self.pages / 2 > 1", "Real division"),
     # arithmetic and orderings on collections or non-integers
