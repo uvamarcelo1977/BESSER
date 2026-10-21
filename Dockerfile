@@ -17,18 +17,20 @@ RUN pip install --no-cache-dir -r requirements.txt -r backend-requirements.txt
 COPY pyproject.toml README.md ./
 COPY besser/ ./besser/
 
-# Download Alloy jar (for semantic consistency checking)
-# Install necessary tools (Java JRE and wget)
-RUN apt-get update && apt-get install -y default-jre-headless wget
+# Java runtime + download tools (Alloy semantic consistency checking)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends default-jre-headless wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Download Alloy JAR and its MIT license text (must ship alongside the redistributed jar)
-RUN mkdir /alloy && cd /alloy \
-    && wget -O alloy.jar https://github.com/AlloyTools/org.alloytools.alloy/releases/download/v6.2.0/org.alloytools.alloy.dist.jar \
-    && wget -O LICENSE https://raw.githubusercontent.com/AlloyTools/org.alloytools.alloy/v6.2.0/LICENSE \
-    && cd /app
+RUN mkdir -p /alloy \
+    && wget -O /alloy/alloy.jar https://github.com/AlloyTools/org.alloytools.alloy/releases/download/v6.2.0/org.alloytools.alloy.dist.jar \
+    && wget -O /alloy/LICENSE https://raw.githubusercontent.com/AlloyTools/org.alloytools.alloy/v6.2.0/LICENSE \
+    && test -s /alloy/alloy.jar
 
-# Set environment variables for Java home and Alloy jar (BESSER looks for Java and Alloy there)
-ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64/
+# Arch/version independent JAVA_HOME (BESSER resolves $JAVA_HOME/bin/java)
+RUN ln -s "$(dirname "$(dirname "$(readlink -f "$(which java)")")")" /usr/lib/jvm/default-java-home
+ENV JAVA_HOME=/usr/lib/jvm/default-java-home
 ENV BESSER_ALLOY_JAR=/alloy/alloy.jar
 
 # Install BESSER package
