@@ -296,7 +296,10 @@ public class {{ class_obj.name }} {{ extends }}{
         }
         {% else %}
         // Not translated: {{ invariant.error | replace('\n', ' ') }}
-        throw new UnsupportedOperationException({{ invariant.failure_message }});
+        // The if (true) guard keeps the following statements reachable for javac.
+        if (true) {
+            throw new UnsupportedOperationException({{ invariant.failure_message }});
+        }
         {% endif %}
         {% endfor %}
         return true;

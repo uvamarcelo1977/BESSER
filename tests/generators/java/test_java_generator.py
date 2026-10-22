@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from besser.BUML.metamodel.structural import (
     Class, DomainModel, Property, BinaryAssociation, Multiplicity,
-    Generalization, Method, Parameter,
+    Generalization, Method, Parameter, Constraint,
     StringType, IntegerType, FloatType,
 )
 from besser.generators.java_classes import JavaGenerator
@@ -399,4 +399,34 @@ def test_generated_java_compiles(model_with_methods, tmpdir):
 
     sources = [str(p) for p in Path(str(output_dir)).glob("*.java")]
     result = subprocess.run([javac, *sources], capture_output=True, text=True, cwd=str(output_dir))
+    assert result.returncode == 0, result.stderr
+
+
+def test_untranslated_invariant_keeps_repok_compilable(tmpdir):
+    """An untranslatable invariant throws when reached, but the invariants
+    after it must stay reachable, or javac rejects the whole class with
+    "unreachable statement"."""
+    book = Class(name="Book")
+    book.attributes = {Property(name="title", type=StringType), Property(name="pages", type=IntegerType)}
+    unsupported = Constraint(
+        name="Book_inv_a_unsupported", context=book, language="OCL",
+        expression="context Book inv Book_inv_a_unsupported : self.title->including('x')->size() > 0",
+    )
+    pages = Constraint(
+        name="Book_inv_b_pages", context=book, language="OCL",
+        expression="context Book inv Book_inv_b_pages : self.pages > 0",
+    )
+    model = DomainModel(name="Untranslated_Model", types={book}, constraints={unsupported, pages})
+    output_dir = tmpdir.mkdir("output")
+    JavaGenerator(model=model, output_dir=str(output_dir)).generate()
+
+    code = _read(os.path.join(str(output_dir), "Book.java"))
+    assert "// Not translated:" in code
+    assert code.index("if (true) {") < code.index("(this.getPages() > 0)")
+
+    javac = shutil.which("javac")
+    if javac is None:
+        pytest.skip("no JDK available")
+    sources = [str(p) for p in Path(str(output_dir)).rglob("*.java")]
+    result = subprocess.run([javac, "-d", str(output_dir.join("classes")), *sources], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr

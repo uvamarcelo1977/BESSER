@@ -109,6 +109,12 @@ class OCLToJavaVisitor:
         return method(node)
 
     def _visit_Property(self, node: Property) -> _Value:
+        # The parser resolves bare names against the context class, but inside
+        # isUnique(...) they refer to the current element first.
+        if self._implicit is not self._this:
+            prop = self._find_property(self._implicit.class_type, node.name)
+            if prop is not None:
+                return self._property_access(self._implicit, prop)
         return self._property_access(self._this, node)
 
     def _visit_PropertyCallExpression(self, node: PropertyCallExpression) -> _Value:
