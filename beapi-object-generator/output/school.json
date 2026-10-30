@@ -1,0 +1,4728 @@
+{
+  "example": "school",
+  "generator": "BEAPI",
+  "generatedAt": "2026-10-30T00:14:03",
+  "model": "Class_Diagram",
+  "rootClass": "Student",
+  "scope": 4,
+  "structureCount": 27,
+  "beapi": {
+    "seconds": 0.9,
+    "allSequences": true,
+    "testClasses": [
+      "Student",
+      "InfoExam",
+      "Professor",
+      "Subject"
+    ],
+    "builders": [
+      "InfoExam.<init>\\(int,int,java.lang.String\\)",
+      "Professor.<init>\\(java.lang.String,java.lang.String,java.lang.String\\)",
+      "Professor.addSubject\\(Subject\\)",
+      "Student.<init>\\(java.lang.String,java.lang.String,java.lang.String,int\\)",
+      "Student.addSubject\\(Subject\\)",
+      "Student.addInfoExam\\(InfoExam\\)",
+      "Subject.<init>\\(int,java.lang.String,java.lang.String\\)",
+      "Subject.addInfoExam\\(InfoExam\\)"
+    ],
+    "literalsFile": "work/school/beapi/literals.txt",
+    "canonicalizerFile": "work/school/beapi/canonicalizer.properties",
+    "omittedFields": [
+      "modCount",
+      "birthDate",
+      "examDate"
+    ],
+    "serializedObjects": "work/school/objects.ser"
+  },
+  "structures": [
+    {
+      "index": 1,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "index": 2,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 19,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 20,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 21,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 22,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 23,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o7",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o3",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o7",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o7",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "69b49287-c42c-5b85-a889-33959ac66b6a",
+          "association": "StudentExams",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "a93b7704-5ca3-50c1-93e1-16faf244b57b",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "student"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o7",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Student",
+          "classId": "8e18e79f-9757-53ab-8ac3-47b24e891abf",
+          "attributes": [
+            {
+              "id": "7ef043f4-5f9c-5557-a0b8-b6bfbf639e53",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "54f1cdaa-3df1-5b30-940c-804a157a8b71",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "a3e18b74-619a-5fb5-bb4f-8d2b6c890801",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "442ea03d-93ba-5245-91ac-f55ca0f40d9b",
+              "name": "studentId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Subject",
+          "classId": "e3de832b-9ece-5e2a-821f-43161ad2e121",
+          "attributes": [
+            {
+              "id": "115b4cfd-2b81-5a23-b788-bb23f667039b",
+              "name": "credits",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "id": "87fab655-9a2e-56e0-a51e-f02500821ac7",
+              "name": "name",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f319f2e7-725f-5925-857c-3f21ff8cfd98",
+              "name": "subjectId",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o6",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "o7",
+          "class": "InfoExam",
+          "classId": "b3b3f83f-223c-554c-bcc9-0e3c591b26be",
+          "attributes": [
+            {
+              "id": "3f6d32ee-cf94-59d7-9a26-906796dcc5fe",
+              "name": "examDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "bb63cc61-083a-56a9-8cab-1f3cccffb1ee",
+              "name": "examId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "c673f8f4-73b7-5d92-9120-b768eceb7ddb",
+              "name": "grade",
+              "type": "int",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "29020ae0-41d6-5652-a4b4-0c66a8a235e5",
+          "association": "Enrollment",
+          "source": "o1",
+          "sourceClass": "Student",
+          "sourceEndId": "ab13c7aa-bf81-5d17-8ff1-09754e9761e8",
+          "sourceEnd": "subjects",
+          "sourceEndLower": 1,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Subject",
+          "targetEnd": "students"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o6",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        },
+        {
+          "associationId": "ad31bbd9-5669-51b4-92e6-803afda18624",
+          "association": "SubjectExams",
+          "source": "o2",
+          "sourceClass": "Subject",
+          "sourceEndId": "7b9cdddd-473f-5093-b11e-f4db7e960230",
+          "sourceEnd": "exams",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o7",
+          "targetClass": "InfoExam",
+          "targetEnd": "subject"
+        }
+      ]
+    }
+  ]
+}
