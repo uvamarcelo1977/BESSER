@@ -1,0 +1,3122 @@
+{
+  "example": "hospital",
+  "generator": "BEAPI",
+  "generatedAt": "2026-10-29T23:07:25",
+  "model": "Class_Diagram",
+  "rootClass": "Doctor",
+  "scope": 4,
+  "structureCount": 16,
+  "beapi": {
+    "seconds": 25.83,
+    "allSequences": true,
+    "testClasses": [
+      "Doctor",
+      "AppointmentStatus",
+      "BloodType",
+      "MedicalAppointment",
+      "MedicalRecord",
+      "Patient",
+      "Person"
+    ],
+    "builders": [
+      "Doctor.<init>\\(float,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String\\)",
+      "Doctor.addMedicalAppointment\\(MedicalAppointment\\)",
+      "Doctor.addPatient\\(Patient\\)",
+      "MedicalAppointment.<init>\\(int,java.lang.String,AppointmentStatus,java.lang.String\\)",
+      "MedicalRecord.<init>\\(int,java.lang.String,java.lang.String,java.lang.String\\)",
+      "Patient.<init>\\(BloodType,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String\\)",
+      "Patient.addMedicalAppointment\\(MedicalAppointment\\)",
+      "Person.<init>\\(java.lang.String,java.lang.String,java.lang.String,java.lang.String\\)",
+      "AppointmentStatus:SCHEDULED",
+      "BloodType:AB_POSITIVE"
+    ],
+    "literalsFile": "work/hospital/beapi/literals.txt",
+    "canonicalizerFile": "work/hospital/beapi/canonicalizer.properties",
+    "omittedFields": [
+      "modCount",
+      "appointmentDate",
+      "birthDate",
+      "createdDate"
+    ],
+    "serializedObjects": "work/hospital/objects.ser"
+  },
+  "structures": [
+    {
+      "index": 1,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "index": 2,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o3",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "8feb02a8-1d8e-5109-a98a-c6c0c217d0b2",
+          "association": "DoctorAppointments",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "d42faabc-a107-5c3c-898a-97e20baffe3a",
+          "sourceEnd": "scheduledAppointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "attendingDoctor"
+        },
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "model": "Class_Diagram",
+      "root": "o1",
+      "objects": [
+        {
+          "id": "o1",
+          "class": "Doctor",
+          "classId": "81b824e9-70ba-5580-8a62-d6185f849052",
+          "attributes": [
+            {
+              "id": "9efb8c00-85e8-5617-8c3e-3a293735babe",
+              "name": "consultationFee",
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7ec47ae6-915c-5310-893b-4b42f79b5b0a",
+              "name": "medicalLicense",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "553b4591-909c-5016-bc8d-0a3b2087d75f",
+              "name": "specialty",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o2",
+          "class": "Patient",
+          "classId": "94cf697e-41b6-59ab-af73-66e1bd40ab88",
+          "attributes": [
+            {
+              "id": "8d900e6c-8285-5460-9c6f-beccffde0c40",
+              "name": "birthDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "dc52bdfa-1f64-5db6-b21e-0b561bdc0308",
+              "name": "bloodGroup",
+              "type": "BloodType",
+              "value": {
+                "enumeration": "BloodType",
+                "literal": "AB_POSITIVE"
+              }
+            },
+            {
+              "id": "53a02317-f688-519f-9acf-b09410bf3047",
+              "name": "email",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "72624e3c-d6ad-502e-8310-7e87d0c4c7d7",
+              "name": "fullName",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "6c4f2067-b6ee-511e-b40f-b568e901aebc",
+              "name": "id",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "f512b1f4-dc7d-5b0d-84c3-64ba71e77864",
+              "name": "patientId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "7201ac25-fc4c-5385-b1aa-f1b675cba40c",
+              "name": "phone",
+              "type": "str",
+              "value": "a"
+            }
+          ]
+        },
+        {
+          "id": "o3",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o4",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        },
+        {
+          "id": "o5",
+          "class": "MedicalAppointment",
+          "classId": "30e4a527-31f2-51b0-8246-7eaa0950b34f",
+          "attributes": [
+            {
+              "id": "ec5f2aea-cc8f-5b43-b0dc-4e2cc4eafdb1",
+              "name": "appointmentDate",
+              "type": "date",
+              "value": "2000-01-02"
+            },
+            {
+              "id": "f4cd7b40-0c51-5f50-8c3d-23108487c131",
+              "name": "appointmentId",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "3443599a-1031-53eb-97e5-39b3a5574f33",
+              "name": "reason",
+              "type": "str",
+              "value": "a"
+            },
+            {
+              "id": "d42ff150-0f2e-57fb-8e05-af7988078d4c",
+              "name": "status",
+              "type": "AppointmentStatus",
+              "value": {
+                "enumeration": "AppointmentStatus",
+                "literal": "SCHEDULED"
+              }
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "associationId": "6c6e2b3d-bbdc-500f-a9a4-14d08e1c16af",
+          "association": "Patient_Doctor",
+          "source": "o1",
+          "sourceClass": "Doctor",
+          "sourceEndId": "9a0f5da2-e79a-54ad-a8cf-2bdde2fe99bb",
+          "sourceEnd": "patients",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o2",
+          "targetClass": "Patient",
+          "targetEnd": "primaryDoctor"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o3",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o4",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        },
+        {
+          "associationId": "a57850b0-7b64-52fc-b1da-2d3c17637af0",
+          "association": "PatientAppointments",
+          "source": "o2",
+          "sourceClass": "Patient",
+          "sourceEndId": "3f4510f3-8abc-55c1-aef8-91ba428c35ce",
+          "sourceEnd": "appointments",
+          "sourceEndLower": 0,
+          "sourceEndUpper": -1,
+          "target": "o5",
+          "targetClass": "MedicalAppointment",
+          "targetEnd": "patient"
+        }
+      ]
+    }
+  ]
+}
