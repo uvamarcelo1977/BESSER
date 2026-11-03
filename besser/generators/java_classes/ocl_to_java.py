@@ -97,7 +97,8 @@ class OCLToJavaVisitor:
         self._this = _Value("this", context_class.name, class_type=context_class)
         # Iterator variables visible in the current expression.
         self._scope: dict[str, _Value] = {}
-        # Element used to resolve bare names inside isUnique(...), else ``this``.
+        # Element used to resolve bare names inside isUnique(...) and iterators
+        # without a named variable, else ``this``.
         self._implicit = self._this
 
     def visit(self, node: Any) -> _Value:
@@ -110,7 +111,7 @@ class OCLToJavaVisitor:
 
     def _visit_Property(self, node: Property) -> _Value:
         # The parser resolves bare names against the context class, but inside
-        # isUnique(...) they refer to the current element first.
+        # isUnique(...) or an implicit iterator they refer to the current element first.
         if self._implicit is not self._this:
             prop = self._find_property(self._implicit.class_type, node.name)
             if prop is not None:
@@ -235,7 +236,9 @@ class OCLToJavaVisitor:
             if op.lower() == "first":
                 code = f"{self._stream(source.code)}.findFirst().orElse(null)"
             else:
-                code = f"{self._stream(source.code)}.reduce((a, b) -> b).orElse(null)"
+                # Fresh names so the lambda never clashes with an enclosing iterator.
+                previous, current = self._fresh_variable("__prev"), self._fresh_variable("__last")
+                code = f"{self._stream(source.code)}.reduce(({previous}, {current}) -> {current}).orElse(null)"
             return _Value(code, source.type_name, class_type=source.class_type, boxed=True)
         if op in {"INCLUDES", "includes", "EXCLUDES", "excludes"}:
             source, item = self._source(node), self.visit(args[0])
@@ -291,16 +294,18 @@ class OCLToJavaVisitor:
             raise OCLTranslationError(f"Iterator {node.name} has no body")
         source = self._source(node)
         if not source.many:
-            source_code = (
-                f"({source.code} == null ? Stream.empty() : Stream.of({source.code}))"
-            )
+            # A ternary with Stream.empty() would infer Stream<Object> and lose the element type.
+            source_code = f"Stream.ofNullable({source.code})"
             self.imports.add("java.util.stream.Stream")
         else:
             source_code = self._stream(source.code)
         iterator_defs = list(node.iterator)
-        if not iterator_defs:
-            iterator_defs = [type("ImplicitIterator", (), {"name": "it", "type": source.class_type})()]
+        implicit_iterator = not iterator_defs
+        if implicit_iterator:
+            name = self._fresh_variable("it")
+            iterator_defs = [type("ImplicitIterator", (), {"name": name, "type": source.class_type})()]
         prior_scope = self._scope.copy()
+        prior_implicit = self._implicit
         variables = [
             self._safe_variable(getattr(iterator, "name", "it"))
             for iterator in iterator_defs
@@ -314,8 +319,14 @@ class OCLToJavaVisitor:
                 class_type=inferred_class,
                 boxed=source.many,
             )
-        body = self.visit(node.body[0])
-        self._scope = prior_scope
+        if implicit_iterator:
+            # Without a named iterator, bare names in the body refer to each element.
+            self._implicit = self._scope[iterator_defs[0].name]
+        try:
+            body = self.visit(node.body[0])
+        finally:
+            self._scope = prior_scope
+            self._implicit = prior_implicit
         operation = node.name.lower()
         if operation == "forall":
 

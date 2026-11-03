@@ -137,6 +137,25 @@ def test_patient_few_doctors(java_code):
             ".stream().distinct().collect(Collectors.toList()).size() <= 5" in java_code["Patient"])
 
 
+def test_patient_uninsured_limit(java_code):
+    # self.isInsured = false implies self.appointments->size() <= 10
+    assert ("(!((this.getIsInsured() == false)) || ((this.getAppointments().size() <= 10)))"
+            in java_code["Patient"])
+
+
+def test_patient_primary_doctor_experienced(java_code):
+    # self.primaryDoctor->forAll(d | d.yearsOfExperience >= 1)
+    assert "import java.util.stream.Stream;" in java_code["Patient"]
+    assert ("Stream.ofNullable(this.getPrimaryDoctor()).allMatch(d -> (d.getYearsOfExperience() >= 1))"
+            in java_code["Patient"])
+
+
+def test_patient_doctor_same_hospital(java_code):
+    # self.primaryDoctor->exists(d | d.hospital = self.admittedAt) or self.admittedAt = null
+    assert ("(Stream.ofNullable(this.getPrimaryDoctor()).anyMatch(d -> Objects.equals(d.getHospital(), "
+            "this.getAdmittedAt())) || (this.getAdmittedAt() == null))" in java_code["Patient"])
+
+
 # --- MedicalAppointment ---
 
 def test_appointment_duration_range(java_code):
@@ -162,6 +181,23 @@ def test_appointment_reason_or_record(java_code):
     # self.reason <> '' or not self.record->isEmpty()
     assert ('(!Objects.equals(this.getReason(), "") || !((this.getRecord() == null)))'
             in java_code["MedicalAppointment"])
+
+
+def test_appointment_check_in_in_the_past(java_code):
+    # self.checkInTime <= Date::now()
+    assert "import java.time.LocalDateTime;" in java_code["MedicalAppointment"]
+    assert "(this.getCheckInTime().compareTo(LocalDateTime.now()) <= 0)" in java_code["MedicalAppointment"]
+
+
+def test_appointment_within_one_year(java_code):
+    # self.appointmentDate <= Date::today().addDays(365)
+    assert ("(this.getAppointmentDate().compareTo(LocalDate.now().plusDays(365)) <= 0)"
+            in java_code["MedicalAppointment"])
+
+
+def test_appointment_at_most_one_record(java_code):
+    # self.record->size() <= 1
+    assert "((this.getRecord() == null ? 0 : 1) <= 1)" in java_code["MedicalAppointment"]
 
 
 # --- MedicalRecord ---
@@ -233,6 +269,49 @@ def test_hospital_fee_by_specialty(java_code):
     assert ('this.getDoctors().stream().filter(d -> Objects.equals(d.getSpecialty(), "Surgery"))'
             ".collect(Collectors.toList()).stream().allMatch(d -> ((d.getYearsOfExperience() > 20) ? "
             "(d.getConsultationFee() >= 200.0f) : (d.getConsultationFee() >= 100.0f)))" in java_code["Hospital"])
+
+
+def test_hospital_doctor_patients_within_capacity(java_code):
+    # self.doctors.patients->asSet()->size() <= self.capacity
+    assert ("this.getDoctors().stream().flatMap(__ocl -> __ocl.getPatients().stream()).collect(Collectors.toList())"
+            ".stream().distinct().collect(Collectors.toList()).size() <= this.getCapacity()" in java_code["Hospital"])
+
+
+def test_hospital_fees_positive(java_code):
+    # self.doctors->forAll(consultationFee > 0.0)
+    assert "this.getDoctors().stream().allMatch(it -> (it.getConsultationFee() > 0.0f))" in java_code["Hospital"]
+
+
+def test_hospital_patient_ids(java_code):
+    # self.inpatients->forAll(p : Patient | p.patientId <> '')
+    assert ('this.getInpatients().stream().allMatch(p -> !Objects.equals(p.getPatientId(), ""))'
+            in java_code["Hospital"])
+
+
+def test_hospital_has_first_doctor(java_code):
+    # self.doctors->first() <> null
+    assert "(this.getDoctors().stream().findFirst().orElse(null) != null)" in java_code["Hospital"]
+
+
+def test_hospital_few_new_doctors(java_code):
+    # self.doctors->select(new | new.yearsOfExperience = 0)->size() <= 2
+    # 'new' is a Java keyword, so the lambda variable is renamed.
+    assert ("this.getDoctors().stream().filter(new_ -> (new_.getYearsOfExperience() == 0))"
+            ".collect(Collectors.toList()).size() <= 2" in java_code["Hospital"])
+
+
+def test_hospital_staff_ratio(java_code):
+    # self.inpatients->size() + self.doctors->size() <= self.capacity * 2
+    assert ("((this.getInpatients().size() + this.getDoctors().size()) <= (this.getCapacity() * 2))"
+            in java_code["Hospital"])
+
+
+def test_hospital_doctors_patients_here(java_code):
+    # self.doctors->forAll(patients->forAll(admittedAt = self))
+    # Nested implicit iterators get distinct lambda variables.
+    assert ("this.getDoctors().stream().allMatch(it -> "
+            "it.getPatients().stream().allMatch(it1 -> Objects.equals(it1.getAdmittedAt(), this)))"
+            in java_code["Hospital"])
 
 
 # --- Generated code ---

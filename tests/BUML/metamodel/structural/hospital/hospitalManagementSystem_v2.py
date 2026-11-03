@@ -60,11 +60,13 @@ Hospital.attributes={Hospital_address, Hospital_capacity, Hospital_name}
 # MedicalAppointment class attributes and methods
 MedicalAppointment_appointmentDate: Property = Property(name="appointmentDate", type=DateType)
 MedicalAppointment_appointmentId: Property = Property(name="appointmentId", type=StringType)
+MedicalAppointment_checkInTime: Property = Property(name="checkInTime", type=DateTimeType)
 MedicalAppointment_cost: Property = Property(name="cost", type=FloatType)
 MedicalAppointment_durationMinutes: Property = Property(name="durationMinutes", type=IntegerType)
 MedicalAppointment_reason: Property = Property(name="reason", type=StringType)
 MedicalAppointment_status: Property = Property(name="status", type=AppointmentStatus)
 MedicalAppointment.attributes={MedicalAppointment_appointmentDate, MedicalAppointment_appointmentId,
+                               MedicalAppointment_checkInTime,
                                MedicalAppointment_cost, MedicalAppointment_durationMinutes,
                                MedicalAppointment_reason, MedicalAppointment_status}
 
@@ -354,6 +356,86 @@ Hospital_inv_feeBySpecialty: Constraint = Constraint(
     language="OCL"
 )
 
+# --- Additional operations ---
+Patient_inv_uninsuredLimit: Constraint = Constraint(
+    name="Patient_inv_uninsuredLimit",
+    context=Patient,
+    expression="context Patient inv Patient_inv_uninsuredLimit : self.isInsured = false implies self.appointments->size() <= 10",
+    language="OCL"
+)
+Patient_inv_primaryDoctorExperienced: Constraint = Constraint(
+    name="Patient_inv_primaryDoctorExperienced",
+    context=Patient,
+    expression="context Patient inv Patient_inv_primaryDoctorExperienced : self.primaryDoctor->forAll(d | d.yearsOfExperience >= 1)",
+    language="OCL"
+)
+Patient_inv_doctorSameHospital: Constraint = Constraint(
+    name="Patient_inv_doctorSameHospital",
+    context=Patient,
+    expression="context Patient inv Patient_inv_doctorSameHospital : self.primaryDoctor->exists(d | d.hospital = self.admittedAt) or self.admittedAt = null",
+    language="OCL"
+)
+MedicalAppointment_inv_checkInInThePast: Constraint = Constraint(
+    name="MedicalAppointment_inv_checkInInThePast",
+    context=MedicalAppointment,
+    expression="context MedicalAppointment inv MedicalAppointment_inv_checkInInThePast : self.checkInTime <= Date::now()",
+    language="OCL"
+)
+MedicalAppointment_inv_withinOneYear: Constraint = Constraint(
+    name="MedicalAppointment_inv_withinOneYear",
+    context=MedicalAppointment,
+    expression="context MedicalAppointment inv MedicalAppointment_inv_withinOneYear : self.appointmentDate <= Date::today().addDays(365)",
+    language="OCL"
+)
+MedicalAppointment_inv_atMostOneRecord: Constraint = Constraint(
+    name="MedicalAppointment_inv_atMostOneRecord",
+    context=MedicalAppointment,
+    expression="context MedicalAppointment inv MedicalAppointment_inv_atMostOneRecord : self.record->size() <= 1",
+    language="OCL"
+)
+Hospital_inv_doctorPatientsWithinCapacity: Constraint = Constraint(
+    name="Hospital_inv_doctorPatientsWithinCapacity",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_doctorPatientsWithinCapacity : self.doctors.patients->asSet()->size() <= self.capacity",
+    language="OCL"
+)
+Hospital_inv_feesPositive: Constraint = Constraint(
+    name="Hospital_inv_feesPositive",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_feesPositive : self.doctors->forAll(consultationFee > 0.0)",
+    language="OCL"
+)
+Hospital_inv_patientIds: Constraint = Constraint(
+    name="Hospital_inv_patientIds",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_patientIds : self.inpatients->forAll(p : Patient | p.patientId <> '')",
+    language="OCL"
+)
+Hospital_inv_hasFirstDoctor: Constraint = Constraint(
+    name="Hospital_inv_hasFirstDoctor",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_hasFirstDoctor : self.doctors->first() <> null",
+    language="OCL"
+)
+Hospital_inv_fewNewDoctors: Constraint = Constraint(
+    name="Hospital_inv_fewNewDoctors",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_fewNewDoctors : self.doctors->select(new | new.yearsOfExperience = 0)->size() <= 2",
+    language="OCL"
+)
+Hospital_inv_staffRatio: Constraint = Constraint(
+    name="Hospital_inv_staffRatio",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_staffRatio : self.inpatients->size() + self.doctors->size() <= self.capacity * 2",
+    language="OCL"
+)
+Hospital_inv_doctorsPatientsHere: Constraint = Constraint(
+    name="Hospital_inv_doctorsPatientsHere",
+    context=Hospital,
+    expression="context Hospital inv Hospital_inv_doctorsPatientsHere : self.doctors->forAll(patients->forAll(admittedAt = self))",
+    language="OCL"
+)
+
 # Domain Model
 domain_model = DomainModel(
     name="Class_Diagram",
@@ -373,6 +455,19 @@ domain_model = DomainModel(
         Hospital_inv_capacity, Hospital_inv_allDoctorsLicensed, Hospital_inv_inpatientsHaveLocalDoctor,
         Hospital_inv_seniorDoctor, Hospital_inv_doctorsPatientsAdmitted, Hospital_inv_distinctDoctorPatients,
         Hospital_inv_feeBySpecialty,
+        Patient_inv_uninsuredLimit,
+        Patient_inv_primaryDoctorExperienced,
+        Patient_inv_doctorSameHospital,
+        MedicalAppointment_inv_checkInInThePast,
+        MedicalAppointment_inv_withinOneYear,
+        MedicalAppointment_inv_atMostOneRecord,
+        Hospital_inv_doctorPatientsWithinCapacity,
+        Hospital_inv_feesPositive,
+        Hospital_inv_patientIds,
+        Hospital_inv_hasFirstDoctor,
+        Hospital_inv_fewNewDoctors,
+        Hospital_inv_staffRatio,
+        Hospital_inv_doctorsPatientsHere,
     },
     generalizations={gen_Doctor_Person, gen_Patient_Person},
     metadata=None

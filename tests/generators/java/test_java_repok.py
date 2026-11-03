@@ -26,6 +26,10 @@ def java_code(output_dir):
     return {path.stem: path.read_text() for path in output_dir.glob("*.java")}
 
 
+def test_every_invariant_is_translated(java_code):
+    assert not any("Not translated" in code for code in java_code.values())
+
+
 # --- Book ---
 
 def test_book_positive_values(java_code):
@@ -86,6 +90,43 @@ def test_book_unique_title(java_code):
             in java_code["Book"])
 
 
+def test_book_price_with_tax(java_code):
+    # self.price + self.price * 0.21 <= 2000.0
+    assert "((this.getPrice() + (this.getPrice() * 0.21f)) <= 2000.0f)" in java_code["Book"]
+
+
+def test_book_title_alphabetic(java_code):
+    # self.title >= 'A'
+    assert '(this.getTitle().compareTo("A") >= 0)' in java_code["Book"]
+
+
+def test_book_not_placeholder_title(java_code):
+    # self.title <> '"Untitled"'
+    assert '!Objects.equals(this.getTitle(), "\\"Untitled\\"")' in java_code["Book"]
+
+
+def test_book_authors_named(java_code):
+    # self.authors->forAll(name <> '')
+    assert 'this.getAuthors().stream().allMatch(it -> !Objects.equals(it.getName(), ""))' in java_code["Book"]
+
+
+def test_book_some_author_born_before(java_code):
+    # self.authors->exists(a : Author | a.birth < self.release)
+    assert ("this.getAuthors().stream().anyMatch(a -> (a.getBirth().compareTo(this.getRelease()) < 0))"
+            in java_code["Book"])
+
+
+def test_book_in_authors_books(java_code):
+    # self.authors.books->includes(self)
+    assert ("this.getAuthors().stream().flatMap(__ocl -> __ocl.getBooks().stream())"
+            ".collect(Collectors.toList()).contains(this)" in java_code["Book"])
+
+
+def test_book_min_price_by_pages(java_code):
+    # self.price >= (if self.pages > 300 then 10.0 else 5.0 endif)
+    assert "(this.getPrice() >= ((this.getPages() > 300) ? 10.0f : 5.0f))" in java_code["Book"]
+
+
 # --- Author ---
 
 def test_author_more_than_one_book(java_code):
@@ -135,6 +176,48 @@ def test_library_expensive_books_long(java_code):
             ".stream().allMatch(b -> (b.getPages() >= 100))" in java_code["Library"])
 
 
+def test_library_authors_not_named_after_library(java_code):
+    # self.books.authors->forAll(name <> self.name)
+    # 'name' belongs to the implicit element (Author) even though Library also has a 'name'.
+    assert ("this.getBooks().stream().flatMap(__ocl -> __ocl.getAuthors().stream()).collect(Collectors.toList())"
+            ".stream().allMatch(it -> !Objects.equals(it.getName(), this.getName()))" in java_code["Library"])
+
+
+def test_library_first_book_stock(java_code):
+    # self.books->isEmpty() or self.books->collect(b | b.stock)->first() >= 0
+    assert ("(this.getBooks().isEmpty() || (this.getBooks().stream().map(b -> b.getStock())"
+            ".collect(Collectors.toList()).stream().findFirst().orElse(null) >= 0))" in java_code["Library"])
+
+
+def test_library_last_book_pages(java_code):
+    # self.books->isEmpty() or self.books->collect(b | b.pages)->last() > 0
+    assert ("(this.getBooks().isEmpty() || (this.getBooks().stream().map(b -> b.getPages())"
+            ".collect(Collectors.toList()).stream().reduce((__prev, __last) -> __last).orElse(null) > 0))"
+            in java_code["Library"])
+
+
+def test_library_last_author_named(java_code):
+    # self.books->forAll(b | b.authors->collect(a | a.name)->last() <> '')
+    # The reduce lambda must not reuse the enclosing iterator name 'b'.
+    assert ("this.getBooks().stream().allMatch(b -> !Objects.equals(b.getAuthors().stream().map(a -> a.getName())"
+            '.collect(Collectors.toList()).stream().reduce((__prev, __last) -> __last).orElse(null), ""))'
+            in java_code["Library"])
+
+
+def test_library_out_of_stock_needs_phone(java_code):
+    # self.books->collect(b | b.stock)->exists(s | s = 0) implies self.telephone <> ''
+    assert ("(!(this.getBooks().stream().map(b -> b.getStock()).collect(Collectors.toList()).stream()"
+            '.anyMatch(s -> Objects.equals(s, 0))) || (!Objects.equals(this.getTelephone(), "")))'
+            in java_code["Library"])
+
+
+def test_library_stock_levels(java_code):
+    # self.books->collect(b | b.stock)->forAll(s1, s2 | s1 <> s2 implies s1 + s2 > 0)
+    # Integers taken from a collection are compared with Objects.equals, never with ==.
+    assert ("allMatch(s2 -> (!(!Objects.equals(s1, s2)) || (((s1 + s2) > 0))))" in java_code["Library"])
+    assert "s1 != s2" not in java_code["Library"]
+
+
 # --- BookItem ---
 
 def test_book_item_loaned_in_library(java_code):
@@ -147,6 +230,18 @@ def test_book_item_book_is_book(java_code):
     # self.book.oclIsTypeOf(Book) and self.publisher <> ''
     assert ('((this.getBook() != null && this.getBook().getClass() == Book.class)'
             ' && !Objects.equals(this.getPublisher(), ""))' in java_code["BookItem"])
+
+
+def test_book_item_single_book(java_code):
+    # self.book->size() = 1 and self.book->asSet()->size() = 1
+    assert ("(((this.getBook() == null ? 0 : 1) == 1) && "
+            "(java.util.Collections.singletonList(this.getBook()).size() == 1))" in java_code["BookItem"])
+
+
+def test_book_item_book_stock_non_negative(java_code):
+    # self.book->forAll(b | b.stock >= 0)
+    assert "import java.util.stream.Stream;" in java_code["BookItem"]
+    assert "Stream.ofNullable(this.getBook()).allMatch(b -> (b.getStock() >= 0))" in java_code["BookItem"]
 
 
 # --- User ---

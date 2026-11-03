@@ -331,6 +331,113 @@ Loan_inv_returnAfterBorrow: Constraint = Constraint(
     language="OCL"
 )
 
+# --- Operaciones adicionales ---
+# Suma de reales
+Book_inv_priceWithTax: Constraint = Constraint(
+    name="Book_inv_priceWithTax",
+    context=Book,
+    expression="context Book inv Book_inv_priceWithTax : self.price + self.price * 0.21 <= 2000.0",
+    language="OCL"
+)
+# Comparacion de Strings (orden lexicografico)
+Book_inv_titleAlphabetic: Constraint = Constraint(
+    name="Book_inv_titleAlphabetic",
+    context=Book,
+    expression="context Book inv Book_inv_titleAlphabetic : self.title >= 'A'",
+    language="OCL"
+)
+# Literal String con comillas dobles (escape en Java)
+Book_inv_notPlaceholderTitle: Constraint = Constraint(
+    name="Book_inv_notPlaceholderTitle",
+    context=Book,
+    expression="context Book inv Book_inv_notPlaceholderTitle : self.title <> '\"Untitled\"'",
+    language="OCL"
+)
+# Iterador implicito (sin variable)
+Book_inv_authorsNamed: Constraint = Constraint(
+    name="Book_inv_authorsNamed",
+    context=Book,
+    expression="context Book inv Book_inv_authorsNamed : self.authors->forAll(name <> '')",
+    language="OCL"
+)
+# Iterador con tipo declarado
+Book_inv_someAuthorBornBefore: Constraint = Constraint(
+    name="Book_inv_someAuthorBornBefore",
+    context=Book,
+    expression="context Book inv Book_inv_someAuthorBornBefore : self.authors->exists(a : Author | a.birth < self.release)",
+    language="OCL"
+)
+# Navegacion sobre coleccion a coleccion (collect implicito aplanado)
+Book_inv_inAuthorsBooks: Constraint = Constraint(
+    name="Book_inv_inAuthorsBooks",
+    context=Book,
+    expression="context Book inv Book_inv_inAuthorsBooks : self.authors.books->includes(self)",
+    language="OCL"
+)
+# if-then-else que devuelve un numero
+Book_inv_minPriceByPages: Constraint = Constraint(
+    name="Book_inv_minPriceByPages",
+    context=Book,
+    expression="context Book inv Book_inv_minPriceByPages : self.price >= (if self.pages > 300 then 10.0 else 5.0 endif)",
+    language="OCL"
+)
+# size y asSet sobre un extremo monovaluado
+BookItem_inv_singleBook: Constraint = Constraint(
+    name="BookItem_inv_singleBook",
+    context=BookItem,
+    expression="context BookItem inv BookItem_inv_singleBook : self.book->size() = 1 and self.book->asSet()->size() = 1",
+    language="OCL"
+)
+# Iterador sobre un extremo monovaluado
+BookItem_inv_bookStockNonNegative: Constraint = Constraint(
+    name="BookItem_inv_bookStockNonNegative",
+    context=BookItem,
+    expression="context BookItem inv BookItem_inv_bookStockNonNegative : self.book->forAll(b | b.stock >= 0)",
+    language="OCL"
+)
+# Iterador implicito: 'name' es del elemento aunque Library tambien tenga 'name'
+Library_inv_authorsNotNamedAfterLibrary: Constraint = Constraint(
+    name="Library_inv_authorsNotNamedAfterLibrary",
+    context=Library,
+    expression="context Library inv Library_inv_authorsNotNamedAfterLibrary : self.books.authors->forAll(name <> self.name)",
+    language="OCL"
+)
+# first
+Library_inv_firstBookStock: Constraint = Constraint(
+    name="Library_inv_firstBookStock",
+    context=Library,
+    expression="context Library inv Library_inv_firstBookStock : self.books->isEmpty() or self.books->collect(b | b.stock)->first() >= 0",
+    language="OCL"
+)
+# last
+Library_inv_lastBookPages: Constraint = Constraint(
+    name="Library_inv_lastBookPages",
+    context=Library,
+    expression="context Library inv Library_inv_lastBookPages : self.books->isEmpty() or self.books->collect(b | b.pages)->last() > 0",
+    language="OCL"
+)
+# last dentro de un iterador (nombres de lambda sin colision)
+Library_inv_lastAuthorNamed: Constraint = Constraint(
+    name="Library_inv_lastAuthorNamed",
+    context=Library,
+    expression="context Library inv Library_inv_lastAuthorNamed : self.books->forAll(b | b.authors->collect(a | a.name)->last() <> '')",
+    language="OCL"
+)
+# Igualdad entre un Integer de coleccion y un literal
+Library_inv_outOfStockNeedsPhone: Constraint = Constraint(
+    name="Library_inv_outOfStockNeedsPhone",
+    context=Library,
+    expression="context Library inv Library_inv_outOfStockNeedsPhone : self.books->collect(b | b.stock)->exists(s | s = 0) implies self.telephone <> ''",
+    language="OCL"
+)
+# Igualdad entre dos Integer de coleccion (Objects.equals, no ==)
+Library_inv_stockLevels: Constraint = Constraint(
+    name="Library_inv_stockLevels",
+    context=Library,
+    expression="context Library inv Library_inv_stockLevels : self.books->collect(b | b.stock)->forAll(s1, s2 | s1 <> s2 implies s1 + s2 > 0)",
+    language="OCL"
+)
+
 # Domain Model
 domain_model = DomainModel(
     name="LibraryLoan_v2",
@@ -362,7 +469,22 @@ domain_model = DomainModel(
         User_inv_noDuplicateBooks,
         User_inv_uniqueId,
         Loan_inv_dueAfterBorrow,
-        Loan_inv_returnAfterBorrow
+        Loan_inv_returnAfterBorrow,
+        Book_inv_priceWithTax,
+        Book_inv_titleAlphabetic,
+        Book_inv_notPlaceholderTitle,
+        Book_inv_authorsNamed,
+        Book_inv_someAuthorBornBefore,
+        Book_inv_inAuthorsBooks,
+        Book_inv_minPriceByPages,
+        BookItem_inv_singleBook,
+        BookItem_inv_bookStockNonNegative,
+        Library_inv_authorsNotNamedAfterLibrary,
+        Library_inv_firstBookStock,
+        Library_inv_lastBookPages,
+        Library_inv_lastAuthorNamed,
+        Library_inv_outOfStockNeedsPhone,
+        Library_inv_stockLevels,
     },
     generalizations={},
     metadata=None
