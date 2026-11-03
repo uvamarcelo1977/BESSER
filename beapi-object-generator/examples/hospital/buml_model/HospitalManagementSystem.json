@@ -1,0 +1,1424 @@
+{
+  "project": {
+    "id": "project_1793295687399_hhmbdj347",
+    "type": "Project",
+    "schemaVersion": 5,
+    "name": "HospitalManagementSystem",
+    "description": "Hospital Management System BUML Model",
+    "owner": "BESSER User",
+    "createdAt": "2026-10-29T17:41:27.399Z",
+    "currentDiagramType": "ClassDiagram",
+    "currentDiagramIndices": {
+      "ClassDiagram": 0,
+      "ObjectDiagram": 0,
+      "StateMachineDiagram": 0,
+      "AgentDiagram": 0,
+      "ComponentDiagram": 0,
+      "DeploymentDiagram": 0,
+      "NNDiagram": 0,
+      "UserDiagram": 0,
+      "GUINoCodeDiagram": 0,
+      "QuantumCircuitDiagram": 0,
+      "BPMN": 0
+    },
+    "diagrams": {
+      "ClassDiagram": [
+        {
+          "id": "2504bb1c-4306-493d-b432-7398ad6427eb",
+          "title": "Class Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "ClassDiagram",
+            "size": {
+              "width": 1640,
+              "height": 1160
+            },
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "elements": {
+              "63dd5db3-8835-4c11-9764-f37858138338": {
+                "id": "63dd5db3-8835-4c11-9764-f37858138338",
+                "name": "AppointmentStatus",
+                "type": "Enumeration",
+                "owner": null,
+                "bounds": {
+                  "x": -740,
+                  "y": -530,
+                  "width": 160,
+                  "height": 170
+                },
+                "attributes": [
+                  "c154b757-9cb6-41e2-b81c-1132f01c980c",
+                  "d6957d19-145e-4914-9e2b-53387487aba0",
+                  "c6a539e1-8f67-40d7-bb6a-55a705394aaa",
+                  "86084e01-ac3d-4e65-83ed-86f497d4b334"
+                ],
+                "methods": []
+              },
+              "c154b757-9cb6-41e2-b81c-1132f01c980c": {
+                "id": "c154b757-9cb6-41e2-b81c-1132f01c980c",
+                "name": "CANCELLED",
+                "type": "ClassAttribute",
+                "owner": "63dd5db3-8835-4c11-9764-f37858138338",
+                "bounds": {
+                  "x": -739.5,
+                  "y": -479.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "d6957d19-145e-4914-9e2b-53387487aba0": {
+                "id": "d6957d19-145e-4914-9e2b-53387487aba0",
+                "name": "COMPLETED",
+                "type": "ClassAttribute",
+                "owner": "63dd5db3-8835-4c11-9764-f37858138338",
+                "bounds": {
+                  "x": -739.5,
+                  "y": -449.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "c6a539e1-8f67-40d7-bb6a-55a705394aaa": {
+                "id": "c6a539e1-8f67-40d7-bb6a-55a705394aaa",
+                "name": "NO_SHOW",
+                "type": "ClassAttribute",
+                "owner": "63dd5db3-8835-4c11-9764-f37858138338",
+                "bounds": {
+                  "x": -739.5,
+                  "y": -419.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "86084e01-ac3d-4e65-83ed-86f497d4b334": {
+                "id": "86084e01-ac3d-4e65-83ed-86f497d4b334",
+                "name": "SCHEDULED",
+                "type": "ClassAttribute",
+                "owner": "63dd5db3-8835-4c11-9764-f37858138338",
+                "bounds": {
+                  "x": -739.5,
+                  "y": -389.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "6163bfce-b735-4c33-aa8d-befc284de35c": {
+                "id": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "name": "BloodType",
+                "type": "Enumeration",
+                "owner": null,
+                "bounds": {
+                  "x": -440,
+                  "y": -560,
+                  "width": 160,
+                  "height": 290
+                },
+                "attributes": [
+                  "c607201d-084a-464b-b540-1d5bb147627f",
+                  "58ea4cb2-101d-4bad-bf59-7dedaf9bdca2",
+                  "67cffb99-c4c4-4419-8e2f-c486b81d7a98",
+                  "aeabee06-73b8-4a71-b614-269e0c8dd01e",
+                  "ab05c134-102f-48f1-b137-16c43ace94c4",
+                  "ff2176e7-7420-459a-9bdb-b97f8a4559d3",
+                  "23728b01-a62f-4708-befc-30f71c7b37a6",
+                  "81d1c991-9aa6-46b8-b8a5-3895a94e957d"
+                ],
+                "methods": []
+              },
+              "c607201d-084a-464b-b540-1d5bb147627f": {
+                "id": "c607201d-084a-464b-b540-1d5bb147627f",
+                "name": "AB_NEGATIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -509.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "58ea4cb2-101d-4bad-bf59-7dedaf9bdca2": {
+                "id": "58ea4cb2-101d-4bad-bf59-7dedaf9bdca2",
+                "name": "AB_POSITIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -479.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "67cffb99-c4c4-4419-8e2f-c486b81d7a98": {
+                "id": "67cffb99-c4c4-4419-8e2f-c486b81d7a98",
+                "name": "A_NEGATIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -449.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "aeabee06-73b8-4a71-b614-269e0c8dd01e": {
+                "id": "aeabee06-73b8-4a71-b614-269e0c8dd01e",
+                "name": "A_POSITIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -419.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "ab05c134-102f-48f1-b137-16c43ace94c4": {
+                "id": "ab05c134-102f-48f1-b137-16c43ace94c4",
+                "name": "B_NEGATIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -389.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "ff2176e7-7420-459a-9bdb-b97f8a4559d3": {
+                "id": "ff2176e7-7420-459a-9bdb-b97f8a4559d3",
+                "name": "B_POSITIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -359.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "23728b01-a62f-4708-befc-30f71c7b37a6": {
+                "id": "23728b01-a62f-4708-befc-30f71c7b37a6",
+                "name": "O_NEGATIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -329.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "81d1c991-9aa6-46b8-b8a5-3895a94e957d": {
+                "id": "81d1c991-9aa6-46b8-b8a5-3895a94e957d",
+                "name": "O_POSITIVE",
+                "type": "ClassAttribute",
+                "owner": "6163bfce-b735-4c33-aa8d-befc284de35c",
+                "bounds": {
+                  "x": -439.5,
+                  "y": -299.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "ae959bc2-4adc-4a2c-80a9-27fd04c44500": {
+                "id": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                "name": "Doctor",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": -70,
+                  "y": -440,
+                  "width": 160,
+                  "height": 130
+                },
+                "attributes": [
+                  "70195423-5c83-429e-8cd8-fce9180baeee",
+                  "e9e8a58e-1d60-433a-9410-08ed75861b6c",
+                  "1e2f2c68-3978-4622-a793-27a04191bca9"
+                ],
+                "methods": []
+              },
+              "70195423-5c83-429e-8cd8-fce9180baeee": {
+                "id": "70195423-5c83-429e-8cd8-fce9180baeee",
+                "name": "consultationFee",
+                "type": "ClassAttribute",
+                "owner": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                "bounds": {
+                  "x": -69.5,
+                  "y": -399.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "float",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "e9e8a58e-1d60-433a-9410-08ed75861b6c": {
+                "id": "e9e8a58e-1d60-433a-9410-08ed75861b6c",
+                "name": "medicalLicense",
+                "type": "ClassAttribute",
+                "owner": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                "bounds": {
+                  "x": -69.5,
+                  "y": -369.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "1e2f2c68-3978-4622-a793-27a04191bca9": {
+                "id": "1e2f2c68-3978-4622-a793-27a04191bca9",
+                "name": "specialty",
+                "type": "ClassAttribute",
+                "owner": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                "bounds": {
+                  "x": -69.5,
+                  "y": -339.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "8b8a5fb4-a1cc-42b8-a7b6-c516a8f38321": {
+                "id": "8b8a5fb4-a1cc-42b8-a7b6-c516a8f38321",
+                "name": "Doctor_inv_2_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -720,
+                  "y": -230,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context Doctor inv Doctor_inv_2_1 : self.scheduledAppointments ->size()>2"
+              },
+              "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3": {
+                "id": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                "name": "MedicalAppointment",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": -390,
+                  "y": -250,
+                  "width": 160,
+                  "height": 160
+                },
+                "attributes": [
+                  "cf276063-8480-4458-a6c5-fc4a981d0edb",
+                  "d37845d9-3f8a-47a2-98d3-cac28733ec88",
+                  "7de0b842-b5d6-4d27-bc3d-4b7290cd2b7d",
+                  "227746a1-6383-484f-a58c-e71e20e69123"
+                ],
+                "methods": []
+              },
+              "cf276063-8480-4458-a6c5-fc4a981d0edb": {
+                "id": "cf276063-8480-4458-a6c5-fc4a981d0edb",
+                "name": "appointmentDate",
+                "type": "ClassAttribute",
+                "owner": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                "bounds": {
+                  "x": -389.5,
+                  "y": -209.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "date",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "d37845d9-3f8a-47a2-98d3-cac28733ec88": {
+                "id": "d37845d9-3f8a-47a2-98d3-cac28733ec88",
+                "name": "appointmentId",
+                "type": "ClassAttribute",
+                "owner": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                "bounds": {
+                  "x": -389.5,
+                  "y": -179.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "7de0b842-b5d6-4d27-bc3d-4b7290cd2b7d": {
+                "id": "7de0b842-b5d6-4d27-bc3d-4b7290cd2b7d",
+                "name": "reason",
+                "type": "ClassAttribute",
+                "owner": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                "bounds": {
+                  "x": -389.5,
+                  "y": -149.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "227746a1-6383-484f-a58c-e71e20e69123": {
+                "id": "227746a1-6383-484f-a58c-e71e20e69123",
+                "name": "status",
+                "type": "ClassAttribute",
+                "owner": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                "bounds": {
+                  "x": -389.5,
+                  "y": -119.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "AppointmentStatus",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "9dd3482f-fa9b-404c-ae56-ce991382fd3d": {
+                "id": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                "name": "MedicalRecord",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": 0,
+                  "y": -100,
+                  "width": 160,
+                  "height": 160
+                },
+                "attributes": [
+                  "7a12cd78-3b0e-4bdf-a05c-ebcccc173f14",
+                  "62b2b666-998b-4b6c-ad15-d04b7775b739",
+                  "08c19e37-5468-4cfd-9154-fcc13c32dbe1",
+                  "94c3bbcd-3ffb-436b-868b-424e29e474b8"
+                ],
+                "methods": []
+              },
+              "7a12cd78-3b0e-4bdf-a05c-ebcccc173f14": {
+                "id": "7a12cd78-3b0e-4bdf-a05c-ebcccc173f14",
+                "name": "createdDate",
+                "type": "ClassAttribute",
+                "owner": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                "bounds": {
+                  "x": 0.5,
+                  "y": -59.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "date",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "62b2b666-998b-4b6c-ad15-d04b7775b739": {
+                "id": "62b2b666-998b-4b6c-ad15-d04b7775b739",
+                "name": "diagnosis",
+                "type": "ClassAttribute",
+                "owner": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                "bounds": {
+                  "x": 0.5,
+                  "y": -29.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "08c19e37-5468-4cfd-9154-fcc13c32dbe1": {
+                "id": "08c19e37-5468-4cfd-9154-fcc13c32dbe1",
+                "name": "prescription",
+                "type": "ClassAttribute",
+                "owner": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                "bounds": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "94c3bbcd-3ffb-436b-868b-424e29e474b8": {
+                "id": "94c3bbcd-3ffb-436b-868b-424e29e474b8",
+                "name": "recordId",
+                "type": "ClassAttribute",
+                "owner": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                "bounds": {
+                  "x": 0.5,
+                  "y": 30.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "684e2bab-0384-46b5-baae-be65293f02d0": {
+                "id": "684e2bab-0384-46b5-baae-be65293f02d0",
+                "name": "MedicalRecord_inv_1_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -760,
+                  "y": -10,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context MedicalRecord inv MedicalRecord_inv_1_1 : self.createdDate > self.appointment.appointmentDate"
+              },
+              "34b2722e-f276-4ec9-92c5-062da4e55775": {
+                "id": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                "name": "Patient",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": -490,
+                  "y": 40,
+                  "width": 160,
+                  "height": 130
+                },
+                "attributes": [
+                  "f8bdf62c-3c26-4659-b68e-6497ff2ae57f",
+                  "97092359-eb1e-4cad-876c-7529ef739e69",
+                  "7902073c-a0a5-495e-947c-6821d3976c34"
+                ],
+                "methods": []
+              },
+              "f8bdf62c-3c26-4659-b68e-6497ff2ae57f": {
+                "id": "f8bdf62c-3c26-4659-b68e-6497ff2ae57f",
+                "name": "birthDate",
+                "type": "ClassAttribute",
+                "owner": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                "bounds": {
+                  "x": -489.5,
+                  "y": 80.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "date",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "97092359-eb1e-4cad-876c-7529ef739e69": {
+                "id": "97092359-eb1e-4cad-876c-7529ef739e69",
+                "name": "bloodGroup",
+                "type": "ClassAttribute",
+                "owner": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                "bounds": {
+                  "x": -489.5,
+                  "y": 110.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "BloodType",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "7902073c-a0a5-495e-947c-6821d3976c34": {
+                "id": "7902073c-a0a5-495e-947c-6821d3976c34",
+                "name": "patientId",
+                "type": "ClassAttribute",
+                "owner": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                "bounds": {
+                  "x": -489.5,
+                  "y": 140.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "67829e1c-69ff-4681-8ff1-dfa0cdc475e4": {
+                "id": "67829e1c-69ff-4681-8ff1-dfa0cdc475e4",
+                "name": "Patient_inv_5_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": 0,
+                  "y": 100,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context Patient inv Patient_inv_5_1 : (self.primaryDoctor<>null) implies (self.id<>self.primaryDoctor.id)"
+              },
+              "0b3c11ac-b034-4c20-bc96-dac1a81e1f89": {
+                "id": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                "name": "Person",
+                "type": "AbstractClass",
+                "owner": null,
+                "bounds": {
+                  "x": -600,
+                  "y": 300,
+                  "width": 160,
+                  "height": 170
+                },
+                "attributes": [
+                  "f09131e1-be43-4ba7-9434-a9079f4a759a",
+                  "3651158d-7e79-41a0-b3b5-50d377eb0e56",
+                  "a4bed938-63e5-46a0-856a-4da846032eba",
+                  "8d4a2d2a-a776-41c8-96e1-6ef632019360"
+                ],
+                "methods": []
+              },
+              "f09131e1-be43-4ba7-9434-a9079f4a759a": {
+                "id": "f09131e1-be43-4ba7-9434-a9079f4a759a",
+                "name": "email",
+                "type": "ClassAttribute",
+                "owner": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                "bounds": {
+                  "x": -599.5,
+                  "y": 350.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "3651158d-7e79-41a0-b3b5-50d377eb0e56": {
+                "id": "3651158d-7e79-41a0-b3b5-50d377eb0e56",
+                "name": "fullName",
+                "type": "ClassAttribute",
+                "owner": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                "bounds": {
+                  "x": -599.5,
+                  "y": 380.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "a4bed938-63e5-46a0-856a-4da846032eba": {
+                "id": "a4bed938-63e5-46a0-856a-4da846032eba",
+                "name": "id",
+                "type": "ClassAttribute",
+                "owner": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                "bounds": {
+                  "x": -599.5,
+                  "y": 410.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "8d4a2d2a-a776-41c8-96e1-6ef632019360": {
+                "id": "8d4a2d2a-a776-41c8-96e1-6ef632019360",
+                "name": "phone",
+                "type": "ClassAttribute",
+                "owner": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                "bounds": {
+                  "x": -599.5,
+                  "y": 440.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              }
+            },
+            "relationships": {
+              "1f345f46-c47f-4898-a252-0f671e7e88b9": {
+                "id": "1f345f46-c47f-4898-a252-0f671e7e88b9",
+                "name": "AppointmentRecord",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -230,
+                  "y": -180,
+                  "width": 230,
+                  "height": 198
+                },
+                "path": [
+                  {
+                    "x": 0,
+                    "y": 10
+                  },
+                  {
+                    "x": 115,
+                    "y": 10
+                  },
+                  {
+                    "x": 115,
+                    "y": 160
+                  },
+                  {
+                    "x": 230,
+                    "y": 160
+                  }
+                ],
+                "source": {
+                  "direction": "Right",
+                  "element": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                  "multiplicity": "1",
+                  "role": "appointment",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -140,
+                    "y": -20,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Left",
+                  "element": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                  "multiplicity": "0..1",
+                  "role": "record",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": -20,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "0ba44b01-8524-454f-a820-bd8e5064cec7": {
+                "id": "0ba44b01-8524-454f-a820-bd8e5064cec7",
+                "name": "DoctorAppointments",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -230,
+                  "y": -385,
+                  "width": 178.78125,
+                  "height": 253
+                },
+                "path": [
+                  {
+                    "x": 160,
+                    "y": 10
+                  },
+                  {
+                    "x": 80,
+                    "y": 10
+                  },
+                  {
+                    "x": 80,
+                    "y": 215
+                  },
+                  {
+                    "x": 0,
+                    "y": 215
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                  "multiplicity": "1",
+                  "role": "attendingDoctor",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": -235,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                  "multiplicity": "0..*",
+                  "role": "scheduledAppointments",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -140,
+                    "y": -20,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "2c36cbd4-c4a7-4190-9a34-9ee1d08ee0b3": {
+                "id": "2c36cbd4-c4a7-4190-9a34-9ee1d08ee0b3",
+                "name": "PatientAppointments",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -461.0625,
+                  "y": -90,
+                  "width": 130.078125,
+                  "height": 139
+                },
+                "path": [
+                  {
+                    "x": 101.0625,
+                    "y": 0
+                  },
+                  {
+                    "x": 101.0625,
+                    "y": 130
+                  }
+                ],
+                "source": {
+                  "direction": "Down",
+                  "element": "1b1ad7ab-17b5-4da6-8ccc-930a23026bd3",
+                  "multiplicity": "0..*",
+                  "role": "appointments",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -220,
+                    "y": 60,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Up",
+                  "element": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                  "multiplicity": "1",
+                  "role": "patient",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -220,
+                    "y": 100,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "cab6fc58-5110-4d4d-841f-88bd3c0c41ae": {
+                "id": "cab6fc58-5110-4d4d-841f-88bd3c0c41ae",
+                "name": "Patient_Doctor",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -471.046875,
+                  "y": -310,
+                  "width": 512.8359375,
+                  "height": 359
+                },
+                "path": [
+                  {
+                    "x": 61.046875,
+                    "y": 350
+                  },
+                  {
+                    "x": 61.046875,
+                    "y": 175
+                  },
+                  {
+                    "x": 481.046875,
+                    "y": 175
+                  },
+                  {
+                    "x": 481.046875,
+                    "y": 0
+                  }
+                ],
+                "source": {
+                  "direction": "Up",
+                  "element": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                  "multiplicity": "0..*",
+                  "role": "patients",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -220,
+                    "y": 100,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Down",
+                  "element": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                  "multiplicity": "0..1",
+                  "role": "primaryDoctor",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 80,
+                    "y": -170,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "79c36804-ef34-4885-964d-b8536b7439af": {
+                "id": "79c36804-ef34-4885-964d-b8536b7439af",
+                "name": "",
+                "type": "ClassInheritance",
+                "owner": null,
+                "bounds": {
+                  "x": -525,
+                  "y": -480,
+                  "width": 540,
+                  "height": 780
+                },
+                "path": [
+                  {
+                    "x": 535,
+                    "y": 40
+                  },
+                  {
+                    "x": 535,
+                    "y": 0
+                  },
+                  {
+                    "x": 5,
+                    "y": 0
+                  },
+                  {
+                    "x": 5,
+                    "y": 780
+                  }
+                ],
+                "source": {
+                  "direction": "Up",
+                  "element": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Up",
+                  "element": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "e1abf4ad-6b90-484d-afb4-49bb10658663": {
+                "id": "e1abf4ad-6b90-484d-afb4-49bb10658663",
+                "name": "",
+                "type": "ClassInheritance",
+                "owner": null,
+                "bounds": {
+                  "x": -530,
+                  "y": 0,
+                  "width": 125,
+                  "height": 300
+                },
+                "path": [
+                  {
+                    "x": 120,
+                    "y": 40
+                  },
+                  {
+                    "x": 120,
+                    "y": 0
+                  },
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 0,
+                    "y": 235
+                  },
+                  {
+                    "x": 10,
+                    "y": 235
+                  },
+                  {
+                    "x": 10,
+                    "y": 300
+                  }
+                ],
+                "source": {
+                  "direction": "Up",
+                  "element": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Up",
+                  "element": "0b3c11ac-b034-4c20-bc96-dac1a81e1f89",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "ca34c0ae-624b-4792-8978-2690484fb42a": {
+                "id": "ca34c0ae-624b-4792-8978-2690484fb42a",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -760,
+                  "y": -385,
+                  "width": 890,
+                  "height": 226
+                },
+                "path": [
+                  {
+                    "x": 40,
+                    "y": 205
+                  },
+                  {
+                    "x": 0,
+                    "y": 205
+                  },
+                  {
+                    "x": 0,
+                    "y": 115
+                  },
+                  {
+                    "x": 890,
+                    "y": 115
+                  },
+                  {
+                    "x": 890,
+                    "y": 10
+                  },
+                  {
+                    "x": 850,
+                    "y": 10
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "8b8a5fb4-a1cc-42b8-a7b6-c516a8f38321",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "ae959bc2-4adc-4a2c-80a9-27fd04c44500",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              },
+              "b03f0bab-998c-4c41-85aa-197670b1144a": {
+                "id": "b03f0bab-998c-4c41-85aa-197670b1144a",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -800,
+                  "y": -140,
+                  "width": 1000,
+                  "height": 201
+                },
+                "path": [
+                  {
+                    "x": 40,
+                    "y": 180
+                  },
+                  {
+                    "x": 0,
+                    "y": 180
+                  },
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 1000,
+                    "y": 0
+                  },
+                  {
+                    "x": 1000,
+                    "y": 120
+                  },
+                  {
+                    "x": 960,
+                    "y": 120
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "684e2bab-0384-46b5-baae-be65293f02d0",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "9dd3482f-fa9b-404c-ae56-ce991382fd3d",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              },
+              "61af0f50-9ad3-4198-9da6-f1e629287ca4": {
+                "id": "61af0f50-9ad3-4198-9da6-f1e629287ca4",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -330,
+                  "y": 125,
+                  "width": 330,
+                  "height": 31
+                },
+                "path": [
+                  {
+                    "x": 330,
+                    "y": 10
+                  },
+                  {
+                    "x": 0,
+                    "y": 10
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "67829e1c-69ff-4681-8ff1-dfa0cdc475e4",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "34b2722e-f276-4ec9-92c5-062da4e55775",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              }
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-10-29T17:49:13.092Z"
+        }
+      ]
+    },
+    "settings": {
+      "defaultDiagramType": "ClassDiagram",
+      "autoSave": true,
+      "collaborationEnabled": false,
+      "perspectives": {
+        "ClassDiagram": true,
+        "ObjectDiagram": true,
+        "StateMachineDiagram": true,
+        "AgentDiagram": true,
+        "UserDiagram": true,
+        "GUINoCodeDiagram": true,
+        "QuantumCircuitDiagram": true,
+        "NNDiagram": true,
+        "BPMN": true,
+        "ComponentDiagram": true,
+        "DeploymentDiagram": true
+      }
+    }
+  },
+  "exportedAt": "2026-10-29T17:52:10.493Z",
+  "version": "2.0.0",
+  "editorVersion": "1.0.0"
+}

@@ -1,0 +1,8 @@
+{
+  "description": "",
+  "scope": 4,
+  "root_class": "Student",
+  "literals": {"int": [1], "String": ["a"], "float": [1]},
+  "enum_literals": {}
+}
+    

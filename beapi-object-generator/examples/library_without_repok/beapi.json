@@ -1,0 +1,7 @@
+{
+  "description": "Configuracion del Apendice A del informe (modelo SIN repOk, raiz Book).",
+  "scope": 2,
+  "root_class": "Library",
+  "literals": {"int": [2], "String": ["Pedro","Lucas", "Ana"], "float": [1.0]},
+  "enum_literals": {"Genre": ["Romance", "Horror"]}
+}
