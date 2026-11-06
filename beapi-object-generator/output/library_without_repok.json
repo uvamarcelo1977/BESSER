@@ -1,13 +1,13 @@
 {
   "example": "library_without_repok",
   "generator": "BEAPI",
-  "generatedAt": "2026-10-29T13:40:25",
+  "generatedAt": "2026-11-06T09:20:46",
   "model": "Library_with_OCL",
   "rootClass": "Library",
   "scope": 2,
   "structureCount": 81,
   "beapi": {
-    "seconds": 0.82,
+    "seconds": 1.1,
     "allSequences": true,
     "testClasses": [
       "Library",
