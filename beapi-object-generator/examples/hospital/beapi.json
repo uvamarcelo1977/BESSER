@@ -1,0 +1,24 @@
+{
+  "description": "Con scope 4 BEAPI no termina: cada asociacion tiene builders en ambos extremos.",
+  "scope": 3,
+  "root_class": "Doctor",
+  "literals": {
+    "int": [
+      1
+    ],
+    "String": [
+      "a"
+    ],
+    "float": [
+      1
+    ]
+  },
+  "enum_literals": {
+    "BloodType": [
+      "AB_POSITIVE"
+    ],
+    "AppointmentStatus": [
+      "SCHEDULED"
+    ]
+  }
+}

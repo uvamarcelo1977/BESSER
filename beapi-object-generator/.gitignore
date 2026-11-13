@@ -1,0 +1,6 @@
+# salidas e intermedios de beapi_gen.py
+output/
+work/
+__pycache__/
+*.ser
+*.class

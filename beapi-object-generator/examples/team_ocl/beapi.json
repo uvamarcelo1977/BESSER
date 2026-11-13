@@ -1,0 +1,6 @@
+{
+  "description": "Ejemplo de --conformance: con estos enteros hay jugadores menores (age 1) y equipos con maxPlayers 1, asi que algunas estructuras violan los invariantes y otras no.",
+  "scope": 3,
+  "root_class": "Team",
+  "literals": {"int": [1, 18], "String": ["a"]}
+}

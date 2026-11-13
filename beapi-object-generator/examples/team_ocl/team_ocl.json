@@ -1,0 +1,462 @@
+{
+  "project": {
+    "id": "cc1e3403-229a-48c5-bacd-8ed212214c81",
+    "type": "Project",
+    "schemaVersion": 3,
+    "name": "team_ocl",
+    "description": "Imported from single-diagram BUML file",
+    "owner": "Unknown",
+    "createdAt": "2026-11-12T12:11:27.589987+00:00",
+    "currentDiagramType": "ClassDiagram",
+    "currentDiagramIndices": {
+      "ClassDiagram": 0,
+      "ObjectDiagram": 0,
+      "AgentDiagram": 0,
+      "StateMachineDiagram": 0,
+      "GUINoCodeDiagram": 0,
+      "QuantumCircuitDiagram": 0,
+      "NNDiagram": 0,
+      "BPMN": 0
+    },
+    "diagrams": {
+      "ClassDiagram": [
+        {
+          "id": "6904cfe4-a307-4974-a883-827d19f3bea6",
+          "title": "TeamOCL",
+          "model": {
+            "version": "3.0.0",
+            "type": "ClassDiagram",
+            "size": {
+              "width": 1200,
+              "height": 800
+            },
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "elements": {
+              "f0b2df11-6375-4d1c-a65b-a4ecbb39e846": {
+                "id": "f0b2df11-6375-4d1c-a65b-a4ecbb39e846",
+                "name": "AdultPlayer",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -600,
+                  "y": -300,
+                  "width": 160,
+                  "height": 100
+                },
+                "constraint": "context Player inv AdultPlayer: self.age >= 18"
+              },
+              "6ef841c1-6b94-4464-858d-2c800e208474": {
+                "id": "6ef841c1-6b94-4464-858d-2c800e208474",
+                "name": "age",
+                "type": "ClassAttribute",
+                "owner": "8fdd5472-5546-4fa1-98c2-f0bdab82497f",
+                "bounds": {
+                  "x": -299.5,
+                  "y": -260,
+                  "width": 159,
+                  "height": 30
+                },
+                "visibility": "public",
+                "attributeType": "int",
+                "isOptional": false,
+                "isId": false,
+                "isExternalId": false,
+                "isDerived": false
+              },
+              "95ddef49-e9ab-4071-99bc-76c789d2e8c2": {
+                "id": "95ddef49-e9ab-4071-99bc-76c789d2e8c2",
+                "name": "name",
+                "type": "ClassAttribute",
+                "owner": "8fdd5472-5546-4fa1-98c2-f0bdab82497f",
+                "bounds": {
+                  "x": -299.5,
+                  "y": -230,
+                  "width": 159,
+                  "height": 30
+                },
+                "visibility": "public",
+                "attributeType": "str",
+                "isOptional": false,
+                "isId": false,
+                "isExternalId": false,
+                "isDerived": false
+              },
+              "8fdd5472-5546-4fa1-98c2-f0bdab82497f": {
+                "id": "8fdd5472-5546-4fa1-98c2-f0bdab82497f",
+                "name": "Player",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": -300,
+                  "y": -300,
+                  "width": 160,
+                  "height": 100
+                },
+                "attributes": [
+                  "6ef841c1-6b94-4464-858d-2c800e208474",
+                  "95ddef49-e9ab-4071-99bc-76c789d2e8c2"
+                ],
+                "methods": [],
+                "stereotype": null
+              },
+              "c38e1a1f-ead5-4e61-a079-7c38c5774bdf": {
+                "id": "c38e1a1f-ead5-4e61-a079-7c38c5774bdf",
+                "name": "maxPlayers",
+                "type": "ClassAttribute",
+                "owner": "0733c0f8-ba3c-4eb9-8564-e0c4bd22094b",
+                "bounds": {
+                  "x": 0.5,
+                  "y": -260,
+                  "width": 159,
+                  "height": 30
+                },
+                "visibility": "public",
+                "attributeType": "int",
+                "isOptional": false,
+                "isId": false,
+                "isExternalId": false,
+                "isDerived": false
+              },
+              "40738075-0c06-4024-8fb3-13b7c50fdf12": {
+                "id": "40738075-0c06-4024-8fb3-13b7c50fdf12",
+                "name": "name",
+                "type": "ClassAttribute",
+                "owner": "0733c0f8-ba3c-4eb9-8564-e0c4bd22094b",
+                "bounds": {
+                  "x": 0.5,
+                  "y": -230,
+                  "width": 159,
+                  "height": 30
+                },
+                "visibility": "public",
+                "attributeType": "str",
+                "isOptional": false,
+                "isId": false,
+                "isExternalId": false,
+                "isDerived": false
+              },
+              "0733c0f8-ba3c-4eb9-8564-e0c4bd22094b": {
+                "id": "0733c0f8-ba3c-4eb9-8564-e0c4bd22094b",
+                "name": "Team",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": 0,
+                  "y": -300,
+                  "width": 160,
+                  "height": 100
+                },
+                "attributes": [
+                  "c38e1a1f-ead5-4e61-a079-7c38c5774bdf",
+                  "40738075-0c06-4024-8fb3-13b7c50fdf12"
+                ],
+                "methods": [],
+                "stereotype": null
+              },
+              "daca8ecc-0621-46d7-ab66-f942d5a4d343": {
+                "id": "daca8ecc-0621-46d7-ab66-f942d5a4d343",
+                "name": "TeamNotOverCapacity",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -600,
+                  "y": -100,
+                  "width": 160,
+                  "height": 100
+                },
+                "constraint": "context Team inv TeamNotOverCapacity: self.players->size() <= self.maxPlayers"
+              }
+            },
+            "relationships": {
+              "3e8f6e78-35e6-4414-82be-f7b69da06584": {
+                "id": "3e8f6e78-35e6-4414-82be-f7b69da06584",
+                "name": "team_players",
+                "type": "ClassUnidirectional",
+                "source": {
+                  "element": "0733c0f8-ba3c-4eb9-8564-e0c4bd22094b",
+                  "multiplicity": "1",
+                  "role": "team",
+                  "direction": "Left",
+                  "bounds": {
+                    "x": 0,
+                    "y": -250.0,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "element": "8fdd5472-5546-4fa1-98c2-f0bdab82497f",
+                  "multiplicity": "0..*",
+                  "role": "players",
+                  "direction": "Right",
+                  "bounds": {
+                    "x": -140,
+                    "y": -250.0,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "bounds": {
+                  "x": -150,
+                  "y": -260.0,
+                  "width": 160,
+                  "height": 20.0
+                },
+                "path": [
+                  {
+                    "x": 0,
+                    "y": -250.0
+                  },
+                  {
+                    "x": -70.0,
+                    "y": -250.0
+                  },
+                  {
+                    "x": -70.0,
+                    "y": -250.0
+                  },
+                  {
+                    "x": -140,
+                    "y": -250.0
+                  }
+                ],
+                "isManuallyLayouted": false
+              },
+              "57833e70-c445-4a77-897b-eaff66e9368f": {
+                "id": "57833e70-c445-4a77-897b-eaff66e9368f",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "source": {
+                  "direction": "Left",
+                  "element": "f0b2df11-6375-4d1c-a65b-a4ecbb39e846",
+                  "multiplicity": "",
+                  "role": ""
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "8fdd5472-5546-4fa1-98c2-f0bdab82497f",
+                  "multiplicity": "",
+                  "role": ""
+                },
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 0,
+                  "height": 0
+                },
+                "path": [
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 0,
+                    "y": 0
+                  }
+                ],
+                "isManuallyLayouted": false
+              },
+              "3f461f93-7ec8-4427-93d5-e4e5d22918ab": {
+                "id": "3f461f93-7ec8-4427-93d5-e4e5d22918ab",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "source": {
+                  "direction": "Left",
+                  "element": "daca8ecc-0621-46d7-ab66-f942d5a4d343",
+                  "multiplicity": "",
+                  "role": ""
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "0733c0f8-ba3c-4eb9-8564-e0c4bd22094b",
+                  "multiplicity": "",
+                  "role": ""
+                },
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 0,
+                  "height": 0
+                },
+                "path": [
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 0,
+                    "y": 0
+                  }
+                ],
+                "isManuallyLayouted": false
+              }
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589868+00:00"
+        }
+      ],
+      "ObjectDiagram": [
+        {
+          "id": "b922fc3e-96a6-4128-b0e3-d0a9d00bdb78",
+          "title": "Object Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "ObjectDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "elements": {},
+            "relationships": {},
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589911+00:00"
+        }
+      ],
+      "AgentDiagram": [
+        {
+          "id": "e16e6189-50ae-45e0-8ef9-a6bb9c4ec0ca",
+          "title": "Agent Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "AgentDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "elements": {},
+            "relationships": {},
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589924+00:00"
+        }
+      ],
+      "StateMachineDiagram": [
+        {
+          "id": "735542a2-01dd-42be-856a-ff06952b7847",
+          "title": "State Machine Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "StateMachineDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "elements": {},
+            "relationships": {},
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589935+00:00"
+        }
+      ],
+      "GUINoCodeDiagram": [
+        {
+          "id": "d91fa945-5166-496a-b6f0-11d77f749103",
+          "title": "GUI Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "GUINoCodeDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "pages": [],
+            "styles": [],
+            "assets": [],
+            "symbols": []
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589945+00:00"
+        }
+      ],
+      "QuantumCircuitDiagram": [
+        {
+          "id": "2494cb42-047e-43a7-b87c-8cd9b78371d1",
+          "title": "Quantum Circuit Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "QuantumCircuitDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "elements": {},
+            "relationships": {},
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589956+00:00"
+        }
+      ],
+      "NNDiagram": [
+        {
+          "id": "22551291-61a7-4932-91cc-a1b05ec12e89",
+          "title": "NN Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "NNDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "elements": {},
+            "relationships": {},
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589966+00:00"
+        }
+      ],
+      "BPMN": [
+        {
+          "id": "87600d7e-303d-4daa-ac26-1ba332835412",
+          "title": "BPMN Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "BPMNDiagram",
+            "size": {
+              "width": 1400,
+              "height": 740
+            },
+            "elements": {},
+            "relationships": {},
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-11-12T12:11:27.589975+00:00"
+        }
+      ]
+    },
+    "settings": {
+      "defaultDiagramType": "ClassDiagram",
+      "autoSave": true,
+      "collaborationEnabled": false
+    }
+  }
+}

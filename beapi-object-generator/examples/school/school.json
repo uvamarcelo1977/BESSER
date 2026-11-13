@@ -1,0 +1,999 @@
+{
+  "project": {
+    "id": "project_1793329276809_95ymfi6jy",
+    "type": "Project",
+    "schemaVersion": 5,
+    "name": "AcademicManagementSystem",
+    "description": "Academic Management System BUML Model",
+    "owner": "BESSER User",
+    "createdAt": "2026-10-30T03:01:16.809Z",
+    "currentDiagramType": "ClassDiagram",
+    "currentDiagramIndices": {
+      "ClassDiagram": 0,
+      "ObjectDiagram": 0,
+      "StateMachineDiagram": 0,
+      "AgentDiagram": 0,
+      "ComponentDiagram": 0,
+      "DeploymentDiagram": 0,
+      "NNDiagram": 0,
+      "UserDiagram": 0,
+      "GUINoCodeDiagram": 0,
+      "QuantumCircuitDiagram": 0,
+      "BPMN": 0
+    },
+    "diagrams": {
+      "ClassDiagram": [
+        {
+          "id": "26159ecf-d6f3-4a71-80f1-a97653b0f3a8",
+          "title": "Class Diagram",
+          "model": {
+            "version": "3.0.0",
+            "type": "ClassDiagram",
+            "size": {
+              "width": 1320,
+              "height": 880
+            },
+            "interactive": {
+              "elements": {},
+              "relationships": {}
+            },
+            "elements": {
+              "c23c33d2-f67f-41ac-a8c5-c7657c52e85a": {
+                "id": "c23c33d2-f67f-41ac-a8c5-c7657c52e85a",
+                "name": "Exam_inv_grade_range",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -600,
+                  "y": -300,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context InfoExam inv Exam_inv_grade_range : self.grade >= 0 and self.grade <= 10"
+              },
+              "7d38c5af-f4c3-4d95-9142-b5424ab85594": {
+                "id": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                "name": "InfoExam",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": -300,
+                  "y": -300,
+                  "width": 160,
+                  "height": 130
+                },
+                "attributes": [
+                  "e0330f16-469b-449e-9c72-cb75da8dcdd1",
+                  "d5a4f675-a500-4321-adbb-515259ce354d",
+                  "44521b21-cb5c-435d-be72-8358da92ef8b"
+                ],
+                "methods": []
+              },
+              "e0330f16-469b-449e-9c72-cb75da8dcdd1": {
+                "id": "e0330f16-469b-449e-9c72-cb75da8dcdd1",
+                "name": "examDate",
+                "type": "ClassAttribute",
+                "owner": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                "bounds": {
+                  "x": -299.5,
+                  "y": -259.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "date",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "d5a4f675-a500-4321-adbb-515259ce354d": {
+                "id": "d5a4f675-a500-4321-adbb-515259ce354d",
+                "name": "examId",
+                "type": "ClassAttribute",
+                "owner": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                "bounds": {
+                  "x": -299.5,
+                  "y": -229.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "44521b21-cb5c-435d-be72-8358da92ef8b": {
+                "id": "44521b21-cb5c-435d-be72-8358da92ef8b",
+                "name": "grade",
+                "type": "ClassAttribute",
+                "owner": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                "bounds": {
+                  "x": -299.5,
+                  "y": -199.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "int",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "e5e6264a-da11-4911-a0f8-19b0655db6b1": {
+                "id": "e5e6264a-da11-4911-a0f8-19b0655db6b1",
+                "name": "InfoExam_inv_2_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": 0,
+                  "y": -300,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context InfoExam inv InfoExam_inv_2_1 : self.examDate>self.student.birthDate"
+              },
+              "486305a2-beeb-4174-8b43-cfe4c4486ae8": {
+                "id": "486305a2-beeb-4174-8b43-cfe4c4486ae8",
+                "name": "InfoExam_inv_3_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -600,
+                  "y": -100,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context InfoExam inv InfoExam_inv_3_1 : self.examDate>self.student.birthDate"
+              },
+              "4f190e78-41ec-4cef-a39a-32fee8dbb454": {
+                "id": "4f190e78-41ec-4cef-a39a-32fee8dbb454",
+                "name": "InfoExam_inv_5_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": -300,
+                  "y": -100,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context InfoExam inv InfoExam_inv_5_1 : InfoExam::allInstances()->exists(n | n.grade=10)"
+              },
+              "d6f84175-4f06-430f-b146-92bdd2367767": {
+                "id": "d6f84175-4f06-430f-b146-92bdd2367767",
+                "name": "Professor",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": 10,
+                  "y": 290,
+                  "width": 160,
+                  "height": 130
+                },
+                "attributes": [
+                  "84257a96-a352-4a6f-89f3-cae1e9e9f41d",
+                  "7ed66447-99ff-4f56-a39e-1c498d1a2dfa",
+                  "8441fc83-7c39-488f-afad-d7f166175a7d"
+                ],
+                "methods": []
+              },
+              "84257a96-a352-4a6f-89f3-cae1e9e9f41d": {
+                "id": "84257a96-a352-4a6f-89f3-cae1e9e9f41d",
+                "name": "department",
+                "type": "ClassAttribute",
+                "owner": "d6f84175-4f06-430f-b146-92bdd2367767",
+                "bounds": {
+                  "x": 10.5,
+                  "y": 330.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "7ed66447-99ff-4f56-a39e-1c498d1a2dfa": {
+                "id": "7ed66447-99ff-4f56-a39e-1c498d1a2dfa",
+                "name": "fullName",
+                "type": "ClassAttribute",
+                "owner": "d6f84175-4f06-430f-b146-92bdd2367767",
+                "bounds": {
+                  "x": 10.5,
+                  "y": 360.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "8441fc83-7c39-488f-afad-d7f166175a7d": {
+                "id": "8441fc83-7c39-488f-afad-d7f166175a7d",
+                "name": "professorId",
+                "type": "ClassAttribute",
+                "owner": "d6f84175-4f06-430f-b146-92bdd2367767",
+                "bounds": {
+                  "x": 10.5,
+                  "y": 390.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "b89fab13-1d42-49f7-97b9-77fab3dbca9e": {
+                "id": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                "name": "Student",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": 80,
+                  "y": -120,
+                  "width": 160,
+                  "height": 160
+                },
+                "attributes": [
+                  "56f0a65c-6525-494f-b6e3-374951e631e0",
+                  "488ffea5-6420-4c67-be5d-eb76274a41fe",
+                  "16097abe-a4b3-41dc-be15-dda899c3c33d",
+                  "4b72953b-8a7a-4baf-807a-cd8ca018f564"
+                ],
+                "methods": []
+              },
+              "56f0a65c-6525-494f-b6e3-374951e631e0": {
+                "id": "56f0a65c-6525-494f-b6e3-374951e631e0",
+                "name": "birthDate",
+                "type": "ClassAttribute",
+                "owner": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                "bounds": {
+                  "x": 80.5,
+                  "y": -79.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "date",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "488ffea5-6420-4c67-be5d-eb76274a41fe": {
+                "id": "488ffea5-6420-4c67-be5d-eb76274a41fe",
+                "name": "email",
+                "type": "ClassAttribute",
+                "owner": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                "bounds": {
+                  "x": 80.5,
+                  "y": -49.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "16097abe-a4b3-41dc-be15-dda899c3c33d": {
+                "id": "16097abe-a4b3-41dc-be15-dda899c3c33d",
+                "name": "fullName",
+                "type": "ClassAttribute",
+                "owner": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                "bounds": {
+                  "x": 80.5,
+                  "y": -19.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "4b72953b-8a7a-4baf-807a-cd8ca018f564": {
+                "id": "4b72953b-8a7a-4baf-807a-cd8ca018f564",
+                "name": "studentId",
+                "type": "ClassAttribute",
+                "owner": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                "bounds": {
+                  "x": 80.5,
+                  "y": 10.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "b2d9fadf-f7a5-4db7-b785-0d3782292f21": {
+                "id": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                "name": "Subject",
+                "type": "Class",
+                "owner": null,
+                "bounds": {
+                  "x": -520,
+                  "y": 220,
+                  "width": 160,
+                  "height": 130
+                },
+                "attributes": [
+                  "1e2bce67-4fbc-4131-bc98-b166bfdd7e91",
+                  "9e580666-619b-440b-89e3-3d21bbdc53c6",
+                  "b3bd7a9d-d74d-40b3-b33e-23a0087238ac"
+                ],
+                "methods": []
+              },
+              "1e2bce67-4fbc-4131-bc98-b166bfdd7e91": {
+                "id": "1e2bce67-4fbc-4131-bc98-b166bfdd7e91",
+                "name": "credits",
+                "type": "ClassAttribute",
+                "owner": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                "bounds": {
+                  "x": -519.5,
+                  "y": 260.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "int",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "9e580666-619b-440b-89e3-3d21bbdc53c6": {
+                "id": "9e580666-619b-440b-89e3-3d21bbdc53c6",
+                "name": "name",
+                "type": "ClassAttribute",
+                "owner": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                "bounds": {
+                  "x": -519.5,
+                  "y": 290.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "b3bd7a9d-d74d-40b3-b33e-23a0087238ac": {
+                "id": "b3bd7a9d-d74d-40b3-b33e-23a0087238ac",
+                "name": "subjectId",
+                "type": "ClassAttribute",
+                "owner": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                "bounds": {
+                  "x": -519.5,
+                  "y": 320.5,
+                  "width": 159,
+                  "height": 30
+                },
+                "code": "",
+                "visibility": "public",
+                "attributeType": "str",
+                "implementationType": "none",
+                "stateMachineId": "",
+                "quantumCircuitId": "",
+                "neuralNetworkId": "",
+                "isOptional": false,
+                "isDerived": false,
+                "isId": false,
+                "isExternalId": false
+              },
+              "44cc3501-4286-4e74-908c-f4d9e1f8d2d7": {
+                "id": "44cc3501-4286-4e74-908c-f4d9e1f8d2d7",
+                "name": "Subject_inv_4_1",
+                "type": "ClassOCLConstraint",
+                "owner": null,
+                "bounds": {
+                  "x": 0,
+                  "y": 100,
+                  "width": 160,
+                  "height": 100
+                },
+                "description": "",
+                "constraint": "context Subject inv Subject_inv_4_1 : self.name.size()>4"
+              }
+            },
+            "relationships": {
+              "88090206-64f7-433c-ad49-aa722f38d815": {
+                "id": "88090206-64f7-433c-ad49-aa722f38d815",
+                "name": "Enrollment",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -586.703125,
+                  "y": -50,
+                  "width": 895.1875,
+                  "height": 373
+                },
+                "path": [
+                  {
+                    "x": 826.703125,
+                    "y": 10
+                  },
+                  {
+                    "x": 866.703125,
+                    "y": 10
+                  },
+                  {
+                    "x": 866.703125,
+                    "y": 130
+                  },
+                  {
+                    "x": 26.703125,
+                    "y": 130
+                  },
+                  {
+                    "x": 26.703125,
+                    "y": 335
+                  },
+                  {
+                    "x": 66.703125,
+                    "y": 335
+                  }
+                ],
+                "source": {
+                  "direction": "Right",
+                  "element": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                  "multiplicity": "0..*",
+                  "role": "students",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -440,
+                    "y": 180,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Left",
+                  "element": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                  "multiplicity": "1..*",
+                  "role": "subjects",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -300,
+                    "y": 165,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "b2ef9a7b-8923-41b8-93c2-2e6f550c0d26": {
+                "id": "b2ef9a7b-8923-41b8-93c2-2e6f550c0d26",
+                "name": "StudentExams",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -272.125,
+                  "y": -170,
+                  "width": 446.125,
+                  "height": 59
+                },
+                "path": [
+                  {
+                    "x": 52.125,
+                    "y": 0
+                  },
+                  {
+                    "x": 52.125,
+                    "y": 40
+                  },
+                  {
+                    "x": 242.125,
+                    "y": 40
+                  },
+                  {
+                    "x": 242.125,
+                    "y": 10
+                  },
+                  {
+                    "x": 432.125,
+                    "y": 10
+                  },
+                  {
+                    "x": 432.125,
+                    "y": 50
+                  }
+                ],
+                "source": {
+                  "direction": "Down",
+                  "element": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                  "multiplicity": "0..*",
+                  "role": "exams",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -220,
+                    "y": -170,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Up",
+                  "element": "b89fab13-1d42-49f7-97b9-77fab3dbca9e",
+                  "multiplicity": "1",
+                  "role": "student",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -520,
+                    "y": 100,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "38620f4a-82b4-44eb-aa07-47522fd1e45e": {
+                "id": "38620f4a-82b4-44eb-aa07-47522fd1e45e",
+                "name": "SubjectExams",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -496.25,
+                  "y": -170,
+                  "width": 305.265625,
+                  "height": 399
+                },
+                "path": [
+                  {
+                    "x": 276.25,
+                    "y": 0
+                  },
+                  {
+                    "x": 276.25,
+                    "y": 195
+                  },
+                  {
+                    "x": 56.25,
+                    "y": 195
+                  },
+                  {
+                    "x": 56.25,
+                    "y": 390
+                  }
+                ],
+                "source": {
+                  "direction": "Down",
+                  "element": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                  "multiplicity": "0..*",
+                  "role": "exams",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -220,
+                    "y": -170,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Up",
+                  "element": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                  "multiplicity": "1",
+                  "role": "subject",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -220,
+                    "y": 100,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "6634c544-548b-43d1-a11a-4fe17a891bf4": {
+                "id": "6634c544-548b-43d1-a11a-4fe17a891bf4",
+                "name": "Teaching",
+                "type": "ClassBidirectional",
+                "owner": null,
+                "bounds": {
+                  "x": -360,
+                  "y": 310,
+                  "width": 370,
+                  "height": 48
+                },
+                "path": [
+                  {
+                    "x": 0,
+                    "y": 10
+                  },
+                  {
+                    "x": 370,
+                    "y": 10
+                  }
+                ],
+                "source": {
+                  "direction": "Right",
+                  "element": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                  "multiplicity": "0..*",
+                  "role": "subjectsTaught",
+                  "navigable": true,
+                  "bounds": {
+                    "x": -140,
+                    "y": 165,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "target": {
+                  "direction": "Left",
+                  "element": "d6f84175-4f06-430f-b146-92bdd2367767",
+                  "multiplicity": "1",
+                  "role": "teacher",
+                  "navigable": true,
+                  "bounds": {
+                    "x": 0,
+                    "y": -35,
+                    "width": 0,
+                    "height": 0
+                  }
+                },
+                "isManuallyLayouted": false
+              },
+              "96261127-ee00-4559-9f3b-6f7ecf4bfcec": {
+                "id": "96261127-ee00-4559-9f3b-6f7ecf4bfcec",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -640,
+                  "y": -260,
+                  "width": 540,
+                  "height": 130
+                },
+                "path": [
+                  {
+                    "x": 40,
+                    "y": 10
+                  },
+                  {
+                    "x": 0,
+                    "y": 10
+                  },
+                  {
+                    "x": 0,
+                    "y": 130
+                  },
+                  {
+                    "x": 540,
+                    "y": 130
+                  },
+                  {
+                    "x": 540,
+                    "y": 25
+                  },
+                  {
+                    "x": 500,
+                    "y": 25
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "c23c33d2-f67f-41ac-a8c5-c7657c52e85a",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              },
+              "bed7fdc0-33e4-46ce-b856-66c5fe6b9ac6": {
+                "id": "bed7fdc0-33e4-46ce-b856-66c5fe6b9ac6",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -140,
+                  "y": -260,
+                  "width": 140,
+                  "height": 31
+                },
+                "path": [
+                  {
+                    "x": 140,
+                    "y": 10
+                  },
+                  {
+                    "x": 0,
+                    "y": 10
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "e5e6264a-da11-4911-a0f8-19b0655db6b1",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              },
+              "1886af95-0145-4d19-9824-9f385ad67cc9": {
+                "id": "1886af95-0145-4d19-9824-9f385ad67cc9",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -640,
+                  "y": -245,
+                  "width": 540,
+                  "height": 216
+                },
+                "path": [
+                  {
+                    "x": 40,
+                    "y": 195
+                  },
+                  {
+                    "x": 0,
+                    "y": 195
+                  },
+                  {
+                    "x": 0,
+                    "y": 105
+                  },
+                  {
+                    "x": 270,
+                    "y": 105
+                  },
+                  {
+                    "x": 270,
+                    "y": 115
+                  },
+                  {
+                    "x": 540,
+                    "y": 115
+                  },
+                  {
+                    "x": 540,
+                    "y": 10
+                  },
+                  {
+                    "x": 500,
+                    "y": 10
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "486305a2-beeb-4174-8b43-cfe4c4486ae8",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              },
+              "96da8d1a-9d41-406a-a62b-ead473b326ee": {
+                "id": "96da8d1a-9d41-406a-a62b-ead473b326ee",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -340,
+                  "y": -245,
+                  "width": 240,
+                  "height": 216
+                },
+                "path": [
+                  {
+                    "x": 40,
+                    "y": 195
+                  },
+                  {
+                    "x": 0,
+                    "y": 195
+                  },
+                  {
+                    "x": 0,
+                    "y": 105
+                  },
+                  {
+                    "x": 240,
+                    "y": 105
+                  },
+                  {
+                    "x": 240,
+                    "y": 10
+                  },
+                  {
+                    "x": 200,
+                    "y": 10
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "4f190e78-41ec-4cef-a39a-32fee8dbb454",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "7d38c5af-f4c3-4d95-9142-b5424ab85594",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              },
+              "0ed7e0a0-0454-4023-bcc4-4316c432cf8f": {
+                "id": "0ed7e0a0-0454-4023-bcc4-4316c432cf8f",
+                "name": "",
+                "type": "ClassOCLLink",
+                "owner": null,
+                "bounds": {
+                  "x": -360,
+                  "y": 140,
+                  "width": 360,
+                  "height": 166
+                },
+                "path": [
+                  {
+                    "x": 360,
+                    "y": 10
+                  },
+                  {
+                    "x": 180,
+                    "y": 10
+                  },
+                  {
+                    "x": 180,
+                    "y": 145
+                  },
+                  {
+                    "x": 0,
+                    "y": 145
+                  }
+                ],
+                "source": {
+                  "direction": "Left",
+                  "element": "44cc3501-4286-4e74-908c-f4d9e1f8d2d7",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "target": {
+                  "direction": "Right",
+                  "element": "b2d9fadf-f7a5-4db7-b785-0d3782292f21",
+                  "multiplicity": "",
+                  "role": "",
+                  "navigable": true
+                },
+                "isManuallyLayouted": false
+              }
+            },
+            "assessments": {}
+          },
+          "lastUpdate": "2026-10-30T03:06:57.286Z"
+        }
+      ]
+    },
+    "settings": {
+      "defaultDiagramType": "ClassDiagram",
+      "autoSave": true,
+      "collaborationEnabled": false,
+      "perspectives": {
+        "ClassDiagram": true,
+        "ObjectDiagram": true,
+        "StateMachineDiagram": true,
+        "AgentDiagram": true,
+        "UserDiagram": true,
+        "GUINoCodeDiagram": true,
+        "QuantumCircuitDiagram": true,
+        "NNDiagram": true,
+        "BPMN": true,
+        "ComponentDiagram": true,
+        "DeploymentDiagram": true
+      }
+    }
+  },
+  "exportedAt": "2026-10-30T03:13:41.952Z",
+  "version": "2.0.0",
+  "editorVersion": "1.0.0"
+}

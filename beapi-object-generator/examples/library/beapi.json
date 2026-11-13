@@ -1,0 +1,24 @@
+{
+  "description": "Con scope 2 no hay links: cada extremo multiple es una ArrayList y cuenta para el scope.",
+  "scope": 3,
+  "root_class": "Library",
+  "literals": {
+    "int": [
+      2
+    ],
+    "String": [
+      "Pedro",
+      "Lucas",
+      "Ana"
+    ],
+    "float": [
+      1.0
+    ]
+  },
+  "enum_literals": {
+    "Genre": [
+      "Romance",
+      "Horror"
+    ]
+  }
+}
